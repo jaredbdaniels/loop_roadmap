@@ -1,0 +1,596 @@
+{
+ "domains": {
+  "3": "Product Platform",
+  "4": "Community (impacts to non-admin people)",
+  "5": "Admin Workflows (impacts mostly just the admin)",
+  "7": "UltraCamp",
+  "37": "Unclaimed Property"
+ },
+ "modules": {
+  "6": {
+   "label": "Payments",
+   "domain_id": "3"
+  },
+  "8": {
+   "label": "Account & Service",
+   "domain_id": "3"
+  },
+  "9": {
+   "label": "Safety & Incidents",
+   "domain_id": "4"
+  },
+  "10": {
+   "label": "Staff",
+   "domain_id": "4"
+  },
+  "11": {
+   "label": "Facilities",
+   "domain_id": "5"
+  },
+  "12": {
+   "label": "Internal Comms",
+   "domain_id": "5"
+  },
+  "13": {
+   "label": "Scheduling",
+   "domain_id": "5"
+  },
+  "14": {
+   "label": "Health & Medical",
+   "domain_id": "5"
+  },
+  "15": {
+   "label": "Registrations",
+   "domain_id": "5"
+  },
+  "16": {
+   "label": "Integrations",
+   "domain_id": "3"
+  },
+  "17": {
+   "label": "Alumni",
+   "domain_id": "4"
+  },
+  "18": {
+   "label": "Reporting",
+   "domain_id": "3"
+  },
+  "19": {
+   "label": "AI Platform",
+   "domain_id": "3"
+  },
+  "21": {
+   "label": "Camp Store",
+   "domain_id": "4"
+  },
+  "22": {
+   "label": "Access Control",
+   "domain_id": "3"
+  },
+  "23": {
+   "label": "Custom Fields",
+   "domain_id": "3"
+  },
+  "24": {
+   "label": "Policies & Consent",
+   "domain_id": "3"
+  },
+  "25": {
+   "label": "Alerts & Automation",
+   "domain_id": "3"
+  },
+  "26": {
+   "label": "Family Comms",
+   "domain_id": "4"
+  },
+  "27": {
+   "label": "Housing",
+   "domain_id": "5"
+  },
+  "28": {
+   "label": "People & Orgs",
+   "domain_id": "3"
+  },
+  "29": {
+   "label": "Navigation",
+   "domain_id": "3"
+  },
+  "30": {
+   "label": "Camper Location",
+   "domain_id": "5"
+  },
+  "31": {
+   "label": "Vendors",
+   "domain_id": "3"
+  },
+  "32": {
+   "label": "Community & Media",
+   "domain_id": "4"
+  },
+  "33": {
+   "label": "Program Offerings",
+   "domain_id": "5"
+  },
+  "34": {
+   "label": "Fundraising",
+   "domain_id": "4"
+  },
+  "35": {
+   "label": "Transportation",
+   "domain_id": "5"
+  },
+  "36": {
+   "label": "Branding",
+   "domain_id": "3"
+  },
+  "38": {
+   "label": "UltraCamp",
+   "domain_id": "7"
+  },
+  "73": {
+   "label": "Food Services",
+   "domain_id": "5"
+  }
+ },
+ "capabilities": [
+  {
+   "label": "Facilities & Maintenance",
+   "domain_id": "5",
+   "module_id": "11",
+   "comment": ""
+  },
+  {
+   "label": "Family Billing",
+   "domain_id": "3",
+   "module_id": "6",
+   "comment": ""
+  },
+  {
+   "label": "Camp Accounting",
+   "domain_id": "3",
+   "module_id": "6",
+   "comment": ""
+  },
+  {
+   "label": "Financial Setup",
+   "domain_id": "3",
+   "module_id": "6",
+   "comment": ""
+  },
+  {
+   "label": "Payment Processing",
+   "domain_id": "3",
+   "module_id": "6",
+   "comment": ""
+  },
+  {
+   "label": "Entitlements",
+   "domain_id": "3",
+   "module_id": "8",
+   "comment": ""
+  },
+  {
+   "label": "Product Ops",
+   "domain_id": "3",
+   "module_id": "8",
+   "comment": ""
+  },
+  {
+   "label": "Billing / RevOps",
+   "domain_id": "3",
+   "module_id": "8",
+   "comment": ""
+  },
+  {
+   "label": "CampCo Sales & Marketing",
+   "domain_id": "3",
+   "module_id": "8",
+   "comment": ""
+  },
+  {
+   "label": "Support Operations",
+   "domain_id": "3",
+   "module_id": "8",
+   "comment": ""
+  },
+  {
+   "label": "Tenant Admin",
+   "domain_id": "3",
+   "module_id": "8",
+   "comment": ""
+  },
+  {
+   "label": "Incident Management",
+   "domain_id": "4",
+   "module_id": "9",
+   "comment": ""
+  },
+  {
+   "label": "Compliance & Licensing",
+   "domain_id": "4",
+   "module_id": "9",
+   "comment": ""
+  },
+  {
+   "label": "Risk & Emergency Plans",
+   "domain_id": "4",
+   "module_id": "9",
+   "comment": ""
+  },
+  {
+   "label": "Payroll Disbursements",
+   "domain_id": "4",
+   "module_id": "10",
+   "comment": ""
+  },
+  {
+   "label": "Onboarding & Training",
+   "domain_id": "4",
+   "module_id": "10",
+   "comment": ""
+  },
+  {
+   "label": "International Staff",
+   "domain_id": "4",
+   "module_id": "10",
+   "comment": ""
+  },
+  {
+   "label": "Staff Payroll",
+   "domain_id": "4",
+   "module_id": "10",
+   "comment": ""
+  },
+  {
+   "label": "Recruiting & Hiring",
+   "domain_id": "4",
+   "module_id": "10",
+   "comment": ""
+  },
+  {
+   "label": "Staff Scheduling & Assignments",
+   "domain_id": "4",
+   "module_id": "10",
+   "comment": ""
+  },
+  {
+   "label": "Time & Attendance",
+   "domain_id": "4",
+   "module_id": "10",
+   "comment": ""
+  },
+  {
+   "label": "Camp Productivity",
+   "domain_id": "5",
+   "module_id": "12",
+   "comment": ""
+  },
+  {
+   "label": "Scheduling Substrate",
+   "domain_id": "5",
+   "module_id": "13",
+   "comment": ""
+  },
+  {
+   "label": "Scheduling",
+   "domain_id": "5",
+   "module_id": "13",
+   "comment": ""
+  },
+  {
+   "label": "Medical Operations",
+   "domain_id": "5",
+   "module_id": "14",
+   "comment": ""
+  },
+  {
+   "label": "Attendee Management",
+   "domain_id": "5",
+   "module_id": "15",
+   "comment": ""
+  },
+  {
+   "label": "Applications & Registration",
+   "domain_id": "5",
+   "module_id": "15",
+   "comment": ""
+  },
+  {
+   "label": "Waitlists & Capacity",
+   "domain_id": "5",
+   "module_id": "15",
+   "comment": ""
+  },
+  {
+   "label": "Data Movement",
+   "domain_id": "3",
+   "module_id": "16",
+   "comment": ""
+  },
+  {
+   "label": "Integrations Catalog",
+   "domain_id": "3",
+   "module_id": "16",
+   "comment": ""
+  },
+  {
+   "label": "API Platform",
+   "domain_id": "3",
+   "module_id": "16",
+   "comment": ""
+  },
+  {
+   "label": "Integrations Runtime",
+   "domain_id": "3",
+   "module_id": "16",
+   "comment": ""
+  },
+  {
+   "label": "Webhooks Platform",
+   "domain_id": "3",
+   "module_id": "16",
+   "comment": ""
+  },
+  {
+   "label": "Alumni Management",
+   "domain_id": "4",
+   "module_id": "17",
+   "comment": ""
+  },
+  {
+   "label": "Reporting Platform",
+   "domain_id": "3",
+   "module_id": "18",
+   "comment": ""
+  },
+  {
+   "label": "Inventory & Supply",
+   "domain_id": "4",
+   "module_id": "21",
+   "comment": ""
+  },
+  {
+   "label": "Camp Store / POS",
+   "domain_id": "4",
+   "module_id": "21",
+   "comment": ""
+  },
+  {
+   "label": "Permissions",
+   "domain_id": "3",
+   "module_id": "22",
+   "comment": ""
+  },
+  {
+   "label": "Authentication",
+   "domain_id": "3",
+   "module_id": "22",
+   "comment": ""
+  },
+  {
+   "label": "Document Center",
+   "domain_id": "3",
+   "module_id": "23",
+   "comment": ""
+  },
+  {
+   "label": "Custom Fields & Forms",
+   "domain_id": "3",
+   "module_id": "23",
+   "comment": ""
+  },
+  {
+   "label": "Privacy & Retention",
+   "domain_id": "3",
+   "module_id": "24",
+   "comment": ""
+  },
+  {
+   "label": "Audit Logging",
+   "domain_id": "3",
+   "module_id": "24",
+   "comment": ""
+  },
+  {
+   "label": "Workflow Substrate",
+   "domain_id": "3",
+   "module_id": "25",
+   "comment": ""
+  },
+  {
+   "label": "Notifications",
+   "domain_id": "3",
+   "module_id": "25",
+   "comment": ""
+  },
+  {
+   "label": "Marketing & Recruitment",
+   "domain_id": "4",
+   "module_id": "26",
+   "comment": "[{\"Resolved\":false,\"Comments\":[{\"Timestamp\":\"2026-07-28T17:01:56.000Z\",\"Creator\":\"Jeremy Davis\",\"Content\":\"This is comms hub\"}]}]"
+  },
+  {
+   "label": "Family Communication",
+   "domain_id": "4",
+   "module_id": "26",
+   "comment": "[{\"Resolved\":false,\"Comments\":[{\"Timestamp\":\"2026-07-28T17:01:43.000Z\",\"Creator\":\"Jeremy Davis\",\"Content\":\"Lead management is a part of this (interest form etc.)\"}]}]"
+  },
+  {
+   "label": "Housing & Grouping",
+   "domain_id": "5",
+   "module_id": "27",
+   "comment": ""
+  },
+  {
+   "label": "Attendance Check-in",
+   "domain_id": "5",
+   "module_id": "27",
+   "comment": ""
+  },
+  {
+   "label": "People & Relationships",
+   "domain_id": "3",
+   "module_id": "28",
+   "comment": ""
+  },
+  {
+   "label": "Search Platform",
+   "domain_id": "3",
+   "module_id": "29",
+   "comment": ""
+  },
+  {
+   "label": "Menu Navigation",
+   "domain_id": "3",
+   "module_id": "29",
+   "comment": ""
+  },
+  {
+   "label": "Location Tracking",
+   "domain_id": "5",
+   "module_id": "30",
+   "comment": ""
+  },
+  {
+   "label": "Vendor Management",
+   "domain_id": "3",
+   "module_id": "31",
+   "comment": ""
+  },
+  {
+   "label": "Media",
+   "domain_id": "4",
+   "module_id": "32",
+   "comment": ""
+  },
+  {
+   "label": "Community Engagement",
+   "domain_id": "4",
+   "module_id": "32",
+   "comment": ""
+  },
+  {
+   "label": "Program Planning",
+   "domain_id": "5",
+   "module_id": "33",
+   "comment": ""
+  },
+  {
+   "label": "Camp Setup",
+   "domain_id": "5",
+   "module_id": "33",
+   "comment": ""
+  },
+  {
+   "label": "Fundraising Management",
+   "domain_id": "4",
+   "module_id": "34",
+   "comment": ""
+  },
+  {
+   "label": "Overnight Travel",
+   "domain_id": "5",
+   "module_id": "35",
+   "comment": ""
+  },
+  {
+   "label": "Day Travel",
+   "domain_id": "5",
+   "module_id": "35",
+   "comment": ""
+  },
+  {
+   "label": "Staff Travel",
+   "domain_id": "5",
+   "module_id": "35",
+   "comment": ""
+  },
+  {
+   "label": "Branding Experience",
+   "domain_id": "3",
+   "module_id": "36",
+   "comment": ""
+  },
+  {
+   "label": "Events and Rentals",
+   "domain_id": "37",
+   "module_id": null,
+   "comment": ""
+  },
+  {
+   "label": "UltraCamp",
+   "domain_id": "7",
+   "module_id": "38",
+   "comment": ""
+  },
+  {
+   "label": "Food Service Ops",
+   "domain_id": "5",
+   "module_id": "73",
+   "comment": ""
+  },
+  {
+   "label": "Productized AI",
+   "domain_id": "3",
+   "module_id": "19",
+   "comment": ""
+  },
+  {
+   "label": "Opperational AI",
+   "domain_id": "3",
+   "module_id": "19",
+   "comment": ""
+  }
+ ],
+ "teams": [
+  {
+   "team": "FANCY TEAM 2",
+   "size": "4 eng",
+   "parents": []
+  },
+  {
+   "team": "Data Team",
+   "size": "5* eng",
+   "parents": []
+  },
+  {
+   "team": "FANCY TEAM 3",
+   "size": "2 eng",
+   "parents": []
+  },
+  {
+   "team": "FANCY TEAM 1",
+   "size": "4 eng",
+   "parents": []
+  },
+  {
+   "team": "Apollo",
+   "size": "4 eng",
+   "parents": []
+  },
+  {
+   "team": "Alpha",
+   "size": "3.5 eng",
+   "parents": []
+  },
+  {
+   "team": "AI Platform Team",
+   "size": "3 eng",
+   "parents": []
+  },
+  {
+   "team": "Customer Love",
+   "size": "3 eng + 1 contractor",
+   "parents": [
+    "5"
+   ]
+  },
+  {
+   "team": "UltraCamp",
+   "size": "7 eng",
+   "parents": [
+    "7"
+   ]
+  }
+ ]
+}
