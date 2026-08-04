@@ -1,0 +1,83 @@
+{
+ "_comment": "Ranking weights and cross-team milestones, vendored from the pre-rebuild seed (main @ f5dce59). build_import.py reads these from here rather than from the seed-data.json it also writes, so they have a source of record that cannot be lost by a bad run.",
+ "weights": {
+  "votes": 1,
+  "reach": 3,
+  "confidence": 2,
+  "strategicFit": 3
+ },
+ "milestones": [
+  {
+   "id": "ms-reg-mvp",
+   "title": "Registration MVP ships (early Aug '26)",
+   "date": "2026-08-05",
+   "color": "#00AA47",
+   "description": "First modern registration MVP reaches camps ahead of the mid-September GA target.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-uc-payments",
+   "title": "UltraCamp on new payment processor (mid-Aug '26)",
+   "date": "2026-08-15",
+   "color": "#0E9F9F",
+   "description": "All UltraCamp customers migrated to the new Paysafe + Rainforest payment processor.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-reg-payments-ga",
+   "title": "Registration + Payments GA \u2014 ready for Summer '27",
+   "date": "2027-03-31",
+   "color": "#4C6EF5",
+   "description": "Registration and Payments reach GA ahead of Summer '27 enrollment.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-enrollment-opens",
+   "title": "Summer '27 enrollment opens on modern registration",
+   "date": "2027-04-01",
+   "color": "#0E9F9F",
+   "description": "First enrollment cycle opens on the modern registration flow.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-first-inseason",
+   "title": "First in-season use of modern staff / medical / attendance",
+   "date": "2027-07-01",
+   "color": "#12B76A",
+   "description": "Modern staff, medical, and attendance tools used in-season for the first time.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-2nd-cycle",
+   "title": "2nd enrollment cycle fully modern (Summer '28)",
+   "date": "2028-01-01",
+   "color": "#7A5AF8",
+   "description": "The second enrollment cycle runs fully on the modern platform.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-modernization-complete",
+   "title": "\u2726 Modernization complete \u2014 monolith retired (~Apr 2028)",
+   "date": "2028-04-01",
+   "color": "#E8833A",
+   "description": "Migration complete: the legacy monolith is retired.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-first-full-season",
+   "title": "First full season entirely on the modern platform",
+   "date": "2028-07-01",
+   "color": "#E8618C",
+   "description": "The first full summer season runs entirely on the modern platform.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  }
+ ]
+}

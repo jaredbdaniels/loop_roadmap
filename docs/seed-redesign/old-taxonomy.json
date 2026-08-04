@@ -1,0 +1,479 @@
+{
+ "_comment": "The taxonomy as it stood before the Architecture-Aligned rebuild (main @ f5dce59). Vendored so generate.py can build its fold table from a fixed snapshot instead of reading the live taxonomy.ts that gen_taxonomy.py overwrites \u2014 which made the pipeline single-use.",
+ "domains": [
+  {
+   "id": "community",
+   "label": "Community & Communications",
+   "owner": "Anna"
+  },
+  {
+   "id": "admin",
+   "label": "Camp Admin & Financials",
+   "owner": "Ellen"
+  },
+  {
+   "id": "ultracamp",
+   "label": "UltraCamp",
+   "owner": "Ali"
+  },
+  {
+   "id": "platform",
+   "label": "Platform",
+   "owner": "Jared"
+  },
+  {
+   "id": "unclaimed",
+   "label": "Unclaimed Property",
+   "owner": ""
+  }
+ ],
+ "subdomains": [
+  {
+   "id": "comms-automation",
+   "label": "Communication",
+   "domainId": "community"
+  },
+  {
+   "id": "family",
+   "label": "Family",
+   "domainId": "community"
+  },
+  {
+   "id": "staff",
+   "label": "Staff",
+   "domainId": "community"
+  },
+  {
+   "id": "productivity",
+   "label": "Productivity",
+   "domainId": "admin"
+  },
+  {
+   "id": "camp-ops",
+   "label": "Camp Operations",
+   "domainId": "admin"
+  },
+  {
+   "id": "financials",
+   "label": "Financials",
+   "domainId": "admin"
+  },
+  {
+   "id": "all-ultracamp",
+   "label": "All Things UltraCamp",
+   "domainId": "ultracamp"
+  },
+  {
+   "id": "forms-docs",
+   "label": "Forms & Documents",
+   "domainId": "platform"
+  },
+  {
+   "id": "integration",
+   "label": "Integration",
+   "domainId": "platform"
+  },
+  {
+   "id": "access",
+   "label": "Access",
+   "domainId": "platform"
+  },
+  {
+   "id": "data-analytics",
+   "label": "Data & Analytics",
+   "domainId": "platform"
+  },
+  {
+   "id": "customization",
+   "label": "Customization",
+   "domainId": "platform"
+  },
+  {
+   "id": "ai-platform",
+   "label": "AI Platform & Enablement",
+   "domainId": "platform"
+  },
+  {
+   "id": "automation",
+   "label": "Automation",
+   "domainId": "platform"
+  },
+  {
+   "id": "rentals-events",
+   "label": "Rentals & Events",
+   "domainId": "unclaimed"
+  },
+  {
+   "id": "staff-payroll",
+   "label": "Staff Payroll",
+   "domainId": "unclaimed"
+  }
+ ],
+ "capabilities": [
+  {
+   "id": "notification-preferences",
+   "label": "Notification Preferences",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "comms-preferences",
+   "label": "Comms Preferences",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "telemetry-support",
+   "label": "Telemetry & Support",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "automated-comms",
+   "label": "Automated Comms",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "ad-hoc-comms",
+   "label": "Ad Hoc Comms",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "media",
+   "label": "Media (Photos/Albums/Video)",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "delivery-providers",
+   "label": "Delivery Providers",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "external-comms-capture",
+   "label": "External Comms Capture",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "two-way-convos",
+   "label": "2-Way Convos",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "community-engagement",
+   "label": "Community Engagement (in-camp social)",
+   "subdomainId": "comms-automation"
+  },
+  {
+   "id": "family-portal",
+   "label": "Family Portal",
+   "subdomainId": "family"
+  },
+  {
+   "id": "missing-family-things",
+   "label": "Missing Family Things",
+   "subdomainId": "family"
+  },
+  {
+   "id": "alumni-management",
+   "label": "Alumni Management",
+   "subdomainId": "family"
+  },
+  {
+   "id": "staff-reference-checks",
+   "label": "Staff Reference Checks",
+   "subdomainId": "staff"
+  },
+  {
+   "id": "staff-contracts",
+   "label": "Staff Contracts",
+   "subdomainId": "staff"
+  },
+  {
+   "id": "staff-background-checks",
+   "label": "Staff Background Checks",
+   "subdomainId": "staff"
+  },
+  {
+   "id": "international-staff-management",
+   "label": "International Staff Management",
+   "subdomainId": "staff"
+  },
+  {
+   "id": "staff-recruiting-hiring",
+   "label": "Staff Recruiting & Hiring",
+   "subdomainId": "staff"
+  },
+  {
+   "id": "navigation",
+   "label": "Navigation",
+   "subdomainId": "productivity"
+  },
+  {
+   "id": "camp-productivity",
+   "label": "Camp Productivity (bulletins, tasks, notes)",
+   "subdomainId": "productivity"
+  },
+  {
+   "id": "homepage",
+   "label": "Homepage",
+   "subdomainId": "productivity"
+  },
+  {
+   "id": "lists",
+   "label": "Lists",
+   "subdomainId": "productivity"
+  },
+  {
+   "id": "mass-actions-productivity",
+   "label": "Mass Actions",
+   "subdomainId": "productivity"
+  },
+  {
+   "id": "attendee-camper-management",
+   "label": "Attendee / Camper Management",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "marketing-recruitment",
+   "label": "Marketing & Recruitment",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "applications-registration",
+   "label": "Applications & Registration Management",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "waitlists-capacity",
+   "label": "Waitlists & Capacity Management",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "medical-health",
+   "label": "Medical / Health Operations",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "overnight-travel",
+   "label": "Overnight Travel",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "attendance-checkin",
+   "label": "Attendance & Check-in/out",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "people-households-orgs-ui",
+   "label": "UI for people, households & organizations",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "activity-scheduling",
+   "label": "Activity scheduling + roster mgmt",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "season",
+   "label": "Season",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "housing-bunking",
+   "label": "Housing, Bunking & Grouping",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "luggage-services",
+   "label": "Luggage Services",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "day-travel",
+   "label": "Day Travel",
+   "subdomainId": "camp-ops"
+  },
+  {
+   "id": "financial-setup",
+   "label": "Financial Setup",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "family-billing",
+   "label": "Family Billing",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "promotion-setup",
+   "label": "Promotion Setup",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "offering-setup",
+   "label": "Offering Setup",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "payments-processing",
+   "label": "Payments Processing",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "camp-store-pos",
+   "label": "Camp Store / POS",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "fundraising-management",
+   "label": "Fundraising Management",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "pricing-service",
+   "label": "Pricing Service",
+   "subdomainId": "financials"
+  },
+  {
+   "id": "all-ultracamp-cap",
+   "label": "All Things UltraCamp",
+   "subdomainId": "all-ultracamp"
+  },
+  {
+   "id": "forms",
+   "label": "Forms",
+   "subdomainId": "forms-docs"
+  },
+  {
+   "id": "documents",
+   "label": "Documents",
+   "subdomainId": "forms-docs"
+  },
+  {
+   "id": "camp-accounting",
+   "label": "Camp Accounting",
+   "subdomainId": "integration"
+  },
+  {
+   "id": "integrations",
+   "label": "Integrations",
+   "subdomainId": "integration"
+  },
+  {
+   "id": "webhooks-platform",
+   "label": "Webhooks Platform",
+   "subdomainId": "integration"
+  },
+  {
+   "id": "api-platform",
+   "label": "API Platform",
+   "subdomainId": "integration"
+  },
+  {
+   "id": "authentication",
+   "label": "Authentication",
+   "subdomainId": "access"
+  },
+  {
+   "id": "permissions",
+   "label": "Permissions",
+   "subdomainId": "access"
+  },
+  {
+   "id": "people-households-orgs",
+   "label": "People, Households, Orgs",
+   "subdomainId": "access"
+  },
+  {
+   "id": "entitlements",
+   "label": "Entitlements",
+   "subdomainId": "access"
+  },
+  {
+   "id": "tenant-saas-admin",
+   "label": "Tenant & SaaS Admin",
+   "subdomainId": "access"
+  },
+  {
+   "id": "fields-config",
+   "label": "Fields Config",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "operational-reporting",
+   "label": "Operational Reporting / Lists",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "analytical-reporting",
+   "label": "Analytical Reporting",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "intelligent-insights",
+   "label": "Intelligent Insights",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "mass-actions-data",
+   "label": "Mass Actions",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "search",
+   "label": "Search",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "import-export",
+   "label": "Import & Export",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "audit-logging",
+   "label": "Audit Logging",
+   "subdomainId": "data-analytics"
+  },
+  {
+   "id": "custom-module-names",
+   "label": "Custom module names",
+   "subdomainId": "customization"
+  },
+  {
+   "id": "branding-whitelabel",
+   "label": "Branding & Whitelabel",
+   "subdomainId": "customization"
+  },
+  {
+   "id": "ai-platform-cap",
+   "label": "AI Platform",
+   "subdomainId": "ai-platform"
+  },
+  {
+   "id": "ai-enablement",
+   "label": "AI Enablement",
+   "subdomainId": "ai-platform"
+  },
+  {
+   "id": "workflow-automation-substrate",
+   "label": "Workflow / Automation substrate",
+   "subdomainId": "automation"
+  },
+  {
+   "id": "scheduling-primitives",
+   "label": "Scheduling time primitives",
+   "subdomainId": "automation"
+  },
+  {
+   "id": "rentals-events-cap",
+   "label": "Rentals & Events",
+   "subdomainId": "rentals-events"
+  },
+  {
+   "id": "payroll-disbursements",
+   "label": "Payroll / Stipends / Disbursements",
+   "subdomainId": "staff-payroll"
+  },
+  {
+   "id": "staff-payroll-management",
+   "label": "Staff Payroll Management",
+   "subdomainId": "staff-payroll"
+  }
+ ]
+}
