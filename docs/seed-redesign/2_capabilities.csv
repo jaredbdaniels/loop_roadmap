@@ -1,0 +1,70 @@
+capability,module,domain,jtbd,stance,epic_count,folds_in_old_capabilities,jtbd_conflict,review_notes
+Location Tracking,Camper Location,Admin Workflows (impacts mostly just the admin),Tracking Camper Whereabouts,Optional/Deferable,1,camper-location,,
+Facilities & Maintenance,Facilities,Admin Workflows (impacts mostly just the admin),Managing Facilities,Optional/Deferable,1,facilities-maintenance,,
+Food Service Ops,Food Services,Admin Workflows (impacts mostly just the admin),Operating Food Services,Optional/Deferable,1,food-service,,
+Medical Operations,Health & Medical,Admin Workflows (impacts mostly just the admin),Tracking Health & Medical Records,Must Win,1,medical-health,,
+Attendance Check-in,Housing,Admin Workflows (impacts mostly just the admin),Managing Housing & Assignments,Must Win,1,attendance-checkin,,
+Housing & Grouping,Housing,Admin Workflows (impacts mostly just the admin),Managing Housing & Assignments,Must Win,1,housing-bunking,,
+Camp Productivity,Internal Comms,Admin Workflows (impacts mostly just the admin),Coordinating Internal Communication,Nice-to-Have,2,camp-productivity,,
+Camp Setup,Program Offerings,Admin Workflows (impacts mostly just the admin),Managing Program Offerings,Must Win,1,season,,
+Program Planning,Program Offerings,Admin Workflows (impacts mostly just the admin),Managing Program Offerings,Must Win,1,offering-setup,,
+Applications & Registration,Registrations,Admin Workflows (impacts mostly just the admin),Managing Registrations,Must Win,6,applications-registration,,
+Attendee Management,Registrations,Admin Workflows (impacts mostly just the admin),Managing Registrations,Must Win,1,attendee-camper-management,,
+Waitlists & Capacity,Registrations,Admin Workflows (impacts mostly just the admin),Managing Registrations,Table Stakes,1,waitlists-capacity,,
+Scheduling,Scheduling,Admin Workflows (impacts mostly just the admin),Scheduling Activities,Table Stakes,1,activity-scheduling,,
+Scheduling Substrate,Scheduling,Admin Workflows (impacts mostly just the admin),Scheduling Activities,Table Stakes,1,scheduling-primitives,,
+Day Travel,Transportation,Admin Workflows (impacts mostly just the admin),Managing Transportation,Table Stakes,1,day-travel,,
+Luggage Services,Transportation,Admin Workflows (impacts mostly just the admin),,,1,,,On the new map with no predecessor — new capability.
+Overnight Travel,Transportation,Admin Workflows (impacts mostly just the admin),Managing Transportation,Table Stakes,1,overnight-travel,,
+Staff Travel,Transportation,Admin Workflows (impacts mostly just the admin),Managing Staff,Optional/Deferable,1,staff-travel,,
+Alumni Management,Alumni,Community (impacts to non-admin people),Managing Alumni Relationships,Optional/Deferable,1,alumni-management,,
+Camp Store / POS,Camp Store,Community (impacts to non-admin people),Running the Camp Store,Optional/Deferable,1,camp-store-pos,,
+Inventory & Supply,Camp Store,Community (impacts to non-admin people),Managing Facilities,Optional/Deferable,1,inventory-supply,,
+Community Engagement,Community & Media,Community (impacts to non-admin people),Engaging Families & Community,Optional/Deferable,5,community-engagement,,
+Media,Community & Media,Community (impacts to non-admin people),Engaging Families & Community,Differentiator,1,media,,
+Family Communication,Family Comms,Community (impacts to non-admin people),Communicating with Families,Table Stakes,7,"ad-hoc-comms, automated-comms, comms-preferences, external-comms-capture, two-way-convos",,Consolidates 5 previous capabilities.
+Marketing & Recruitment,Family Comms,Community (impacts to non-admin people),Communicating with Families,Optional/Deferable,1,marketing-recruitment,,
+Fundraising Management,Fundraising,Community (impacts to non-admin people),Managing Fundraising & Donors,Optional/Deferable,1,fundraising-management,,
+Compliance & Licensing,Safety & Incidents,Community (impacts to non-admin people),Tracking Safety & Incidents,Table Stakes,1,compliance-licensing,,
+Incident Management,Safety & Incidents,Community (impacts to non-admin people),Tracking Safety & Incidents,Table Stakes,1,incident-safeguarding,,
+Risk & Emergency Plans,Safety & Incidents,Community (impacts to non-admin people),Tracking Safety & Incidents,Nice-to-Have,1,risk-emergency-planning,,
+International Staff,Staff,Community (impacts to non-admin people),Managing Staff,Optional/Deferable,1,international-staff-management,,
+Onboarding & Training,Staff,Community (impacts to non-admin people),Managing Staff,Table Stakes,1,"staff-background-checks, staff-contracts, staff-onboarding-training, staff-reference-checks",,Consolidates 4 previous capabilities.
+Payroll Disbursements,Staff,Community (impacts to non-admin people),Managing Staff,Optional/Deferable,1,payroll-disbursements,,
+Recruiting & Hiring,Staff,Community (impacts to non-admin people),Managing Staff,Must Win,1,staff-recruiting-hiring,,
+Staff Payroll,Staff,Community (impacts to non-admin people),Managing Staff,Optional/Deferable,1,staff-payroll-management,,
+Staff Scheduling & Assignments,Staff,Community (impacts to non-admin people),Managing Staff,Must Win,4,staff-scheduling-assignments,,
+Time & Attendance,Staff,Community (impacts to non-admin people),Managing Staff,Optional/Deferable,1,staff-time-attendance,,
+Operational AI,AI Platform,Product Platform,Running AI Across the Platform,Differentiator,2,ai-enablement,,
+Productized AI,AI Platform,Product Platform,Running AI Across the Platform,Differentiator,3,ai-platform-cap,,
+Authentication,Access Control,Product Platform,Controlling Online User Access & Permissions,Table Stakes,1,authentication,,
+Permissions,Access Control,Product Platform,Controlling Online User Access & Permissions,Table Stakes,1,permissions,,
+Billing / RevOps,Account & Service,Product Platform,Managing Your Software Account & Service,Optional/Deferable,1,campco-billing-revops,,
+CampCo Sales & Marketing,Account & Service,Product Platform,Managing Your Software Account & Service,Optional/Deferable,1,campco-sales-marketing,,
+Entitlements,Account & Service,Product Platform,Managing Your Software Account & Service,Table Stakes,1,entitlements,,
+Product Ops,Account & Service,Product Platform,Managing Your Software Account & Service,Table Stakes,1,product-ops,,
+Support Operations,Account & Service,Product Platform,Managing Your Software Account & Service,Table Stakes,2,"support-operations, telemetry-support",,Consolidates 2 previous capabilities.
+Tenant Admin,Account & Service,Product Platform,Managing Your Software Account & Service,Table Stakes,1,tenant-saas-admin,,
+Notifications,Alerts & Automation,Product Platform,Managing Alerts & Automated Actions,Table Stakes,1,"delivery-providers, notification-preferences",,Consolidates 2 previous capabilities.
+Workflow Substrate,Alerts & Automation,Product Platform,Managing Alerts & Automated Actions,Optional/Deferable,1,workflow-automation-substrate,,
+Branding Experience,Branding,Product Platform,Presenting the Camp's Brand Identity,Nice-to-Have,2,"branding-whitelabel, custom-module-names",,Consolidates 2 previous capabilities. Stance differs across the folded capabilities: Nice-to-Have; Table Stakes — pick one.
+Custom Fields & Forms,Custom Fields,Product Platform,"Building Custom Fields, Forms & Documents",Table Stakes,3,"fields-config, forms",,Consolidates 2 previous capabilities.
+Document Center,Custom Fields,Product Platform,"Building Custom Fields, Forms & Documents",Table Stakes,1,documents,,
+API Platform,Integrations,Product Platform,Connecting External Tools & Systems,Table Stakes,1,api-platform,,
+Data Movement,Integrations,Product Platform,Connecting External Tools & Systems,Differentiator,2,"import-export, mass-actions-data, mass-actions-productivity",Connecting External Tools & Systems; Navigating the Product,Consolidates 3 previous capabilities.
+Integrations Catalog,Integrations,Product Platform,Connecting External Tools & Systems,Table Stakes,1,integrations-catalog,,
+Integrations Runtime,Integrations,Product Platform,Connecting External Tools & Systems,Table Stakes,1,integrations,,
+Webhooks Platform,Integrations,Product Platform,Connecting External Tools & Systems,Optional/Deferable,1,webhooks-platform,,
+Menu Navigation,Navigation,Product Platform,Navigating the Product,Table Stakes,3,"homepage, lists, navigation",,Consolidates 3 previous capabilities.
+Search Platform,Navigation,Product Platform,Navigating the Product,Optional/Deferable,1,search,,
+Camp Accounting,Payments,Product Platform,Collecting & Managing Payments,Table Stakes,1,camp-accounting,,
+Family Billing,Payments,Product Platform,Collecting & Managing Payments,Table Stakes,2,family-billing,,
+Financial Setup,Payments,Product Platform,Collecting & Managing Payments,Table Stakes,3,"financial-setup, pricing-service, promotion-setup",,Consolidates 3 previous capabilities.
+Payment Processing,Payments,Product Platform,Collecting & Managing Payments,Must Win,9,payments-processing,,
+People & Relationships,People & Orgs,Product Platform,Managing People & Relationships,Must Win,3,"people-households-orgs, people-households-orgs-ui",,Consolidates 2 previous capabilities. Stance differs across the folded capabilities: Must Win; Table Stakes — pick one.
+Audit Logging,Policies & Consent,Product Platform,Managing Camp Policies & Consent,Table Stakes,1,audit-logging,,
+Privacy & Retention,Policies & Consent,Product Platform,Managing Camp Policies & Consent,Table Stakes,1,privacy-retention,,
+Reporting Platform,Reporting,Product Platform,Building Reports,Differentiator,6,"analytical-reporting, intelligent-insights, operational-reporting",,Consolidates 3 previous capabilities.
+Vendor Management,Vendors,Product Platform,Managing Camp Vendors,Optional/Deferable,1,vendor-contracts,,
+UltraCamp,UltraCamp,UltraCamp,Converging UltraCamp,Differentiator,9,"all-ultracamp-cap, independent-schools",Converging UltraCamp; Expanding into Adjacent Segments,Consolidates 2 previous capabilities. Stance differs across the folded capabilities: Differentiator; Must Win — pick one.
+Events and Rentals,(no module),Unclaimed Property,Running Rentals & Events,Optional/Deferable,1,rentals-events-cap,,

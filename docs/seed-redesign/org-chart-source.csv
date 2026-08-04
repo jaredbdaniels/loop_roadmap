@@ -1,0 +1,368 @@
+Id,Name,Shape Library,Page ID,Contained By,Group,Line Source,Line Destination,Source Arrow,Destination Arrow,Status,Text Area 1,Text Area 2,Comments,Notes,Shape ID
+1,Document,,,,,,,,,Draft,Architecture-Aligned Org Chart,,,,acb4c28b-d4ab-41b8-a7f3-9fddfabbdd94
+2,Page,,,,,,,,,,Horse Yard,,,,Iuqe7a9qeUEi
+3,Rectangle container,Flowchart Shapes/Containers,2,,,,,,,,Product Platform,,,,SXqe._IYANXF
+4,Rectangle container,Flowchart Shapes/Containers,2,,,,,,,,Community (impacts to non-admin people) ,,,,j0qeUJxjXxWS
+5,Rectangle container,Flowchart Shapes/Containers,2,,,,,,,, Admin Workflows (impacts mostly just the admin),,,,e0qexi5eYHsf
+6,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Payments,,,,nJqe.V19g2XZ
+7,Rectangle container,Flowchart Shapes/Containers,2,,,,,,,,UltraCamp,,,,auSfRl7-IXCE
+8,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Account & Service,,,,nJqeAhm1MW2o
+9,SparkFrameBlock,Lucidspark Shapes,2,4,,,,,,,Safety & Incidents,,,,nJqeRw8c.PB9
+10,SparkFrameBlock,Lucidspark Shapes,2,4,,,,,,,Staff,,,,nJqed_k08Crg
+11,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Facilities,,,,qJqeKTCegcQb
+12,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Internal Comms,,,,oJqeTUUNZN9W
+13,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Scheduling,,,,oJqe2YIBmJFz
+14,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Health & Medical,,,,oJqezI.pbgbz
+15,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Registrations,,,,pJqeCViIvBmS
+16,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Integrations,,,,pJqe-ffRuFXV
+17,SparkFrameBlock,Lucidspark Shapes,2,4,,,,,,,Alumni,,,,pJqeC2J1ZsP6
+18,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Reporting,,,,pJqewvFW62xa
+19,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,AI Platform,,,,LfTf6iogpWNw
+20,Sticky note,Sticky Notes,2,5|11,,,,,,,Facilities & Maintenance,Kevin McKeever,,,qJqeH_A6oH5o
+21,SparkFrameBlock,Lucidspark Shapes,2,4,,,,,,,Camp Store,,,,qJqec.q8uVPI
+22,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Access Control,,,,qJqeJL39Xa2n
+23,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Custom Fields,,,,qJqe60BC7zpI
+24,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Policies & Consent,,,,rJqeiiIhZG66
+25,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Alerts & Automation,,,,rJqeV-vlGSfH
+26,SparkFrameBlock,Lucidspark Shapes,2,4,,,,,,,Family Comms,,,,rJqeLz.VZkOH
+27,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Housing,,,,rJqeko7Bw5J.
+28,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,People & Orgs,,,,sJqe3F6XPzth
+29,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Navigation,,,,sJqe_r26dWtl
+30,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Camper Location,,,,sJqeMKzu365u
+31,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Vendors,,,,sJqe52HCVgtn
+32,SparkFrameBlock,Lucidspark Shapes,2,4,,,,,,,Community & Media,,,,tJqeE6~g3aBR
+33,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Program Offerings,,,,tJqeHx8NtKSE
+34,SparkFrameBlock,Lucidspark Shapes,2,4,,,,,,,Fundraising,,,,tJqeb-l~TooS
+35,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Transportation,,,,tJqeQNlfYToI
+36,SparkFrameBlock,Lucidspark Shapes,2,3,,,,,,,Branding,,,,vJqeF8DxB8is
+37,Rectangle container,Flowchart Shapes/Containers,2,,,,,,,,Unclaimed Property,,,,BRHeP-PV3MLb
+38,SparkFrameBlock,Lucidspark Shapes,2,7,,,,,,,UltraCamp,,,,1zSfpa9Oa9tI
+39,Sticky note,Sticky Notes,2,3|6,,,,,,,Family Billing,Kevin McKeever,,,nJqeOqjtX6FO
+40,Sticky note,Sticky Notes,2,3|6,,,,,,,Camp Accounting,Kevin McKeever,,,nJqeSENZUtuM
+41,Sticky note,Sticky Notes,2,3|6,,,,,,,Financial Setup,Kevin McKeever,,,nJqev9aBD0NT
+42,Sticky note,Sticky Notes,2,3|6,,,,,,,Payment Processing,Kevin McKeever,,,nJqehVxO2LXL
+43,Sticky note,Sticky Notes,2,3|8,,,,,,,Entitlements,Kevin McKeever,,,nJqeGkPz.r4w
+44,Sticky note,Sticky Notes,2,3|8,,,,,,,Product Ops,Kevin McKeever,,,nJqe4O3WXPCx
+45,Sticky note,Sticky Notes,2,3|8,,,,,,,Billing / RevOps,Kevin McKeever,,,nJqecMRG3Xmo
+46,Sticky note,Sticky Notes,2,3|8,,,,,,,CampCo Sales & Marketing,Kevin McKeever,,,nJqelrRdK1ZU
+47,Sticky note,Sticky Notes,2,3|8,,,,,,,Support Operations,Kevin McKeever,,,nJqe6jjO0KtA
+48,Sticky note,Sticky Notes,2,3|8,,,,,,,Tenant Admin,Kevin McKeever,,,nJqeahxaVJTf
+49,Sticky note,Sticky Notes,2,4|9,,,,,,,Incident Management,Kevin McKeever,,,nJqey2ScZBRD
+50,Sticky note,Sticky Notes,2,4|9,,,,,,,Compliance & Licensing,Kevin McKeever,,,nJqeIe~7_Ofc
+51,Sticky note,Sticky Notes,2,4|9,,,,,,,Risk & Emergency Plans,Kevin McKeever,,,nJqevtTtH2Es
+52,Sticky note,Sticky Notes,2,4|10,,,,,,,Payroll Disbursements,Kevin McKeever,,,nJqeRt4cE3SS
+53,Sticky note,Sticky Notes,2,4|10,,,,,,,Onboarding & Training,Kevin McKeever,,,nJqeCKOEpSsv
+54,Sticky note,Sticky Notes,2,4|10,,,,,,,International Staff,Kevin McKeever,,,nJqeKAC.5m7R
+55,Sticky note,Sticky Notes,2,4|10,,,,,,,Staff Payroll,Kevin McKeever,,,nJqeQzFh5jlH
+56,Sticky note,Sticky Notes,2,4|10,,,,,,,Recruiting & Hiring,Kevin McKeever,,,nJqe6B8DpwGE
+57,Sticky note,Sticky Notes,2,4|10,,,,,,,Staff Scheduling & Assignments,Kevin McKeever,,,nJqe5UlU1F4J
+58,Sticky note,Sticky Notes,2,4|10,,,,,,,Time & Attendance,Kevin McKeever,,,nJqe~.Y4Bzi7
+59,Sticky note,Sticky Notes,2,5|12,,,,,,,Camp Productivity,Kevin McKeever,,,oJqeBMiRsjK6
+60,Sticky note,Sticky Notes,2,5|13,,,,,,,Scheduling Substrate,Kevin McKeever,,,oJqe_YBrcQek
+61,Sticky note,Sticky Notes,2,5|13,,,,,,,Scheduling,Kevin McKeever,,,oJqePthcinnd
+62,Sticky note,Sticky Notes,2,5|14,,,,,,,Medical Operations,Kevin McKeever,,,oJqelAunJmzj
+63,Sticky note,Sticky Notes,2,5|15,,,,,,,Attendee Management,Kevin McKeever,,,pJqefCvO8_YJ
+64,Sticky note,Sticky Notes,2,5|15,,,,,,,Applications & Registration,Kevin McKeever,,,pJqeAnf7RXj8
+65,Sticky note,Sticky Notes,2,5|15,,,,,,,Waitlists & Capacity,Kevin McKeever,,,pJqey7K1vn6n
+66,Sticky note,Sticky Notes,2,3|16,,,,,,,Data Movement,Kevin McKeever,,,pJqe7.UvM_E-
+67,Sticky note,Sticky Notes,2,3|16,,,,,,,Integrations Catalog,Kevin McKeever,,,pJqe9uYJU1zF
+68,Sticky note,Sticky Notes,2,3|16,,,,,,,API Platform,Kevin McKeever,,,pJqeAa_1jRTx
+69,Sticky note,Sticky Notes,2,3|16,,,,,,,Integrations Runtime,Kevin McKeever,,,pJqeALwCKae7
+70,Sticky note,Sticky Notes,2,3|16,,,,,,,Webhooks Platform,Kevin McKeever,,,pJqeoJGFlh13
+71,Sticky note,Sticky Notes,2,4|17,,,,,,,Alumni Management,Kevin McKeever,,,pJqe7KpAbBvI
+72,Sticky note,Sticky Notes,2,3|18,,,,,,,Reporting Platform,Kevin McKeever,,,pJqeKKlZWgvV
+73,SparkFrameBlock,Lucidspark Shapes,2,5,,,,,,,Food Services,,,,oJqetmzTD74M
+74,Sticky note,Sticky Notes,2,4|21,,,,,,,Inventory & Supply,Kevin McKeever,,,qJqeEfR2yJpV
+75,Sticky note,Sticky Notes,2,4|21,,,,,,,Camp Store / POS,Kevin McKeever,,,qJqe4nBRIGtV
+76,Sticky note,Sticky Notes,2,3|22,,,,,,,Permissions,Kevin McKeever,,,qJqe5s1gNkwa
+77,Sticky note,Sticky Notes,2,3|22,,,,,,,Authentication,Kevin McKeever,,,qJqeN5ZOOCd8
+78,Sticky note,Sticky Notes,2,3|23,,,,,,,Document Center,Kevin McKeever,,,qJqeFfl9R.OF
+79,Sticky note,Sticky Notes,2,3|23,,,,,,,Custom Fields & Forms,Kevin McKeever,,,qJqejfB9pj4F
+80,Sticky note,Sticky Notes,2,3|24,,,,,,,Privacy & Retention,Kevin McKeever,,,rJqe46U9hZ1r
+81,Sticky note,Sticky Notes,2,3|24,,,,,,,Audit Logging,Kevin McKeever,,,rJqelsrLIsDC
+82,Sticky note,Sticky Notes,2,3|25,,,,,,,Workflow Substrate,Kevin McKeever,,,rJqedFGbIJjf
+83,Sticky note,Sticky Notes,2,3|25,,,,,,,Notifications,Kevin McKeever,,,rJqeXTtZgDC.
+84,Sticky note,Sticky Notes,2,4|26,,,,,,,Marketing & Recruitment,Kevin McKeever,"[{""Resolved"":false,""Comments"":[{""Timestamp"":""2026-07-28T17:01:56.000Z"",""Creator"":""Jeremy Davis"",""Content"":""This is comms hub""}]}]",,rJqetB5N.436
+85,Sticky note,Sticky Notes,2,4|26,,,,,,,Family Communication,Kevin McKeever,"[{""Resolved"":false,""Comments"":[{""Timestamp"":""2026-07-28T17:01:43.000Z"",""Creator"":""Jeremy Davis"",""Content"":""Lead management is a part of this (interest form etc.)""}]}]",,rJqe9O11NU5M
+86,Sticky note,Sticky Notes,2,5|27,,,,,,,Housing & Grouping,Kevin McKeever,,,rJqeJ8uB9Txm
+87,Sticky note,Sticky Notes,2,5|27,,,,,,,Attendance Check-in,Kevin McKeever,,,rJqetY1CYICN
+88,Sticky note,Sticky Notes,2,3|28,,,,,,,People & Relationships,Kevin McKeever,,,sJqeL-0AJOc5
+89,Sticky note,Sticky Notes,2,3|29,,,,,,,Search Platform,Kevin McKeever,,,sJqeQzv5rihf
+90,Sticky note,Sticky Notes,2,3|29,,,,,,,Menu Navigation,Kevin McKeever,,,sJqexPwEGRBt
+91,Sticky note,Sticky Notes,2,5|30,,,,,,,Location Tracking,Kevin McKeever,,,sJqeLJK8ZqlO
+92,Sticky note,Sticky Notes,2,3|31,,,,,,,Vendor Management,Kevin McKeever,,,sJqevf9C8hrM
+93,Sticky note,Sticky Notes,2,4|32,,,,,,,Media,Kevin McKeever,,,tJqef2ZXw~wn
+94,Sticky note,Sticky Notes,2,4|32,,,,,,,Community Engagement,Kevin McKeever,,,tJqe91~DdAov
+95,Sticky note,Sticky Notes,2,5|33,,,,,,,Program Planning,Kevin McKeever,,,tJqeH2qgzMYk
+96,Sticky note,Sticky Notes,2,5|33,,,,,,,Camp Setup,Kevin McKeever,,,tJqe3_fy5bYm
+97,Sticky note,Sticky Notes,2,4|34,,,,,,,Fundraising Management,Kevin McKeever,,,tJqeWWEG4qqF
+98,Sticky note,Sticky Notes,2,5|35,,,,,,,Overnight Travel,Kevin McKeever,,,tJqe.cQwslNZ
+99,Sticky note,Sticky Notes,2,5|35,,,,,,,Day Travel,Kevin McKeever,,,tJqeOOKObVc.
+100,Sticky note,Sticky Notes,2,5|35,,,,,,,Staff Travel,Kevin McKeever,,,tJqexlLta7fe
+101,Sticky note,Sticky Notes,2,3|36,,,,,,,Branding Experience,Kevin McKeever,,,vJqexthEtul6
+102,Sticky note,Sticky Notes,2,37,,,,,,,Events and Rentals,Kevin McKeever,,,qSHeN5pBbbVZ
+103,Sticky note,Sticky Notes,2,7|38,,,,,,,UltraCamp,Kevin McKeever,,,oBSf92ItOAdw
+104,Block,Standard,2,,,,,,,,"FANCY TEAM 2
+(4 eng)",,,,N.SfHYK7fQop
+105,Block,Standard,2,,,,,,,,"Data Team
+(5* eng)",,,,N~SfEvNoUmz1
+106,Block,Standard,2,,,,,,,,"FANCY TEAM 3
+(2 eng)",,,,HaTfUKpa87aD
+107,Block,Standard,2,,,,,,,,"FANCY TEAM 1
+(4 eng)",,,,abTfZXFapu5e
+108,Block,Standard,2,,,,,,,,"Apollo
+(4 eng)",,,,ydTfv2r8a.Tr
+109,Block,Standard,2,,,,,,,,"Alpha
+(3.5 eng)",,,,6dTf1Aakl.9Z
+110,Sticky note,Sticky Notes,2,5|73,,,,,,,Food Service Ops,Kevin McKeever,,,oJqeW65EnXj-
+111,Sticky note,Sticky Notes,2,3|19,,,,,,,Productized AI ,Kevin McKeever,,,7fTfn2ocGM~F
+112,Sticky note,Sticky Notes,2,3|19,,,,,,,Opperational AI ,Kevin McKeever,,,dgTfEha~WTRZ
+113,Block,Standard,2,,,,,,,,"AI Platform Team
+(3 eng)",,,,xgTf2Ut0ydsa
+114,Block,Standard,2,5,,,,,,,"Customer Love
+(3 eng + 1 contractor)",,,,JsTf7Hd_sXl0
+115,Block,Standard,2,7,,,,,,,"UltraCamp
+(7 eng)",,,,6sTfTHUqT-2W
+116,Sticky note,Sticky Notes,2,,,,,,,,David W,Mary (MMS) Moore-Sim…,,,wxTfzpd4y~nb
+117,Sticky note,Sticky Notes,2,,,,,,,,Rob,Mary (MMS) Moore-Sim…,,,PxTfn.5Ln9~0
+118,Sticky note,Sticky Notes,2,,,,,,,,Mike H,Mary (MMS) Moore-Sim…,,,9xTfKq-I6Fib
+119,Sticky note,Sticky Notes,2,,,,,,,,Jeremy,Mary (MMS) Moore-Sim…,,,UyTfSgkUPbvh
+120,Sticky note,Sticky Notes,2,,,,,,,,Dani,Mary (MMS) Moore-Sim…,,,jATf1MHfcqkf
+121,Sticky note,Sticky Notes,2,,,,,,,,Dani,Mary (MMS) Moore-Sim…,,,sATfovOqKd_Z
+122,Sticky note,Sticky Notes,2,5,,,,,,,Tracie,Mary (MMS) Moore-Sim…,,,DATfGoPoESSO
+123,Sticky note,Sticky Notes,2,,,,,,,,Tracie,Mary (MMS) Moore-Sim…,,,KATf_fe-QdXM
+124,Sticky note,Sticky Notes,2,,,,,,,,Tracie,Mary (MMS) Moore-Sim…,,,PATfPIVkx.VB
+125,Text,Standard,2,,,,,,,, Hi ,,,,goUfOS6Crp-f
+126,Block,Standard,2,,,,,,,,Annette,,,,ivWf5g7u.wCF
+127,Block,Standard,2,,,,,,,,Jared?,,,,YvWfJ.Kz-p2_
+128,Block,Standard,2,,,,,,,,Nico,,,,9vWf~JPMGYNI
+129,Block,Standard,2,,,,,,,,TBH,,,,dwWfC3qjYxm.
+130,Block,Standard,2,,,,,,,,Allison,,,,owWfLTO6~95O
+131,Block,Standard,2,,,,,,,,Anna,,,,BwWfWhNACSRX
+132,Block,Standard,2,,,,,,,,Meagan,,,,NwWfPiFKfaC9
+133,Block,Standard,2,7,,,,,,,Ali,,,,WwWfNxScFdP9
+134,Line,,2,,,16,16,None,Arrow,,,,,,C0SfFcMD0JjV
+135,Line,,2,,,26,,None,Arrow,,,,,,cxTfq7slcZaq
+136,Page,,,,,,,,,,Org Chart,,,,0_0
+137,Block,Standard,136,,,,,,,,CTO - MMS,,,,fdtrzokXjItn
+138,Block,Standard,136,,,,,,,,"Eng Manager
+Jeremy",,,,fdtrB7l-ZdW7
+139,Block,Standard,136,,,,,,,,"Senior DBA
+Scott Nelson",,,,fdtrYNQhhZ13
+140,Block,Standard,136,,,,,,,,"Engineer
+Bini",,,,fdtr7rN5va.O
+141,Block,Standard,136,,,,,,,,"Assoc. Engineer
+Bailey",,,,fdtrTgMKU-Dm
+142,Block,Standard,136,,,,,,,,"Engineer
+Taylor",,,,fdtrOlU6OnfN
+143,Block,Standard,136,,,,,,,,"Staff Engineer
+Mark",,,,fdtrNrdjn_r1
+144,Block,Standard,136,,,,,,,,"Senior Engineer
+Shannon",,,,fdtrt~QAF7U3
+145,Block,Standard,136,,,,,,,,"Senior Engineer
+Kyle",,,,fdtrO~tIUhpY
+146,Block,Standard,136,,,,,,,,Senior Engineer Chris V,,,,fdtrDTBaYSFa
+147,Block,Standard,136,,,,,,,,"Senior Engineer
+Stuart",,,,fdtrV81oU2M3
+148,Block,Standard,136,,,,,,,,"Principal Engineer
+Scott P",,,,fdtrEpp_h~sX
+149,Block,Standard,136,,,,,,,,"Engineer
+Vijay*",,,,fdtrmO-O1h-1
+150,Block,Standard,136,,,,,,,,"Staff Engineer
+(CL) - Jah",,,,fdtrQ-aJ.5X~
+151,Block,Standard,136,,,,,,,,"Associate Engineer
+(CL) - Ethan",,,,fdtrS.tYsoPV
+152,Block,Standard,136,,,,,,,,"Engineer
+(AI Platform) Spencer",,,,fdtrXbj-YXVa
+153,Block,Standard,136,,,,,,,,"Senior Engineer
+(CL) - Dlane",,,,fdtroR9Q9mH_
+154,Block,Standard,136,,,,,,,,"Staff Engineer
+(Apollo) - Nate",,,,fdtrXeHyYAWI
+155,Block,Standard,136,,,,,,,,"Associate Engineer
+(Apollo) - Surat",,,,fdtr5P3sFSfO
+156,Block,Standard,136,,,,,,,,"Software Engineer
+(Apollo) - Daniel**",,,,fdtrGFRWC3E4
+157,Block,Standard,136,,,,,,,,"Associate Engineer
+(Apollo) - Sean",,,,fdtrbCVRoMzq
+158,Block,Standard,136,,,,,,,,"Senior Engineer
+(Alpha) - Byron",,,,fdtr06jae60C
+159,Block,Standard,136,,,,,,,,"Senior Engineer
+(Alpha) - Doug",,,,fdtr3xvkUwEU
+160,Block,Standard,136,,,,,,,,"Engineer
+(Apollo) - Jeff",,,,fdtrwgVsCcwr
+161,Block,Standard,136,,,,,,,,"Eng Director (Platform)
+Rob",,,,jqG3LSR79fus
+162,Block,Standard,136,,,,,,,,Delivery,,,,VjurGYgriYcv
+163,Block,Standard,136,,,,,,,,"Senior Engineer
+(AI Platform) - Elliot",,,,fdtre241s_jE
+164,Block,Standard,136,,,,,,,,"Engineer
+(Alpha) - Erik",,,,fdtrnE0obYj1
+165,Block,Standard,136,,,,,,,,"IT Manager
+Javi",,,,fdtrLapDIOdN
+166,Block,Standard,136,,,,,,,,"SF Systems Mgr
+Lukas",,,,fdtruJBFUKcM
+167,Block,Standard,136,,,,,,,,"Senior Engineer
+Nick van Dyke",,,,a0QZkY6Ot5EB
+168,Block,Standard,136,,,,,,,,Key,,,,6~trin1wiUKY
+169,Block,Standard,136,,,,,,,,Managers,,,,wburOJv2tgAZ
+170,Block,Standard,136,,,,,,,,Enablement,,,,ydurAyc-rTse
+171,Block,Standard,136,,,,,,,,Security,,,,nfurgel6a50R
+172,Block,Standard,136,,,,,,,,Sombra Contractor**,,,,1mur8kGsbKDn
+173,Block,Standard,136,,,,,,,,Platform,,,,Jlurmjij6~vp
+174,Block,Standard,136,,,,,,,,Intellisavvy Contractor*,,,,wnur7wp3CLsP
+175,Block,Standard,136,,,,,,,,"Eng Manager
+ (UC) - Mike Hart",,,,IYRKnHevR0YO
+176,Block,Standard,136,,,,,,,,"Staff Engineer
+(UC) - Chad",,,,8YRKLUeRJMKl
+177,Block,Standard,136,,,,,,,,"Engineer
+(UC) - Grant",,,,DZRKW1clyXns
+178,Block,Standard,136,,,,,,,,"Senior Engineer
+(UC) - Dave",,,,WZRK0xzwf_5L
+179,Block,Standard,136,,,,,,,,"Associate Engineer
+(UC) - Noah",,,,g0RKp8I4iEG9
+180,Block,Standard,136,,,,,,,,"Associate Engineer
+(UC) - David",,,,B0RKD5CGoBY-
+181,Block,Standard,136,,,,,,,,"Director of IT
+(UC) - Justin",,,,MB1KCBGtlMo3
+182,Block,Standard,136,,,,,,,,"Senior Engineer
+Joel",,,,ztHWDQ-j_fWq
+183,Block,Standard,136,,,,,,,,"Senior Engineer
+Francis",,,,7EHWvv6vjB.P
+184,Block,Standard,136,,,,,,,,"Senior Engineer
+Seth",,,,xFHW4m~0grme
+185,Block,Standard,136,,,,,,,,"Senior Engineer
+Rich",,,,wkXYdVQ.pUmy
+186,Block,Standard,136,,,,,,,,"Senior Engineer
+Amber S",,,,UkXY06PLFcbi
+187,Block,Standard,136,,,,,,,,"Senior Engineer
+Justin",,,,2N~Yh2T_pamu
+188,Block,Standard,136,,,,,,,,"Engineer
+Afeefa",,,,fdtrwsQeQPQ-
+189,Block,Standard,136,,,,,,,,"Staff Engineer
+Patrick",,,,K0QZvVeI3Yhh
+190,Block,Standard,136,,,,,,,,"Eng Manager
+David",,,,fdtrZMGi_yRs
+191,Block,Standard,136,,,,,,,,"Senior Engineer
+(UC) - Alex",,,,u_~3hsPxBBbs
+192,Block,Standard,136,,,,,,,,"Senior PM
+Nico",,,,~aecWl0iWhja
+193,Block,Standard,136,,,,,,,,"PM
+Allison",,,,5hec1Ufcqjae
+194,Block,Standard,136,,,,,,,,Product,,,,BaecD4aA8b1X
+195,Block,Standard,136,,,,,,,,"GPM
+Anna",,,,fiecZ7OT62._
+196,Block,Standard,136,,,,,,,,Head of Product Platform Jared,,,,Jjecccbrskv_
+197,Block,Standard,136,,,,,,,,"GPM
+Ali",,,,SdecMli-kkxc
+198,Block,Standard,136,,,,,,,,"Junior PM
+Alix",,,,9decDV0c840A
+199,Block,Standard,136,,,,,,,,"Eng Manager 
+Tracie",,,,~HHWyT6JACX1
+200,Block,Standard,136,,,,,,,,"Director of Product
+Ellen",,,,udecJj~x_HJR
+201,Block,Standard,136,,,,,,,,"Senior PM
+Megan",,,,5jecve4JuOM-
+202,Block,Standard,136,,,,,,,,"CPO
+Scott Nusz",,,,FkecojCZTuxX
+203,Block,Standard,136,,,,,,,,"Principal PM
+Adrian",,,,jjechAlLtd07
+204,Block,Standard,136,,,,,,,,Lead Principal Engineer - Kevin,,,,fdtrFLFagS6n
+205,Block,Standard,136,,,,,,,,"Chief of Staff
+Janelle",,,,fdtrpKOXGKkF
+206,Block,Standard,136,,,,,,,,"Associate Engineer
+(CL) - Becca",,,,fdtrAGcDodPA
+207,Text,Standard,136,,,,,,,,"""Teams of 2-3 Engineers""",,,,dOec9qNQakuf
+208,Block,Standard,136,,,,,,,,"PM
+TBH",,,,UmfcuuqQ-Gmn
+209,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Program Offerings,,,,PYecpC8AIsRd
+210,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Staff,,,,PYecaQ3wvLho
+211,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Fundraising & Donors,,,,PYec_GTtO8I3
+212,Process,Flowchart Shapes/Containers,136,,,,,,,,Connecting External Tools & Systems,,,,PYecSMZzHOlP
+213,Process,Flowchart Shapes/Containers,136,,,,,,,,Controlling Online User Access & Permissions,,,,PYecqrrfJLa1
+214,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing People & Relationships,,,,PYecUf38IbNS
+215,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Registrations,,,,PYec9kY1-NCv
+216,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Camp Policies & Consent,,,,PYec3plA8y_l
+217,Process,Flowchart Shapes/Containers,136,,,,,,,,"Building Custom Fields, Forms & Documents",,,,PYecqPO3bo9I
+218,Process,Flowchart Shapes/Containers,136,,,,,,,,Running the Camp Store,,,,PYec5pZkI6aC
+219,Process,Flowchart Shapes/Containers,136,,,,,,,,Building Reports,,,,PYecloCdfoT_
+220,Process,Flowchart Shapes/Containers,136,,,,,,,,Collecting & Managing Payments,,,,PYecBPB-Bgns
+221,Process,Flowchart Shapes/Containers,136,,,,,,,,Coordinating Internal Communication,,,,PYecfc-rBqFo
+222,Process,Flowchart Shapes/Containers,136,,,,,,,,Engaging Families & Community,,,,PYec7a-P1rj7
+223,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Alerts & Automated Actions,,,,PYecf02DHVD8
+224,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Housing & Assignments,,,,PYec3~GNE~xN
+225,Process,Flowchart Shapes/Containers,136,,,,,,,,Scheduling Activities,,,,PYecjBunOwiT
+226,Process,Flowchart Shapes/Containers,136,,,,,,,,Tracking Health & Medical Records,,,,PYecX-fh-syX
+227,Process,Flowchart Shapes/Containers,136,,,,,,,,Tracking Safety & Incidents,,,,PYecflF.pte3
+228,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Transportation,,,,PYecfbRm0Rv~
+229,Process,Flowchart Shapes/Containers,136,,,,,,,,Navigating the Product,,,,PYec1rqOzpW.
+230,Process,Flowchart Shapes/Containers,136,,,,,,,,Communicating with Families,,,,PYec8ylvT_Bq
+231,Process,Flowchart Shapes/Containers,136,,,,,,,,Operating Food Services,,,,PYec-cnrkXG-
+232,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Camp Vendors,,,,PYec5gUCRJfz
+233,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Facilities,,,,PYec07GxZ2N8
+234,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Alumni Relationships,,,,PYecHiqVYCeW
+235,Process,Flowchart Shapes/Containers,136,,,,,,,,Tracking Camper Whereabouts,,,,PYecaVLF6JSQ
+236,Process,Flowchart Shapes/Containers,136,,,,,,,,Presenting the Camp's Brand Identity,,,,PYecmpcmDDTM
+237,Process,Flowchart Shapes/Containers,136,,,,,,,,Managing Your Software Account & Service,,,,PYectn7j61Y5
+238,Process,Flowchart Shapes/Containers,136,,,,,,,,JTBD (Soon),,,,eIfcX4fFPBxd
+239,Process,Flowchart Shapes/Containers,136,,,,,,,,JTBD (Later),,,,tIfclqcOtyOV
+240,Process,Flowchart Shapes/Containers,136,,,,,,,,JTBD (Never?),,,,EIfcKAvLiBJ_
+241,Block,Standard,136,,,,,,,,"Senior PM
+Annette",,,,piec-_STlTMT
+242,Text,Standard,136,,,,,,,,"Un-approached problems
+Ultracamp
+Infra-platform
+Ali + Alix
+PM Adrian
+Customer Love PM",,,,gTfc_83VdZMs
+243,Block,Standard,136,,,,,,,,"Associate Engineer
+Amber K",,,,XagcWDEAZ217
+244,Text,Standard,136,,,,,,,,"""Customer Love""",,,,zfgcNMvswKEi
+245,Block,Standard,136,,,,,,,,"Senior Engineer
+Catherine",,,,fdtrqoPGCJ1r
+246,Block,Standard,136,,,,,,,,"Senior Engineer
+(AI Platform) - TBH",,,,iFzcQiyEfi0i
+247,Block,Standard,136,,,,,,,,"Eng Manager
+TBH",,,,m8zcCXmm6ylr
+248,Block,Standard,136,,,,,,,,"Senior Engineer
+TBH",,,,78zcmakC5cLE
+249,Block,Standard,136,,,,,,,,"Eng Manager 
+Dani",,,,z9zcBAuGZmie
+250,Block,Standard,136,,,,,,,,"Sen. Security Eng
+TBH",,,,X9zcN71ojTER
+251,Line,,136,,,161,190,None,Arrow,,,,,,SvJ3bzjBMDXS
+252,Line,,136,,,137,161,None,Arrow,,,,,,fdtralx2wlo.
+253,Line,,136,,,137,161,None,Arrow,,,,,,fdtrZKoUr9UR
+254,Line,,136,,,137,205,None,Arrow,,,,,,fdtr.q4.85Ds
+255,Line,,136,,,137,204,None,Arrow,,,,,,fdtrKeYpQPDP
+256,Line,,136,,,161,163,None,Arrow,,,,,,Ck03UfhsYOwC
+257,Line,,136,,,137,138,None,Arrow,,,,,,jU33uCvQBcL7
+258,Line,,136,,,137,199,None,Arrow,,,,,,oU333fadmnZc
+259,Line,,136,,,161,247,None,Arrow,,,,,,.YO_o0EuWNLD
+260,Line,,136,,,138,158,None,Arrow,,,,,,uSa4VHOTtOKH
+261,Line,,136,,,161,165,None,Arrow,,,,,,N8dcep3L2Krp
+262,Line,,136,,,138,154,None,Arrow,,,,,,M~dcF8vup-Qm
+263,Line,,136,,,175,191,None,Arrow,,,,,,7Sa4o9U~aif3
+264,Line,,136,,,190,166,None,Arrow,,,,,,T8dcDNCR.Ul~
+265,Line,,136,,,190,139,None,Arrow,,,,,,Z8dcxs9dK1I9
+266,Line,,136,,,202,195,None,Arrow,,,,,,hqecPp9qAB6R
+267,Line,,136,,,202,200,None,Arrow,,,,,,mqec3jBgg0hJ
+268,Line,,136,,,196,192,None,Arrow,,,,,,EqecAERP5IeY
+269,Line,,136,,,196,241,None,Arrow,,,,,,0qecb-z~7Xog
+270,Line,,136,,,195,201,None,Arrow,,,,,,VqecTs5k.qXK
+271,Line,,136,,,200,203,None,Arrow,,,,,,3qecJ0mPp3G4
+272,Line,,136,,,200,193,None,Arrow,,,,,,4qecI_1mGwnV
+273,Line,,136,,,202,197,None,Arrow,,,,,,crecrv34uyR_
+274,Line,,136,,,202,196,None,Arrow,,,,,,Brec7Yh4gw-B
+275,Line,,136,,,197,198,None,Arrow,,,,,,urecXCdPX3Sz
+276,Line,,136,,,195,154,None,Arrow,,,,,,gSecWJRbt9Ls
+277,Line,,136,,,190,189,None,Arrow,,,,,,kxec6~zBR8ma
+278,Line,,136,,,201,158,None,Arrow,,,,,,jSec3bAnziSL
+279,Line,,136,,,198,191,None,Arrow,,,,,,nSec6Pe_W.Rr
+280,Line,,136,,,197,191,None,Arrow,,,,,,sSecy_~5xn1B
+281,Line,,136,,,192,189,None,Arrow,,,,,,PSecYsD~o6Rl
+282,Line,,136,,,196,208,None,Arrow,,,,,,1LfcDEWplg7T
+283,Line,,136,,,199,148,None,Arrow,,,,,,HQfcoz0H594o
+284,Line,,136,,,199,182,None,Arrow,,,,,,IQfcCq~hOC2x
+285,Line,,136,,,199,150,None,Arrow,,,,,,LQfcRL0-XSg8
+286,Line,,136,,,249,276,None,Arrow,,,,,,qXTfYL1.FJGZ
+287,Line,,136,,,249,183,None,Arrow,,,,,,kfUfAhgOB.is

@@ -1,0 +1,34 @@
+jtbd_id,jtbd,capability_count,epic_count,teams_touched,capabilities,review_notes
+collecting-managing-payments,Collecting & Managing Payments,6,14,Financials; Integration,Camp Accounting; Family Billing; Financial Setup; Payments Processing; Pricing Service; Promotion Setup,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+managing-staff,Managing Staff,8,11,Staff; Staff Payroll,International Staff Management; Payroll / Stipends / Disbursements; Staff Onboarding & Training; Staff Payroll Management; Staff Recruiting & Hiring; Staff Scheduling & Assignments; Staff Travel; Time & Attendance (staff clock-in/out),Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+communicating-with-families,Communicating with Families,6,8,Camp Operations; Communication,2-Way Convos; Ad Hoc Comms; Automated Comms; Comms Preferences; External Comms Capture; Marketing & Recruitment,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+converging-ultracamp,Converging UltraCamp,1,8,All Things UltraCamp,All Things UltraCamp,
+engaging-families-community,Engaging Families & Community,4,8,Communication; Family,Community Engagement (in-camp social); Family Portal; Media (Photos/Albums/Video); Missing Family Things,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+managing-registrations,Managing Registrations,3,7,Camp Operations,Applications & Registration Management; Attendee / Camper Management; Waitlists & Capacity Management,
+managing-your-software-account-service,Managing Your Software Account & Service,7,7,Access; CampCo Ops; Communication,"Billing / RevOps (Campminder business); Entitlements; Product Ops (flags, tenant toggles, config); Sales & Marketing (Campminder B2B); Support Operations (internal tools); Telemetry & Support; Tenant & SaaS Admin",Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+building-reports,Building Reports,3,6,Data & Analytics,Analytical Reporting; Intelligent Insights; Operational Reporting / Lists,
+running-ai-across-the-platform,Running AI Across the Platform,2,5,AI Platform & Enablement,AI Enablement; AI Platform,
+navigating-the-product,Navigating the Product,5,5,Data & Analytics; Productivity,Homepage; Lists; Mass Actions; Navigation; Search,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+connecting-external-tools-systems,Connecting External Tools & Systems,5,5,Data & Analytics; Integration,API Platform; Import & Export; Integrations; Integrations Catalog; Webhooks Platform,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+building-custom-fields-forms-documents,"Building Custom Fields, Forms & Documents",3,3,Data & Analytics; Forms & Documents,Documents; Fields Config; Forms,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+managing-transportation,Managing Transportation,3,3,Camp Operations,Day Travel; Luggage Services; Overnight Travel,
+tracking-safety-incidents,Tracking Safety & Incidents,3,3,Camp Operations,"Compliance, Licensing & Accreditation; Incident / Safeguarding Management; Risk, Safety & Emergency Planning",
+coordinating-internal-communication,Coordinating Internal Communication,1,2,Productivity,"Camp Productivity (bulletins, tasks, notes)",
+presenting-the-camp-s-brand-identity,Presenting the Camp's Brand Identity,2,2,Customization,Branding & Whitelabel; Custom module names,
+managing-people-relationships,Managing People & Relationships,2,2,Access; Camp Operations,"People, Households, Orgs; UI for people, households & organizations",Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+controlling-online-user-access-permissions,Controlling Online User Access & Permissions,2,2,Access,Authentication; Permissions,
+managing-camp-policies-consent,Managing Camp Policies & Consent,2,2,Access; Data & Analytics,Audit Logging; Privacy / Retention / Data Rights,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+managing-alerts-automated-actions,Managing Alerts & Automated Actions,2,2,Automation; Communication,Delivery Providers; Workflow / Automation substrate,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+managing-program-offerings,Managing Program Offerings,2,2,Camp Operations; Financials,Offering Setup; Season,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+managing-housing-assignments,Managing Housing & Assignments,2,2,Camp Operations,"Attendance & Check-in/out; Housing, Bunking & Grouping",
+scheduling-activities,Scheduling Activities,2,2,Automation; Camp Operations,Activity scheduling + roster mgmt; Scheduling time primitives,Spans more than one team — this is the JTBD roll-up doing work the org chart can't.
+managing-facilities,Managing Facilities,2,2,Camp Operations,Facilities & Maintenance (incl. off-season); Inventory & Supply,
+running-rentals-events,Running Rentals & Events,1,1,Rentals & Events,Rentals & Events,
+tracking-camper-whereabouts,Tracking Camper Whereabouts,1,1,Camp Operations,Camper Location Tracking,
+operating-food-services,Operating Food Services,1,1,Camp Operations,Food Service Operations,
+running-the-camp-store,Running the Camp Store,1,1,Financials,Camp Store / POS,
+managing-camp-vendors,Managing Camp Vendors,1,1,Camp Operations,Vendor & Contract Management,
+tracking-health-medical-records,Tracking Health & Medical Records,1,1,Camp Operations,Medical / Health Operations,
+managing-fundraising-donors,Managing Fundraising & Donors,1,1,Financials,Fundraising Management,
+managing-alumni-relationships,Managing Alumni Relationships,1,1,Family,Alumni Management,
+expanding-into-adjacent-segments,Expanding into Adjacent Segments,1,1,All Things UltraCamp,Independent Schools (adjacency),
