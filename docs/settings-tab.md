@@ -143,6 +143,14 @@ switching cannot touch it.
 
 ## Decision 3 — "hide voting" is two toggles, and it has to reach the rank formula
 
+**Confirmed 2026-08-04, against the competing proposal.** PR #47's earlier revision specified
+deleting voting and the `Weights` tuning UI outright, per the Opportunities Register's additive
+rubric. That is now reversed in favour of what follows: configurable, defaulting to off and out of
+the rank score. Reasoning lives in
+[`ai-native-process-alignment.md`](./ai-native-process-alignment.md) under objection 1 — in short,
+the objection is that a popularity number quietly drives the roadmap, not that the number must be
+destroyed, and deleting the weight-tuning UI removes the mechanism that makes rank arguable.
+
 A single boolean under-specifies it. There are two distinct things a PM wants:
 
 - **"Stop people clicking +1."** The tally is fine, we just don't want it moving
@@ -315,6 +323,38 @@ And a found affordance — `toggleShareMode` already exists in the store, comple
 with toast copy, and **no component calls it.** It's a built-but-unwired
 "preview as a viewer" that the Shared views section can use as-is, per link.
 
+### Considered: use a forked scenario as the exec view
+
+Worth taking seriously, because scenarios already exist and cost nothing to fork: make an "Exec view"
+scenario, curate it by hand, share or export that. The answer splits by whether you want a document
+or a link.
+
+**For a one-off export — yes, and it works today with no build.** Fork, delete what an exec shouldn't
+see, adjust dates, then Export view as image or Export JSON. That's a board-deck artifact, and
+scenarios are already exactly the right tool for it.
+
+**For a live link — no.** A scenario is a *copy*, not a *view*, and four things follow from that:
+
+- **It goes stale silently.** Forked at a moment, drifting from live the instant anyone edits. A
+  filtered view is always current; a scenario-backed exec link is a snapshot that looks live. Stale is
+  worse than absent here.
+- **Refreshing it is manual and repeated.** Re-fork, re-curate, re-share, every time. That won't
+  happen, which is how the link gets stale in the first place.
+- **It fights what a scenario is.** `createdBy` scopes them personal, they're modeled as throwaway
+  what-ifs, and there's a Discard button next to one. Nothing about that says "durable published
+  artifact."
+- **`applyScenario` becomes dangerous.** If the exec view is a scenario, someone hitting apply pushes
+  an exec-curated subset onto the live roadmap. Scenarios are safe to apply today precisely because
+  they're *meant* to be applied.
+
+Two smaller ones: curating by deleting items bakes the dangling `dependsOn` / `betIds` problem
+permanently into the blob rather than pruning it on read, and a scenario changes data but not chrome —
+the ⋯ menu and Export JSON are still sitting there for your viewer.
+
+So: scenarios for the exported artifact, a scoped share link for the live one. And if only the live
+link is wanted, the cheap version isn't the whole config system above — it's the stage filter in
+`getPublicState`, which is one filter and delivers most of the value.
+
 ### Sequence it in two phases
 
 - **Phase A — config on the single existing link.** Add `config`, extend
@@ -435,10 +475,25 @@ email provider, or a permission model.
 
 ---
 
+## Dependency: the stage rename lands first
+
+The stage names are being renamed to the guild's phase vocabulary — `Signal / Discovery / Validation /
+Design / Delivery / Outcome`, six columns replacing today's five. See
+[`ai-native-process-alignment.md`](./ai-native-process-alignment.md).
+
+That gates the scope filter here, since stage is the filter that matters most and its values are
+about to change. It does **not** gate the shared view as a whole: a shared view should probably show
+no stage vocabulary at all, which is the point of separating publish from share. So the ordering is
+narrower than it first looks — the rename blocks the stage-scoping work and the internal board, not
+the exec view.
+
+---
+
 ## Open questions
 
-- **Which stages should an exec link default to?** Committed → Deliver → Learn is
-  the obvious answer; worth confirming that Frame is genuinely too early to show.
+- **Which stages should an exec link default to?** Under the new names, Delivery → Outcome is the
+  obvious answer, with Design a judgment call; worth confirming that Discovery and Validation are
+  genuinely too early to show.
 - **Do scoped links get bets at all?** Keeping them means recomputing investment
   and planned-share honestly on the filtered set and labelling the view as
   scoped; dropping them is simpler and loses the strategic framing that's often
