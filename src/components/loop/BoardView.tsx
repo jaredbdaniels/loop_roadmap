@@ -18,6 +18,7 @@ import {
   fmtRange,
   isFramed,
   isScheduled,
+  itemLink,
   krProgress,
   krStatus,
   laneOrder,
@@ -30,7 +31,7 @@ import type { Item } from "@/lib/loop/types";
 import { useLoop } from "./store";
 import { movedToStage, stageMoveKind, visibleItems, voted } from "./mutations";
 import { MissionTag } from "./MissionTag";
-import { NotionLink } from "./NotionLink";
+import { ItemLink, VoteButton } from "./ItemLink";
 
 export function BoardView() {
   const { items, filterMission, showKilled, filterBet, filterOwner } =
@@ -301,7 +302,6 @@ function BoardCard({
         {item.submitter?.type === "agent" && (
           <span className="pill pill-agent">Agent</span>
         )}
-        <NotionLink url={item.notionUrl} title={item.notionTitle} variant="pill" />
         {item.killed && <span className="pill pill-killed">Killed</span>}
         {!item.killed && item.stage === "Frame" && !framed && (
           <span className="pill pill-blocked">Needs problem + KR</span>
@@ -382,23 +382,37 @@ function BoardCard({
       <div className="card-meta">
         <span>
           {isScheduled(item) ? fmtRange(item) : "Day " + daysOld}
-          {item.votes ? " · " + item.votes + " votes" : ""}
+          {/* The count is normally the footer button's label, and printing it
+              twice on one card read as an error. But that button is an edit
+              control and share mode drops it, so on a read-only roadmap the
+              count comes back here — where it lived before. */}
+          {shareMode && item.votes ? " · " + item.votes + " votes" : ""}
         </span>
         {showRank && <span className="rank-score">Rank {rank}</span>}
       </div>
-      {!item.killed && (
-        <div className="card-footer edit-only">
+      {/* Not `edit-only`: that class is dropped in share mode, and the whole
+          point of the link is to work on /share and /preview, which is where the
+          roadmap actually gets reviewed. Only the vote control — and the empty
+          state's invitation to add a link — are gated, which is why share mode
+          also has to check there's a link to show: an unlinked item would
+          otherwise draw the footer's border around nothing. */}
+      {!item.killed && (!shareMode || itemLink(item)) && (
+        <div className="card-footer">
           <div style={{ display: "flex", gap: 6 }}>
-            <button
-              className="vote-link"
-              onClick={(e) => {
-                e.stopPropagation();
-                updateItem(voted(item));
-                celebrate({ kind: "vote" });
-              }}
-            >
-              +1 vote
-            </button>
+            <ItemLink
+              item={item}
+              variant="action"
+              onRequestLink={shareMode ? undefined : () => openDetail(item.id)}
+            />
+            {!shareMode && (
+              <VoteButton
+                votes={item.votes}
+                onVote={() => {
+                  updateItem(voted(item));
+                  celebrate({ kind: "vote" });
+                }}
+              />
+            )}
           </div>
         </div>
       )}

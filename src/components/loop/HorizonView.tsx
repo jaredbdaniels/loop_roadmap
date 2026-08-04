@@ -6,6 +6,7 @@ import {
   computeRank,
   fmtRange,
   horizonMismatch,
+  itemLink,
   killedDeps,
   subProgress,
   unmetDeps,
@@ -14,7 +15,7 @@ import type { Item } from "@/lib/loop/types";
 import { useLoop } from "./store";
 import { visibleItems, voted, withHorizon } from "./mutations";
 import { MissionTag } from "./MissionTag";
-import { NotionLink } from "./NotionLink";
+import { ItemLink, VoteButton } from "./ItemLink";
 
 export function HorizonView() {
   const {
@@ -150,7 +151,6 @@ function HorizonCard({ item }: { item: Item }) {
         {item.submitter?.type === "agent" && (
           <span className="pill pill-agent">Agent</span>
         )}
-        <NotionLink url={item.notionUrl} title={item.notionTitle} variant="pill" />
         {item.killed && <span className="pill pill-killed">Killed</span>}
         {waiting.length > 0 && (
           <span
@@ -184,18 +184,28 @@ function HorizonCard({ item }: { item: Item }) {
       </div>
       <h3>{item.title}</h3>
       <div className="hz-dates">{fmtRange(item)}</div>
-      {!item.killed && (
-        <div className="card-footer edit-only">
-          <button
-            className="vote-link"
-            onClick={(e) => {
-              e.stopPropagation();
-              updateItem(voted(item));
-              celebrate({ kind: "vote" });
-            }}
-          >
-            +1 vote
-          </button>
+      {/* Ungated for the same reason as the board card: share mode strips
+          `edit-only`, and the link has to survive there. Vote does not — so in
+          share mode an unlinked item skips the footer rather than drawing its
+          border around nothing. */}
+      {!item.killed && (!shareMode || itemLink(item)) && (
+        <div className="card-footer">
+          <div style={{ display: "flex", gap: 6 }}>
+            <ItemLink
+              item={item}
+              variant="action"
+              onRequestLink={shareMode ? undefined : () => openDetail(item.id)}
+            />
+            {!shareMode && (
+              <VoteButton
+                votes={item.votes}
+                onVote={() => {
+                  updateItem(voted(item));
+                  celebrate({ kind: "vote" });
+                }}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>

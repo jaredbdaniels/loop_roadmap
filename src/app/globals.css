@@ -942,22 +942,11 @@ body.exporting .tl-scroll {
   margin: 0 5px 6px 0;
   line-height: 1.5;
 }
-/* Link out to the item's product brief in Notion (NotionLink.tsx). Reads as an
-   action rather than a status, so it's outlined instead of filled. */
-.pill-notion {
-  background: var(--cm-white);
-  border: 1px solid var(--cm-border-strong);
-  color: var(--cm-purple);
-  text-decoration: none;
-  cursor: pointer;
-}
-.pill-notion:hover {
-  background: var(--cm-purple-softer);
-  border-color: var(--cm-purple-light);
-}
-/* The compact variant, for a timeline bar or a team row where there's no room
-   for a label. On a bar it sits on the stage color, so it inherits currentColor. */
-.tl-notion-glyph {
+/* The compact artifact link — brief, design or ADO work item, resolved by stage
+   (ItemLink.tsx) — for a timeline bar or a team row where there's no room for a
+   label. On a bar it sits on the stage color, so it inherits currentColor. The
+   labelled variant that cards use is `.doc-link`, down in the card styles. */
+.tl-doc-glyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -970,15 +959,15 @@ body.exporting .tl-scroll {
   vertical-align: 1px;
   flex: none;
 }
-.tl-notion-glyph:hover {
+.tl-doc-glyph:hover {
   background: rgba(255, 255, 255, 0.45);
 }
 /* In the Team view the row is on white, so the white wash is invisible. */
-.team-row .tl-notion-glyph {
+.team-row .tl-doc-glyph {
   background: var(--cm-surface-muted);
   color: var(--cm-purple);
 }
-.team-row .tl-notion-glyph:hover {
+.team-row .tl-doc-glyph:hover {
   background: var(--cm-purple-soft);
 }
 
@@ -1112,6 +1101,50 @@ body.exporting .tl-scroll {
 }
 .card-footer .vote-link:hover {
   background: var(--cm-purple-softer);
+  border-color: var(--cm-purple-light);
+}
+/* Vote shares the footer with the artifact link now, so it gives up the
+   labelled slot: the count is the label. Votes still feed the rank score shown
+   on the same card, which is why the affordance stays on the board at all. */
+.card-footer .vote-mini {
+  gap: 3px;
+  padding: 4px 9px;
+  font-variant-numeric: tabular-nums;
+}
+/* The primary footer action: open this item's brief, design or work item,
+   whichever its stage resolves to (ItemLink.tsx). Filled rather than outlined —
+   it's the one thing on a card that leaves Loop. */
+.card-footer .doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--cm-white);
+  background: var(--cm-purple);
+  border: 1px solid var(--cm-purple);
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s;
+}
+.card-footer .doc-link:hover {
+  background: var(--cm-purple-light);
+  border-color: var(--cm-purple-light);
+}
+/* Nothing linked yet. Deliberately quiet — it's a request, not an action worth
+   pulling the eye across the board for. */
+.card-footer .doc-link-empty {
+  color: var(--cm-fg-secondary);
+  background: var(--cm-white);
+  border-color: var(--cm-border-strong);
+  border-style: dashed;
+  font-weight: 500;
+}
+.card-footer .doc-link-empty:hover {
+  color: var(--cm-purple);
+  background: var(--cm-surface-muted);
   border-color: var(--cm-purple-light);
 }
 

@@ -14,6 +14,7 @@ import {
   fiscalSeason,
   fiscalSeasonLabel,
   isFiscalQuarterStartMonth,
+  itemLink,
   itemQuarters,
   nextFiscalQuarterStart,
   normalizeBets,
@@ -25,7 +26,7 @@ import {
   stageBlockReason,
   totalEpicQuarters,
 } from "./logic";
-import type { Bet, Item, LoopState, Milestone, Weights } from "./types";
+import type { Bet, Item, LoopState, Milestone, Prototype, Weights } from "./types";
 
 const WEIGHTS: Weights = { votes: 1, reach: 3, confidence: 2, strategicFit: 3 };
 
@@ -770,5 +771,132 @@ describe("scenario compare sees bet changes", () => {
       before: "b1",
       after: "b2",
     });
+  });
+});
+
+describe("itemLink", () => {
+  function proto(over: Partial<Prototype> = {}): Prototype {
+    return {
+      id: "p1",
+      title: "Direction",
+      url: "https://figma.test/p1",
+      approach: "",
+      createdBy: { type: "human", name: "" },
+      status: "exploring",
+      outcomeReading: "",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      ...over,
+    };
+  }
+
+  it("returns null when nothing is linked", () => {
+    expect(itemLink(item())).toBeNull();
+  });
+
+  it("sends a framed item to its brief", () => {
+    const link = itemLink(
+      item({ stage: "Frame", notionUrl: "https://notion.test/x", notionTitle: "Forms PRD" }),
+    );
+    expect(link).toMatchObject({
+      kind: "brief",
+      url: "https://notion.test/x",
+      label: "Open brief",
+      detail: "Forms PRD",
+    });
+  });
+
+  it("prefers the design once the item is validating, even with a brief linked", () => {
+    const link = itemLink(
+      item({
+        stage: "Validate",
+        notionUrl: "https://notion.test/x",
+        prototypes: [proto()],
+      }),
+    );
+    expect(link).toMatchObject({ kind: "design", url: "https://figma.test/p1" });
+  });
+
+  it("picks the converged direction over the others", () => {
+    const link = itemLink(
+      item({
+        stage: "Validate",
+        prototypes: [
+          proto({ id: "p1", createdAt: "2026-02-01T00:00:00.000Z" }),
+          proto({ id: "p2", url: "https://figma.test/p2", status: "chosen", title: "Inline" }),
+        ],
+      }),
+    );
+    expect(link).toMatchObject({ kind: "design", url: "https://figma.test/p2", detail: "Inline" });
+  });
+
+  it("picks the newest live direction when none is chosen, ignoring rejected ones", () => {
+    const link = itemLink(
+      item({
+        stage: "Validate",
+        prototypes: [
+          proto({ id: "p1", createdAt: "2026-01-01T00:00:00.000Z" }),
+          proto({ id: "p2", url: "https://figma.test/p2", createdAt: "2026-03-01T00:00:00.000Z" }),
+          proto({
+            id: "p3",
+            url: "https://figma.test/p3",
+            status: "rejected",
+            createdAt: "2026-04-01T00:00:00.000Z",
+          }),
+        ],
+      }),
+    );
+    expect(link?.url).toBe("https://figma.test/p2");
+  });
+
+  it("falls back to the legacy single prototype link", () => {
+    const link = itemLink(item({ stage: "Validate", prototypeUrl: "https://v0.test/old" }));
+    expect(link).toMatchObject({ kind: "design", url: "https://v0.test/old", detail: "" });
+  });
+
+  it("sends an item in delivery to its work item", () => {
+    const link = itemLink(
+      item({
+        stage: "Deliver",
+        notionUrl: "https://notion.test/x",
+        prototypes: [proto()],
+        adoUrl: "https://ado.test/1",
+        adoStatus: "Active — Sprint 4",
+      }),
+    );
+    expect(link).toMatchObject({
+      kind: "ado",
+      url: "https://ado.test/1",
+      label: "Open in ADO",
+      detail: "Active — Sprint 4",
+    });
+  });
+
+  it("uses a sub-item's work item when the epic has none of its own", () => {
+    const link = itemLink(
+      item({
+        stage: "Deliver",
+        subItems: [
+          { id: "s1", title: "No link", targetStart: null, targetEnd: null, done: false, adoUrl: "", adoStatus: "" },
+          { id: "s2", title: "Build API", targetStart: null, targetEnd: null, done: false, adoUrl: "https://ado.test/2", adoStatus: "" },
+        ],
+      }),
+    );
+    expect(link).toMatchObject({ kind: "ado", url: "https://ado.test/2", detail: "Build API" });
+  });
+
+  it("falls through to the brief for an item in delivery with no work item", () => {
+    const link = itemLink(item({ stage: "Deliver", notionUrl: "https://notion.test/x" }));
+    expect(link?.kind).toBe("brief");
+  });
+
+  it("falls back to the Aha idea for a captured item with nothing else", () => {
+    const link = itemLink(
+      item({ ahaUrl: "https://aha.test/i1", ahaReference: "PROD-I-123" }),
+    );
+    expect(link).toMatchObject({ kind: "idea", label: "Open idea", detail: "PROD-I-123" });
+  });
+
+  it("ignores whitespace-only URLs", () => {
+    expect(itemLink(item({ notionUrl: "   ", adoUrl: "  " }))).toBeNull();
   });
 });

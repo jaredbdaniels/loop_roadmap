@@ -22,6 +22,7 @@ import {
   TEAM_UNASSIGNED,
   type HorizonKey,
   type ItemType,
+  type Stage,
 } from "./constants";
 import {
   TEAM_DOMAIN,
@@ -310,6 +311,98 @@ export function divergedNotConverged(item: Item): boolean {
 export function hasEvidence(item: Item): boolean {
   if (itemPrototypes(item).some((p) => p.url && p.url.trim())) return true;
   return !!(item.prototypeUrl && item.prototypeUrl.trim());
+}
+
+/* ---------------- the artifact a card links out to ---------------- */
+
+// Loop references the artifacts, it never mirrors them (Loop/INTEGRATIONS.md:
+// "Notion owns narrative"). Which one you want depends on where the work is: a
+// framed idea sends you to the brief, a converged one to the design, and one in
+// delivery to the work item.
+export type ItemLinkKind = "brief" | "design" | "ado" | "idea";
+
+export interface ItemLink {
+  kind: ItemLinkKind;
+  url: string;
+  // Names the destination rather than saying "open doc": the point of resolving
+  // dynamically is that you know where a click goes before you make it. Also the
+  // tooltip and aria-label on the surfaces too small to show it (ItemLink.tsx).
+  label: string;
+  detail: string; // the artifact's own name or status, for the tooltip. "" if unknown.
+}
+
+const LINK_LABELS: Record<ItemLinkKind, string> = {
+  brief: "Open brief",
+  design: "Open design",
+  ado: "Open in ADO",
+  idea: "Open idea",
+};
+
+// Per stage, which artifact is the one you most likely want — but every stage
+// lists all four, because preference is not availability. An item in Deliver
+// with no work item linked yet and a good brief has to open the brief; a button
+// that dead-ends is worse than one that sends you somewhere slightly less
+// specific. First kind in the list that actually has a URL wins.
+const LINK_PREFERENCE: Record<Stage, ItemLinkKind[]> = {
+  Capture: ["brief", "idea", "design", "ado"],
+  Frame: ["brief", "idea", "design", "ado"],
+  Validate: ["design", "brief", "ado", "idea"],
+  Deliver: ["ado", "design", "brief", "idea"],
+  Learn: ["ado", "design", "brief", "idea"],
+};
+
+function trimmed(s: string | null | undefined): string {
+  return (s || "").trim();
+}
+
+function resolveLinkKind(
+  item: Item,
+  kind: ItemLinkKind,
+): { url: string; detail: string } | null {
+  if (kind === "brief") {
+    const url = trimmed(item.notionUrl);
+    return url ? { url, detail: trimmed(item.notionTitle) } : null;
+  }
+  if (kind === "idea") {
+    const url = trimmed(item.ahaUrl);
+    return url ? { url, detail: trimmed(item.ahaReference) } : null;
+  }
+  if (kind === "ado") {
+    const own = trimmed(item.adoUrl);
+    if (own) return { url: own, detail: trimmed(item.adoStatus) };
+    // Nothing on the epic itself, but the breakdown may still carry a work
+    // item — and the first sub-item's board is a better answer than none.
+    const sub = (item.subItems || []).find((s) => trimmed(s.adoUrl));
+    return sub
+      ? { url: trimmed(sub.adoUrl), detail: trimmed(sub.title) }
+      : null;
+  }
+  // design: the direction that was converged on, else the newest one still in
+  // play, else the pre-`prototypes` single link.
+  const chosen = chosenPrototype(item);
+  if (chosen && trimmed(chosen.url)) {
+    return { url: trimmed(chosen.url), detail: trimmed(chosen.title) };
+  }
+  const newest = livePrototypes(item)
+    .filter((p) => trimmed(p.url))
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))[0];
+  if (newest) {
+    return { url: trimmed(newest.url), detail: trimmed(newest.title) };
+  }
+  const legacy = trimmed(item.prototypeUrl);
+  return legacy ? { url: legacy, detail: "" } : null;
+}
+
+// The single artifact link a card should offer, or null when the item has no
+// linked artifact at all — in which case the surface asks for one rather than
+// rendering a disabled button (see ItemLink.tsx).
+export function itemLink(item: Item): ItemLink | null {
+  const preference = LINK_PREFERENCE[item.stage] || LINK_PREFERENCE.Frame;
+  for (const kind of preference) {
+    const hit = resolveLinkKind(item, kind);
+    if (hit) return { kind, label: LINK_LABELS[kind], ...hit };
+  }
+  return null;
 }
 
 export function stageBlockReason(

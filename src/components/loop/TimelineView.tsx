@@ -40,7 +40,7 @@ import type { SeasonLane } from "@/lib/loop/seasons";
 import { useLoop } from "./store";
 import { placedOnTimeline, visibleItems } from "./mutations";
 import { MissionTag } from "./MissionTag";
-import { NotionLink } from "./NotionLink";
+import { ItemLink } from "./ItemLink";
 import { SeasonLanes } from "./SeasonLanes";
 
 interface DepPath {
@@ -1011,10 +1011,10 @@ function Bar({
           but that flag means "read-only" and is set by the internal /preview
           view as well as the anonymous /share one — hiding it there would break
           the link on the surface people actually review the roadmap on. And it
-          would protect nothing: `notionUrl` is part of the item payload already
-          serialized to every client, so the URL ships either way. Notion gates
-          the page itself. */}
-      <NotionLink url={item.notionUrl} title={item.notionTitle} variant="glyph" />
+          would protect nothing: the artifact URLs are part of the item payload
+          already serialized to every client, so they ship either way. Notion and
+          ADO gate the pages themselves. */}
+      <ItemLink item={item} variant="glyph" />
       <span className="tl-handle r" />
     </div>
     {!shareMode && (

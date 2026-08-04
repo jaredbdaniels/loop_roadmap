@@ -12,7 +12,7 @@ import { DOMAINS } from "@/lib/loop/taxonomy";
 import { useLoop } from "./store";
 import { visibleItems } from "./mutations";
 import { MissionTag } from "./MissionTag";
-import { NotionLink } from "./NotionLink";
+import { ItemLink } from "./ItemLink";
 
 // A collapsible section in the Team view. `color` tints an bet group's
 // header dot; `mission` (when set) renders the MissionTag for a team group.
@@ -205,11 +205,7 @@ export function TeamView() {
                       {item.killed && (
                         <span className="pill pill-killed"> Killed</span>
                       )}
-                      <NotionLink
-                        url={item.notionUrl}
-                        title={item.notionTitle}
-                        variant="glyph"
-                      />
+                      <ItemLink item={item} variant="glyph" />
                     </div>
                     <div className="row-sub">
                       {sub}
