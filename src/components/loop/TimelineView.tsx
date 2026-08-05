@@ -28,6 +28,7 @@ import {
   parseDate,
   resolveDomain,
   snapToWeek,
+  stackMilestoneFlags,
   subOutOfRange,
   subProgress,
   subScheduled,
@@ -49,6 +50,16 @@ interface DepPath {
   x2: number;
   y2: number;
 }
+
+// One stacked row of milestone flags, matching the step in globals.css. The two
+// have to agree: this is what reserves the vertical space the CSS then uses.
+const FLAG_ROW_H = 21;
+
+// Estimated rendered width of a flag pill: 0.62rem bold runs about 5.6px per
+// character, plus the diamond, the gap and the horizontal padding. Capped at the
+// same max-width the CSS truncates at, or long titles would reserve room they
+// never take. See stackMilestoneFlags on why this is estimated, not measured.
+const flagWidth = (title: string) => Math.min(220, title.length * 5.6 + 34);
 
 export function TimelineView() {
   const {
@@ -112,6 +123,20 @@ export function TimelineView() {
     const d = parseDate(m.date);
     return d >= start && d <= end;
   });
+
+  // Flags stack into rows where they'd collide (see stackMilestoneFlags), and
+  // the gutter below reserves the height they need. Without it the stack would
+  // sit on top of the first band instead of above it.
+  const flagRows = stackMilestoneFlags(
+    visibleMilestones.map((m) => ({
+      id: m.id,
+      left: daysBetween(start, parseDate(m.date)) * ppd,
+      width: flagWidth(m.title),
+    })),
+  );
+  const flagRowCount = flagRows.size
+    ? Math.max(...flagRows.values()) + 1
+    : 0;
 
   // Whether an item bar counts as belonging to the focused bet (used to
   // dim everything outside it when one bet is clicked for emphasis).
@@ -618,6 +643,17 @@ export function TimelineView() {
               ))}
             </div>
 
+            {/* Milestone flags are absolutely positioned across the top of the
+                body, so they need reserved height or they cover the first band.
+                Sized to however many rows the stack actually needed. */}
+            {flagRowCount > 0 && (
+              <div
+                className="tl-flag-gutter"
+                style={{ height: flagRowCount * FLAG_ROW_H + 5 }}
+                aria-hidden
+              />
+            )}
+
             {/* Seasonality context sits above the work: what this roadmap is
                 scheduled against, on the camp's calendar and on ours. */}
             <SeasonLanes
@@ -758,6 +794,7 @@ export function TimelineView() {
               <MilestoneMarker
                 key={m.id}
                 milestone={m}
+                row={flagRows.get(m.id) ?? 0}
                 ppd={ppd}
                 rangeStart={start}
                 shareMode={shareMode}
@@ -1189,6 +1226,7 @@ function BetBar({
 /* -------- draggable single-date milestone marker -------- */
 function MilestoneMarker({
   milestone,
+  row,
   ppd,
   rangeStart,
   shareMode,
@@ -1197,6 +1235,10 @@ function MilestoneMarker({
   onCommit,
 }: {
   milestone: Milestone;
+  // Which stacked flag row this one sits in — 0 is the top row. Drives both the
+  // flag's offset and where its dashed line starts, so the line hangs off the
+  // bottom of its own flag rather than from a fixed height.
+  row: number;
   ppd: number;
   rangeStart: Date;
   shareMode: boolean;
@@ -1221,7 +1263,11 @@ function MilestoneMarker({
     <div
       ref={ref}
       className="tl-milestone-marker"
-      style={{ left, ["--bar-color" as string]: milestone.color }}
+      style={{
+        left,
+        ["--bar-color" as string]: milestone.color,
+        ["--ms-row" as string]: row,
+      }}
     >
       <span className="tl-milestone-line" />
       <span

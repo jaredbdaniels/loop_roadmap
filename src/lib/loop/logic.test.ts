@@ -7,6 +7,7 @@ import {
   betUnstaffedClaims,
   diffCount,
   diffStates,
+  FLAG_GAP,
   fiscalMonthOffset,
   fiscalQuarter,
   fiscalQuarterIndex,
@@ -23,6 +24,7 @@ import {
   plannedShareTotal,
   resolveDomain,
   runTheBusinessShare,
+  stackMilestoneFlags,
   stageBlockReason,
   totalEpicQuarters,
 } from "./logic";
@@ -898,5 +900,60 @@ describe("itemLink", () => {
 
   it("ignores whitespace-only URLs", () => {
     expect(itemLink(item({ notionUrl: "   ", adoUrl: "  " }))).toBeNull();
+  });
+});
+
+describe("stackMilestoneFlags", () => {
+  const flag = (id: string, left: number, width = 100) => ({ id, left, width });
+
+  it("keeps every flag on the top row when none of them collide", () => {
+    const rows = stackMilestoneFlags([
+      flag("a", 0),
+      flag("b", 200),
+      flag("c", 400),
+    ]);
+    expect([...rows.values()]).toEqual([0, 0, 0]);
+  });
+
+  it("drops a colliding flag to the next row instead of hiding it", () => {
+    // b starts 40px into a's 100px pill: on one row the later one would paint
+    // over the earlier one and the earlier title would simply be gone.
+    const rows = stackMilestoneFlags([flag("a", 0), flag("b", 40)]);
+    expect(rows.get("a")).toBe(0);
+    expect(rows.get("b")).toBe(1);
+  });
+
+  it("reuses the topmost row that has cleared", () => {
+    // a occupies 0–100 on row 0 and b 40–140 on row 1; c starts past a's end
+    // plus the gap, so it belongs back on row 0 rather than on a third row.
+    const rows = stackMilestoneFlags([flag("a", 0), flag("b", 40), flag("c", 120)]);
+    expect(rows.get("c")).toBe(0);
+  });
+
+  it("orders by date, not by array order", () => {
+    // Milestones arrive in whatever order they were created; the stack has to
+    // read left to right or a late-created early flag would push everything down.
+    const rows = stackMilestoneFlags([flag("late", 400), flag("early", 0)]);
+    expect(rows.get("early")).toBe(0);
+    expect(rows.get("late")).toBe(0);
+  });
+
+  it("leaves the caller's array untouched", () => {
+    const flags = [flag("late", 400), flag("early", 0)];
+    stackMilestoneFlags(flags);
+    expect(flags.map((f) => f.id)).toEqual(["late", "early"]);
+  });
+
+  it("returns nothing for no flags", () => {
+    expect(stackMilestoneFlags([]).size).toBe(0);
+  });
+
+  it("separates neighbours by at least FLAG_GAP", () => {
+    // Exactly touching still counts as a collision — two pills flush against
+    // each other read as one long pill.
+    expect(stackMilestoneFlags([flag("a", 0), flag("b", 100)]).get("b")).toBe(1);
+    expect(
+      stackMilestoneFlags([flag("a", 0), flag("b", 100 + FLAG_GAP)]).get("b"),
+    ).toBe(0);
   });
 });

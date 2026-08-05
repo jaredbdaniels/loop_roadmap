@@ -1763,7 +1763,13 @@ body.exporting .tl-scroll {
   padding: 1px 6px;
   border-radius: var(--r-pill);
 }
-/* ----- milestones: a flag pinned at the top with a dashed line down ----- */
+/* ----- milestones: a flag pinned at the top with a dashed line down -----
+   Flags stack into rows where they'd collide (stackMilestoneFlags in logic.ts),
+   and --ms-row is the row this one landed in. The 21px step here has to match
+   FLAG_ROW_H in TimelineView.tsx, which reserves the gutter's height. */
+.tl-flag-gutter {
+  position: relative;
+}
 .tl-milestone-marker {
   position: absolute;
   top: 0;
@@ -1771,23 +1777,36 @@ body.exporting .tl-scroll {
   z-index: 4;
   pointer-events: none; /* only the flag is interactive */
 }
+/* Quiet by default. A dozen dashed lines at full strength is a picket fence
+   drawn over the work — and over the season curves above it, which are the
+   hardest thing on the timeline to read through noise. The line is a reference,
+   so it stays faint until you're actually using it (hover, below). */
 .tl-milestone-line {
   position: absolute;
-  top: 24px;
+  top: calc(24px + var(--ms-row, 0) * 21px);
   bottom: 0;
   left: 0;
   border-left: 2px dashed var(--bar-color, var(--cm-purple));
-  opacity: 0.55;
+  opacity: 0.18;
+  transition: opacity 0.12s ease;
+}
+/* The flag is the only hit target, but hover still resolves on its ancestors —
+   so pointing at a flag is what brings its own line forward. */
+.tl-milestone-marker:hover .tl-milestone-line {
+  opacity: 0.8;
 }
 .tl-milestone-flag {
   position: absolute;
-  top: 3px;
+  top: calc(3px + var(--ms-row, 0) * 21px);
   left: 0;
   transform: translateX(-1px);
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  max-width: 170px;
+  /* Roomier than it was: collisions stack into rows now instead of painting over
+     each other, so a wider pill costs an occasional extra row rather than a
+     hidden milestone. Keep in step with flagWidth's cap in TimelineView.tsx. */
+  max-width: 220px;
   padding: 2px 9px;
   font-size: 0.62rem;
   font-weight: 700;

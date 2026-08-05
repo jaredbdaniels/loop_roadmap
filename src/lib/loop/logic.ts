@@ -1363,6 +1363,43 @@ export function diffCount(d: StateDiff): number {
   );
 }
 
+/* ---------------- milestone flag stacking ---------------- */
+
+// Gap left between two flags sharing a row. Small enough that flags only stack
+// when they'd genuinely collide, big enough that two neighbours read as two.
+export const FLAG_GAP = 6;
+
+/**
+ * Assign each milestone flag a row, so flags that would overlap stack instead of
+ * hiding each other.
+ *
+ * A flag is a pill of text pinned at a date, and dates cluster — three
+ * milestones in the same fortnight drew three pills on top of each other, with
+ * whichever rendered last winning and the rest simply gone. Greedy first-fit by
+ * date: each flag takes the topmost row where it clears what's already there, so
+ * a timeline with no collisions still draws a single row.
+ *
+ * Widths are the caller's estimate from the label rather than a measurement —
+ * measuring means a layout pass per flag per zoom, and an estimate a few px out
+ * only ever costs one unnecessary row.
+ */
+export function stackMilestoneFlags(
+  flags: readonly { id: string; left: number; width: number }[],
+): Map<string, number> {
+  const rowEnds: number[] = []; // rightmost px used so far, per row
+  const rows = new Map<string, number>();
+  for (const f of [...flags].sort((a, b) => a.left - b.left)) {
+    let row = rowEnds.findIndex((end) => end + FLAG_GAP <= f.left);
+    if (row === -1) {
+      row = rowEnds.length;
+      rowEnds.push(0);
+    }
+    rowEnds[row] = f.left + f.width;
+    rows.set(f.id, row);
+  }
+  return rows;
+}
+
 /* ---------------- timeline range ---------------- */
 export function timelineRange(
   items: Item[],
