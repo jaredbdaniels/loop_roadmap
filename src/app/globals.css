@@ -732,6 +732,17 @@ body.exporting .board-wrap,
 body.exporting .tl-scroll {
   overflow: visible !important;
 }
+/* The measured pane height is an inline style, so this needs !important to
+   win: a capture bounded to the viewport would crop the roadmap to whatever
+   happened to be on screen. */
+body.exporting .tl-scroll {
+  height: auto !important;
+}
+/* Sticky against a scrollport that no longer exists just offsets the header
+   inside the capture. */
+body.exporting .tl-header {
+  position: static !important;
+}
 
 /* =========================================================================
    Board
@@ -1652,10 +1663,20 @@ body.exporting .tl-scroll {
    Timeline view
    ========================================================================= */
 .timeline-view {
-  padding: 8px 28px 64px;
+  /* Bottom padding stays small because the pane below is height-bounded and
+     ends at the viewport — 64px of page under it would only push the legend
+     off screen, which is the room the pane gave up to show it. */
+  padding: 8px 28px 20px;
 }
+/* Both axes: the height is set from JS (see fitPane in TimelineView), and a
+   bounded pane is what gives `.tl-header` a scrollport to stick to. */
 .tl-scroll {
-  overflow-x: auto;
+  overflow: auto;
+  /* Sideways only: swiping past either end of a two-year axis shouldn't
+     trigger the browser's back gesture. Vertical overscroll still chains to
+     the page, which is how the legend and the unscheduled list below the pane
+     stay reachable with the same wheel gesture. */
+  overscroll-behavior-x: contain;
   background: var(--cm-white);
   border: 1px solid var(--cm-border);
   border-radius: var(--r-lg);
@@ -1666,12 +1687,20 @@ body.exporting .tl-scroll {
   position: relative;
   min-width: 100%;
 }
+/* Pinned to the top of the pane while the rows scroll under it. Above every
+   z-index inside the timeline (flags at 5, a hovered bar at 6, a link preview
+   at 7) — anything that passed under it at 5 used to show through. */
 .tl-header {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 12;
   background: var(--cm-white);
   border-bottom: 1px solid var(--cm-border-strong);
+}
+/* Only once it's actually holding position: a shadow over a roadmap that
+   hasn't been scrolled is decoration. */
+.tl-scroll[data-scrolled="1"] .tl-header {
+  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.35);
 }
 .tl-qrow,
 .tl-mrow {

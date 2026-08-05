@@ -55,6 +55,14 @@ interface DepPath {
 // have to agree: this is what reserves the vertical space the CSS then uses.
 const FLAG_ROW_H = 21;
 
+// How much of what sits under the pane (the legend, then the unscheduled list)
+// the pane will give up viewport height for. Enough that the legend lands on
+// screen with it; capped so a long "not on the timeline yet" list doesn't
+// squeeze the roadmap to make room for itself. PANE_MIN_H is the floor: on a
+// short window the page scrolls rather than the pane becoming a letterbox.
+const PANE_BELOW_MAX = 132;
+const PANE_MIN_H = 340;
+
 // Estimated rendered width of a flag pill: 0.62rem bold runs about 5.6px per
 // character, plus the diamond, the gap and the horizontal padding. Capped at the
 // same max-width the CSS truncates at, or long titles would reserve room they
@@ -101,6 +109,7 @@ export function TimelineView() {
   const toggleFocus = (id: string) =>
     setFocusBet((cur) => (cur === id ? null : id));
 
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [depPaths, setDepPaths] = useState<DepPath[]>([]);
@@ -279,6 +288,60 @@ export function TimelineView() {
     today >= start && today <= end ? daysBetween(start, today) * ppd : null;
 
   const unscheduled = vis.filter((i) => !isScheduled(i) && !i.killed);
+
+  // ----- the pane owns its own vertical scroll, so the header can pin -----
+  // `.tl-header` has always been `position: sticky`, but sticky resolves
+  // against the nearest scrollport — and a pane that only ever scrolled
+  // sideways never moves against its own content, so the ruler slid away with
+  // the page and the rows below it lost their dates. Bounding the pane to the
+  // viewport makes it the vertical scroller too, which is what actually pins
+  // the header. Measured rather than a CSS calc(): what sits above the
+  // timeline (the draft banner, a control bar that wraps on a narrow window)
+  // isn't a constant.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const fit = () => {
+      const rect = el.getBoundingClientRect();
+      // Document-relative top: a page that is itself scrolled would otherwise
+      // feed its scroll offset back into the height it produced.
+      const top = rect.top + window.scrollY;
+      // What the legend and the unscheduled list occupy under the pane, plus
+      // the view's own bottom padding. Measured, not assumed: the legend wraps.
+      const view = el.parentElement;
+      const below = view
+        ? Math.min(
+            view.getBoundingClientRect().bottom - rect.bottom,
+            PANE_BELOW_MAX,
+          )
+        : 0;
+      const h = Math.max(
+        PANE_MIN_H,
+        Math.round(window.innerHeight - top - below),
+      );
+      // Only write on a real change: this height is what the observer below is
+      // watching, so re-setting it every callback is how a resize loop starts.
+      if (el.style.height !== `${h}px`) el.style.height = `${h}px`;
+    };
+    // Drives the header's drop shadow: it only earns one once there are rows
+    // underneath it. See `.tl-scroll[data-scrolled]` in globals.css.
+    const onScroll = () => {
+      el.dataset.scrolled = el.scrollTop > 0 ? "1" : "0";
+    };
+    fit();
+    onScroll();
+    window.addEventListener("resize", fit);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    // The banner appearing or the controls wrapping moves the pane's top
+    // without a window resize.
+    const ro = new ResizeObserver(fit);
+    ro.observe(document.body);
+    return () => {
+      window.removeEventListener("resize", fit);
+      el.removeEventListener("scroll", onScroll);
+      ro.disconnect();
+    };
+  }, []);
 
   // ----- dependency lines (measure y from DOM after layout) -----
   useLayoutEffect(() => {
@@ -602,7 +665,7 @@ export function TimelineView() {
 
   return (
     <div className="timeline-view">
-      <div className="tl-scroll">
+      <div className="tl-scroll" ref={scrollRef}>
         <div className="tl-inner" style={{ width: totalDays * ppd }}>
           <div className="tl-header">
             <div className="tl-qrow">
