@@ -10,7 +10,7 @@ import type { Bet, Item, Milestone, Weights } from "./types";
 // Org Chart plus the Epic Seed sheet by docs/seed-redesign/build_import.py: one
 // epic per outcome, each anchored to a module so it lands in the right
 // domain/JTBD, tagged Modernize / New value / Both, and assigned to one of the
-// nine delivery teams. Spans the already-shipped AskCamp surfaces, the in-flight
+// ten delivery teams. Spans the already-shipped AskCamp surfaces, the in-flight
 // Summer '26 work (Registration modernization, the enrollment-reporting MVP, the
 // Customer Love team, the UltraCamp payments rollout) and the FY27-Q1 → FY28-Q4
 // window beyond it. Regenerate rather than hand-edit. Seeds an empty DB.
@@ -22,9 +22,10 @@ export function seedItems(): Item[] {
   );
 }
 
-// The cross-team bets. Registration starts with no items linked — a user
-// links the work that makes it up. Parent Experience Convergence ships linked,
-// because it is the worked example of why bets exist: no single team owns
+// The cross-team bets. Both ship linked to their work: Registration picked up a
+// thesis and five epics at the 2026-07-31 roadmap review, where "add the hotness
+// as children, based on the bets" landed on a bet that had neither. Parent
+// Experience Convergence is the worked example of why bets exist: no single team owns
 // the parent experience, so its epics sit on Community Engagement, Custom Fields
 // & Forms, Family Billing, Applications & Registration and People &
 // Relationships, and only the bet shows them as one program.

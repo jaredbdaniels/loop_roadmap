@@ -43,10 +43,11 @@ anchor"); what has to decouple is the derivation in `constants.ts` /
 
 | File | Rows | What it is |
 |---|---|---|
-| `1_jtbds.csv` | 33 | The customer-value roll-up. 13 span more than one team. |
-| `2_capabilities.csv` | 69 | The spine, keyed on the new map. `folds_in_old_capabilities` records the consolidation from the previous 92. |
-| `3_epics.csv` | 124 | One row per epic. 92 from the sheet, 22 carried from the app seed, 8 drafted. |
-| `4_teams.csv` | 9 | The delivery teams, eng counts and leads. Named `<Domain> — <Scope>`, qualified only where a domain holds more than one team. |
+| `1_jtbds.csv` | 34 | The customer-value roll-up. 13 span more than one team. |
+| `2_capabilities.csv` | 71 | The spine, keyed on the new map. `folds_in_old_capabilities` records the consolidation from the previous 92. |
+| `3_epics.csv` | 136 | One row per epic. 92 from the sheet, 22 carried from the app seed, 8 drafted, 12 added at the 2026-07-31 roadmap review. |
+| `4_teams.csv` | 10 | The delivery teams, eng counts and leads. Named `<Domain> — <Scope>`, qualified only where a domain holds more than one team. |
+| `5_subitems.csv` | 40 | The breakdown layer — one row per child, keyed to its parent `epic_id`. Added at the 2026-07-31 roadmap review; every epic carried an empty `subItems` before it. |
 | `parse_lucid.py` | — | Lucid export → `new-map.json`. |
 | `gen_taxonomy.py` | — | `new-map.json` + teams → `src/lib/loop/taxonomy.ts`. |
 | `old-taxonomy.json` | — | The pre-rebuild taxonomy, vendored. |
@@ -185,9 +186,18 @@ value" is meaningful immediately.
 
 ## What changed in the app
 
-- `taxonomy.ts` is regenerated: `DOMAINS` (5), `JTBDS` (32, the map's "modules",
-  replacing `SUBDOMAINS`), `MODULES` (69, the map's "capabilities") and a new
-  `TEAMS` (9).
+- `taxonomy.ts` is regenerated: `DOMAINS` (5), `JTBDS` (33, the map's "modules",
+  replacing `SUBDOMAINS`), `MODULES` (71, the map's "capabilities") and a new
+  `TEAMS` (10).
+- **Migration is a lane, not a phase.** The `Migration` JTBD, its two modules
+  (Migration Cohorts, Migration Tooling) and the `Platform — Migration` team are
+  added through `gen_taxonomy.py`'s `EXTRA_JTBDS` / `EXTRA_MODULES` hooks rather
+  than into `new-map.json`, so the vendored Lucid export stays diffable against
+  the export it came from. The map draws the product; moving camps onto it is a
+  program running alongside.
+- **Three fields stopped being hardcoded.** `owner` and `dependsOn` now come from
+  their own columns in `3_epics.csv`, and `subItems` from `5_subitems.csv`. All
+  three were previously written as `""` / `[]` for every epic.
 - **Team is decoupled from JTBD.** `MISSIONS` now derives from `TEAMS`, not from
   the JTBD list. `MISSION_DOMAIN` became `TEAM_DOMAIN`; `capabilitySubdomain`
   became `moduleJtbd`, alongside a new `moduleTeam` and `TEAM_BY_JTBD`. The
@@ -204,7 +214,7 @@ value" is meaningful immediately.
   Team view's trailing "Unclaimed" group rather than disappearing. That value is
   left alone by later migrations, so "no team yet" is a choice that sticks, and
   it's selectable in the item detail as "— No team yet —".
-- The AI capture enum is built from team **ids**, not labels. Seven of nine labels
+- The AI capture enum is built from team **ids**, not labels. Eight of ten labels
   contain an em dash, and a model reproducing one will sometimes emit a hyphen or
   en dash — which would fail schema validation and error the capture.
 

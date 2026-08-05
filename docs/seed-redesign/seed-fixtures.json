@@ -53,6 +53,15 @@
    "updatedAt": "2026-07-23T09:00:00Z"
   },
   {
+   "id": "ms-migration-wave-1",
+   "title": "First cohort flips to the modern platform",
+   "date": "2027-09-01",
+   "color": "#0E9F9F",
+   "description": "Wave 1 design partners cut over. Waves run Sept\u2013Feb only; March\u2013August is an in-season blackout.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
    "id": "ms-2nd-cycle",
    "title": "2nd enrollment cycle fully modern (Summer '28)",
    "date": "2028-01-01",
@@ -63,10 +72,10 @@
   },
   {
    "id": "ms-modernization-complete",
-   "title": "\u2726 Modernization complete \u2014 monolith retired (~Apr 2028)",
+   "title": "\u2726 Modernization complete \u2014 feature parity on the modern platform (~Apr 2028)",
    "date": "2028-04-01",
    "color": "#E8833A",
-   "description": "Migration complete: the legacy monolith is retired.",
+   "description": "Feature parity reached on the modern platform. Not a retirement date: camps still have to be migrated onto it, which runs about another year (see ms-monolith-retired).",
    "createdAt": "2026-07-23T09:00:00Z",
    "updatedAt": "2026-07-23T09:00:00Z"
   },
@@ -76,6 +85,15 @@
    "date": "2028-07-01",
    "color": "#E8618C",
    "description": "The first full summer season runs entirely on the modern platform.",
+   "createdAt": "2026-07-23T09:00:00Z",
+   "updatedAt": "2026-07-23T09:00:00Z"
+  },
+  {
+   "id": "ms-monolith-retired",
+   "title": "Legacy monolith decommissioned",
+   "date": "2029-04-30",
+   "color": "#E8833A",
+   "description": "The last camp is off the legacy platform and it is switched off \u2014 about a year after feature parity, once the Sept\u2013Feb migration windows allow it.",
    "createdAt": "2026-07-23T09:00:00Z",
    "updatedAt": "2026-07-23T09:00:00Z"
   }

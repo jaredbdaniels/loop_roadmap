@@ -23,6 +23,20 @@ epics = list(csv.DictReader(open(os.path.join(HERE, "3_epics.csv"))))
 caps = {r["capability"]: r for r in
         csv.DictReader(open(os.path.join(HERE, "2_capabilities.csv")))}
 teams = list(csv.DictReader(open(os.path.join(HERE, "4_teams.csv"))))
+# The breakdown layer. One row per child, grouped onto its parent epic — added
+# at the 2026-07-31 roadmap review, where four separate stickies asked for the
+# same thing: a tile broken into the work it actually contains.
+subitems = collections.defaultdict(list)
+for s in csv.DictReader(open(os.path.join(HERE, "5_subitems.csv"))):
+    subitems[s["epic_id"]].append({
+        "id": s["subitem_id"],
+        "title": s["title"],
+        "targetStart": s["target_start"] or None,
+        "targetEnd": s["target_end"] or None,
+        "done": s["done"].strip().lower() in ("1", "true", "yes"),
+        "adoUrl": s["ado_url"],
+        "adoStatus": "",
+    })
 # Weights and milestones come from a vendored fixture, NOT from the
 # seed-data.json this script also writes — reading its own output left them with
 # no source of record, so a truncated or app-exported seed would silently change
@@ -101,10 +115,32 @@ BETS = [
                     "across teams.",
         color="#7A5AF8",
         tier="foundational",
-        # Declared but unstaffed on purpose: no epic links to this bet, so all
-        # three JTBDs fire the unstaffed-claim flag on first load. That is the
-        # current state of the roadmap, and the clearest demonstration of why
-        # declaring scope separately from the work is worth doing.
+        status="active",
+        horizon="now",
+        # Filled in at the 2026-07-31 roadmap review. It was declared but empty —
+        # no thesis, no outcomes, no linked epics — which is why the sticky asking
+        # for "the hotness we are targeting based on the bets" had nothing to draw
+        # on. Five registration epics now link here, so the bet reconciles against
+        # real work instead of firing the unstaffed-claim flag on all three JTBDs.
+        thesis="We believe rebuilding registration end to end — mobile-first, "
+               "multi-kid, with payment in the flow — lifts completed enrollments, "
+               "because the current flow loses families at exactly the point they "
+               "have decided to buy.",
+        whyNow="Registration is the first thing every camp and every family "
+               "touches, so it is both the biggest conversion lever and the proof "
+               "that modernization is real. It also gates Summer '27 enrollment: "
+               "miss the window and the next chance is a year out.",
+        outcomes=[
+            {"statement": "Completed registrations on the modern flow",
+             "metric": "completed registrations", "unit": "percent",
+             "baseline": None, "target": None, "current": None},
+            {"statement": "Registration abandonment rate",
+             "metric": "abandonment", "unit": "percent",
+             "baseline": None, "target": None, "current": None},
+        ],
+        killCriteria="Modern registration does not reach GA in time for Summer '27 "
+                     "enrollment opening, or completion rate fails to beat the "
+                     "legacy flow across a full cycle.",
         jtbdIds=["registrations", "payments", "custom-fields"],
     ),
     bet(
@@ -125,7 +161,8 @@ BETS = [
                  "payments", "people-orgs"],
     ),
 ]
-BET_BY_TITLE = {"Parent Experience Convergence": BET_PARENT}
+BET_BY_TITLE = {"Parent Experience Convergence": BET_PARENT,
+                "Registration": "init-registration"}
 
 
 def _bet_ids(e):
@@ -162,7 +199,10 @@ for e in epics:
         "description": delivery,
         # Team, not JTBD — the new map keeps these separate.
         "mission": TEAM_BY_TITLE.get(e["title"]) or JTBD_TEAM.get(jtbd_label, ""),
-        "owner": "",
+        # The single accountable person, from the CSV's own column. Every epic
+        # carried "" until the 2026-07-31 review, where three stickies turned out
+        # to be asking "who owns this?" rather than anything about the work.
+        "owner": e.get("owner", ""),
         "moduleId": module_id(module),
         "type": e["type"] or None,
         "stage": e["stage"] or "Capture",
@@ -170,13 +210,13 @@ for e in epics:
         "horizon": e["horizon"] or None,
         "targetStart": e["target_start"] or None,
         "targetEnd": e["target_end"] or None,
-        "dependsOn": [],
+        "dependsOn": [x.strip() for x in e.get("depends_on", "").split(";") if x.strip()],
         "betIds": _bet_ids(e),
         # One bet funds an epic; the rest are enabled by it. Every seeded epic
         # has at most one bet, so the funder is unambiguous — migrateItems would
         # auto-set it anyway, but writing it here keeps the payload explicit.
         "fundedBetId": (_bet_ids(e) or [None])[0],
-        "subItems": [],
+        "subItems": subitems.get(e["epic_id"], []),
         # Generated data, so no individual is credited as the submitter; a real
         # person here would misattribute 124 items in the Board view.
         "submitter": {"type": "human", "name": "Product"},

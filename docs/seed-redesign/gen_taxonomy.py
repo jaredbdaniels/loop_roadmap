@@ -35,10 +35,20 @@ DOMAIN_META = {
 }
 
 # Modules added beyond the map, and the JTBD they belong to.
-EXTRA_MODULES = [("Luggage Services", "Transportation")]
+EXTRA_MODULES = [
+    ("Luggage Services", "Transportation"),
+    # Migration is not on the Lucid map — the map draws the product, and moving
+    # camps onto it is a program alongside. Added here rather than in
+    # new-map.json so that file stays diffable against the Lucid export.
+    ("Migration Cohorts", "Migration"),
+    ("Migration Tooling", "Migration"),
+]
 # The lone Unclaimed module has no JTBD frame on the board; give it one so every
 # module resolves through the same two hops.
-EXTRA_JTBDS = [("Events & Rentals", "Unclaimed Property")]
+EXTRA_JTBDS = [
+    ("Events & Rentals", "Unclaimed Property"),
+    ("Migration", "Product Platform"),
+]
 JTBD_OVERRIDE = {"Events and Rentals": "Events & Rentals"}
 
 
@@ -84,6 +94,7 @@ TEAM_DOMAIN_BY_NAME = {
     "Platform — Payments": "product-platform",
     "Platform — Data & Integrations": "product-platform",
     "Platform — AI": "product-platform",
+    "Platform — Migration": "product-platform",
     "Admin Workflows": "admin-workflows",
     "Admin Workflows — Customer Love": "admin-workflows",
     "Community — Staff & Family Comms": "community",

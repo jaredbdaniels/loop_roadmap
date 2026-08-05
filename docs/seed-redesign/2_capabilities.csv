@@ -23,7 +23,7 @@ Inventory & Supply,Camp Store,Community (impacts to non-admin people),Managing F
 Community Engagement,Community & Media,Community (impacts to non-admin people),Engaging Families & Community,Optional/Deferable,5,community-engagement,,
 Media,Community & Media,Community (impacts to non-admin people),Engaging Families & Community,Differentiator,1,media,,
 Family Communication,Family Comms,Community (impacts to non-admin people),Communicating with Families,Table Stakes,7,"ad-hoc-comms, automated-comms, comms-preferences, external-comms-capture, two-way-convos",,Consolidates 5 previous capabilities.
-Marketing & Recruitment,Family Comms,Community (impacts to non-admin people),Communicating with Families,Optional/Deferable,1,marketing-recruitment,,
+Marketing & Recruitment,Family Comms,Community (impacts to non-admin people),Communicating with Families,Must Win,2,marketing-recruitment,,Stance raised from Optional/Deferable at the 2026-07-31 roadmap review (sticky #26).
 Fundraising Management,Fundraising,Community (impacts to non-admin people),Managing Fundraising & Donors,Optional/Deferable,1,fundraising-management,,
 Compliance & Licensing,Safety & Incidents,Community (impacts to non-admin people),Tracking Safety & Incidents,Table Stakes,1,compliance-licensing,,
 Incident Management,Safety & Incidents,Community (impacts to non-admin people),Tracking Safety & Incidents,Table Stakes,1,incident-safeguarding,,
@@ -68,3 +68,5 @@ Reporting Platform,Reporting,Product Platform,Building Reports,Differentiator,6,
 Vendor Management,Vendors,Product Platform,Managing Camp Vendors,Optional/Deferable,1,vendor-contracts,,
 UltraCamp,UltraCamp,UltraCamp,Converging UltraCamp,Differentiator,9,"all-ultracamp-cap, independent-schools",Converging UltraCamp; Expanding into Adjacent Segments,Consolidates 2 previous capabilities. Stance differs across the folded capabilities: Differentiator; Must Win — pick one.
 Events and Rentals,(no module),Unclaimed Property,Running Rentals & Events,Optional/Deferable,1,rentals-events-cap,,
+Migration Cohorts,Migration,Product Platform,Migrating Camps to the Modern Platform,Must Win,2,,,Added from the 2026-07-31 roadmap review.
+Migration Tooling,Migration,Product Platform,Migrating Camps to the Modern Platform,Must Win,2,,,Added from the 2026-07-31 roadmap review.
