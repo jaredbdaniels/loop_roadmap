@@ -266,7 +266,13 @@ function Lane({
                       height={STRIP_H}
                       aria-hidden
                     >
-                      <title>{`${season.label} — ${season.description}`}</title>
+                      {/* No <title>, for the same reason the curve below has
+                          none (origin/main, "Stop the native SVG tooltip from
+                          overlapping the season hover card"): the browser draws
+                          one as a native tooltip that lands on top of
+                          `.tl-season-tip`, which already carries this label and
+                          description. A strip is a new place to make that same
+                          mistake, so it doesn't. */}
                       <defs>
                         <linearGradient
                           id={`season-strip-${season.id}`}
@@ -305,7 +311,11 @@ function Lane({
                     style={{ ["--season-color" as string]: color }}
                     aria-hidden
                   >
-                    <title>{`${season.label} — ${season.description}`}</title>
+                    {/* No <title> here on purpose: the browser renders one as
+                        a native tooltip that lands on top of `.tl-season-tip`,
+                        which already carries this label and description. The svg
+                        is aria-hidden, so a <title> buys nothing for assistive
+                        tech either. */}
                     {/* Stops are inline rather than CSS-driven: SVG gradient
                         stops take the season's own color.
                         Densest just under the CREST and fading toward the
