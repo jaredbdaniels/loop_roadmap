@@ -152,7 +152,11 @@ function Lane({
                 style={{ ["--season-color" as string]: season.color }}
                 aria-hidden
               >
-                <title>{`${season.label} — ${season.description}`}</title>
+                {/* No <title> here on purpose: the browser renders one as a
+                    native tooltip that lands on top of `.tl-season-tip`, which
+                    already carries this label and description. The svg is
+                    aria-hidden, so a <title> buys nothing for assistive tech
+                    either. */}
                 {/* Stops are inline rather than CSS-driven: SVG gradient stops
                     take the season's own color, and the fade to the baseline is
                     what makes a peak read as a peak at this aspect ratio. */}
