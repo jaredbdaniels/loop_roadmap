@@ -2115,8 +2115,57 @@ body.share-mode .tl-bar .tl-handle {
   border-left-color: var(--cm-border-strong);
   color: var(--cm-muted-fg);
 }
+/* Curves / Strips. Two drawings of the same numbers — a segmented pair rather
+   than a checkbox, because neither is the "off" state of the other. */
+.tl-season-shape {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--cm-border);
+  border-radius: var(--r-pill);
+  background: var(--cm-white);
+}
+.tl-season-shape button {
+  padding: 1px 9px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cm-faint-fg);
+  cursor: pointer;
+}
+.tl-season-shape button:hover {
+  color: var(--cm-muted-fg);
+}
+.tl-season-shape button.on {
+  background: var(--cm-purple-soft);
+  color: var(--cm-purple);
+}
 .tl-season-rows {
   position: relative;
+}
+/* A strip is a filled row, so the gridlines have to sit on top of it or the fill
+   buries the lane's only time anchor. */
+.tl-season-rows.strips .tl-season-gridlines {
+  z-index: 2;
+}
+.tl-season-rows.strips .tl-season-gridlines line {
+  stroke: var(--cm-white);
+  opacity: 0.5;
+}
+.tl-season-rows.strips .tl-season-gridlines line.q {
+  stroke: var(--cm-fg);
+  opacity: 0.16;
+}
+.tl-season-striprow {
+  display: block;
+}
+/* Strips are 22px, so the name pill nearly fills the row — it sits higher and
+   loses the vertical breathing room the taller curve rows can afford. */
+.tl-season-row.strip .tl-season-name-wrap {
+  top: 3px;
 }
 /* The band's own background paints over the timeline's .tl-grid, so the lane
    carries the month/quarter lines itself. Behind the curves, above the fill. */

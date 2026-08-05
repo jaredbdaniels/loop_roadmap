@@ -11,7 +11,7 @@ import {
   fiscalMonthOffset,
   isFiscalQuarterStartMonth,
 } from "./logic";
-import type { SeasonCurve } from "./seasons";
+import { curveIntensityAt, type SeasonCurve } from "./seasons";
 
 export interface CurvePoint {
   x: number; // px from the axis origin; negative for the lead-in month
@@ -56,6 +56,46 @@ export function sampleSeasonCurve(
     cursor.setMonth(cursor.getMonth() + 1);
   }
   return points;
+}
+
+export interface StripStop {
+  offset: number; // 0..1 along the axis, for an SVG gradient stop
+  v: number; // intensity there, 0..1
+}
+
+/**
+ * The same twelve samples, as gradient stops for a season drawn as an intensity
+ * STRIP rather than a ridgeline.
+ *
+ * A ridgeline needs height to be legible, and these lanes are 46px tall against
+ * a month that's 100–240px wide — a full 0→peak swing draws as a ~10° slope,
+ * which is why the curves read as gentle wobbles no matter how they're styled.
+ * A strip encodes the same intensity as density instead of height, so it reads
+ * identically at every zoom and in a third of the vertical space.
+ *
+ * The end stops are interpolated at the axis edges rather than borrowed from the
+ * nearest month midpoint, so a strip starts at the value that actually belongs
+ * at x=0 instead of holding the first month's reading flat for half a month.
+ */
+export function seasonStripStops(
+  curve: SeasonCurve,
+  start: Date,
+  end: Date,
+  ppd: number,
+  width: number,
+): StripStop[] {
+  const edges = [
+    { offset: 0, v: curveIntensityAt(curve, start) },
+    { offset: 1, v: curveIntensityAt(curve, end) },
+  ];
+  // A zero-width axis has no interior to interpolate across, and dividing by it
+  // would emit NaN offsets — which SVG renders as no gradient at all.
+  if (width <= 0) return edges;
+  // Height and pad don't affect x or v; only the y this throws away.
+  const interior = sampleSeasonCurve(curve, start, end, ppd, 1, 0)
+    .filter((p) => p.x > 0 && p.x < width)
+    .map((p) => ({ offset: p.x / width, v: p.v }));
+  return [edges[0], ...interior, edges[1]];
 }
 
 export interface MonthTick {

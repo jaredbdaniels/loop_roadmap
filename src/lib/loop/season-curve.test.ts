@@ -4,6 +4,7 @@ import {
   seasonAreaPath,
   seasonLinePath,
   seasonMonthTicks,
+  seasonStripStops,
   type CurvePoint,
 } from "./season-curve";
 import { SEASONS, type SeasonCurve } from "./seasons";
@@ -180,5 +181,59 @@ describe("seasonMonthTicks", () => {
     // At year zoom (1.35 px/day) a month is ~40px wide; "Sep" doesn't fit.
     expect(seasonMonthTicks(START, END, 1.35)[0].label).toBe("S");
     expect(seasonMonthTicks(START, END, 3.4)[0].label).toBe("Sep");
+  });
+});
+
+describe("seasonStripStops", () => {
+  const WIDTH = 2500;
+
+  it("spans the whole axis, so a strip has no undrawn ends", () => {
+    const stops = seasonStripStops(flat(0.5), START, END, 3.4, WIDTH);
+    expect(stops[0].offset).toBe(0);
+    expect(stops[stops.length - 1].offset).toBe(1);
+  });
+
+  it("keeps offsets inside 0..1 and ascending", () => {
+    // An out-of-order or out-of-range stop is silently dropped or clamped by the
+    // renderer, which shows up as a strip with a flat patch rather than an error.
+    const stops = seasonStripStops(SEASONS[0].curve, START, END, 3.4, WIDTH);
+    for (const st of stops) {
+      expect(st.offset).toBeGreaterThanOrEqual(0);
+      expect(st.offset).toBeLessThanOrEqual(1);
+    }
+    const offsets = stops.map((st) => st.offset);
+    expect([...offsets].sort((a, b) => a - b)).toEqual(offsets);
+  });
+
+  it("carries every intensity through unchanged, still 0..1", () => {
+    for (const s of SEASONS) {
+      for (const st of seasonStripStops(s.curve, START, END, 3.4, WIDTH)) {
+        expect(st.v, s.id).toBeGreaterThanOrEqual(0);
+        expect(st.v, s.id).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it("interpolates the end stops instead of holding the first month flat", () => {
+    // Sep 0.2 → Oct 1.0 with samples at the midpoints: the axis starts on Sep 1,
+    // half a month before Sep's own sample, so x=0 reads BELOW 0.2 — it's still
+    // climbing out of August's 0.
+    const curve = [0.2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] as unknown as SeasonCurve;
+    const stops = seasonStripStops(curve, START, END, 3.4, WIDTH);
+    expect(stops[0].v).toBeLessThan(0.2);
+    expect(stops[0].v).toBeGreaterThan(0);
+  });
+
+  it("degrades to the two end stops on a zero-width axis", () => {
+    // Dividing by a zero width would emit NaN offsets, which SVG renders as no
+    // gradient at all — a strip that vanishes rather than one that looks wrong.
+    const stops = seasonStripStops(flat(0.5), START, END, 3.4, 0);
+    expect(stops.length).toBe(2);
+    for (const st of stops) expect(Number.isFinite(st.offset)).toBe(true);
+  });
+
+  it("reads a flat season as one uniform density", () => {
+    const vs = seasonStripStops(flat(0.4), START, END, 3.4, WIDTH).map((s) => s.v);
+    for (const v of vs) expect(v).toBeCloseTo(0.4, 5);
   });
 });

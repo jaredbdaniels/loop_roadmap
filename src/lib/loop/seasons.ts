@@ -261,6 +261,11 @@ export function seasonsInLane(lane: SeasonLane): Season[] {
 // samples it falls between so a reading tracks the drawn curve rather than
 // snapping to whichever month it happens to land in.
 export function seasonIntensityAt(season: Season, d: Date): number {
+  return curveIntensityAt(season.curve, d);
+}
+
+/** The same reading, for callers holding a curve rather than a whole season. */
+export function curveIntensityAt(curve: SeasonCurve, d: Date): number {
   const i = fiscalMonthOffset(d);
   const daysInMonth = new Date(
     d.getFullYear(),
@@ -271,5 +276,5 @@ export function seasonIntensityAt(season: Season, d: Date): number {
   // halves of a month interpolate toward different neighbours.
   const t = (d.getDate() - 0.5) / daysInMonth - 0.5;
   const j = t < 0 ? (i + 11) % 12 : (i + 1) % 12;
-  return season.curve[i] + (season.curve[j] - season.curve[i]) * Math.abs(t);
+  return curve[i] + (curve[j] - curve[i]) * Math.abs(t);
 }
