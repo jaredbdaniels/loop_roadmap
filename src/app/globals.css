@@ -739,9 +739,12 @@ body.exporting .tl-scroll {
   height: auto !important;
 }
 /* Sticky against a scrollport that no longer exists just offsets the header
-   inside the capture. */
+   inside the capture — and the pinned-state shadow would bake a band across
+   the image, since the pane's scrollTop resets after the capture reads the
+   styles. */
 body.exporting .tl-header {
   position: static !important;
+  box-shadow: none !important;
 }
 
 /* =========================================================================

@@ -315,10 +315,24 @@ export function TimelineView() {
             PANE_BELOW_MAX,
           )
         : 0;
-      const h = Math.max(
+      // Floor, not round: half a pixel over is enough to introduce the page
+      // scrollbar this measurement exists to avoid.
+      const fitted = Math.max(
         PANE_MIN_H,
-        Math.round(window.innerHeight - top - below),
+        Math.floor(window.innerHeight - top - below),
       );
+      // A short roadmap shouldn't be stretched to the viewport — the pane would
+      // end in blank card below where `.tl-body` stops, and .tl-grid/.tl-today
+      // are inset to the body, so the gridlines and the today line would stop
+      // mid-card. Measure the content off `.tl-inner` rather than the pane's
+      // own scrollHeight, which reports the bounded height back when the
+      // content is the shorter of the two. The chrome term is the borders plus
+      // the horizontal scrollbar, which stays put: the axis is wider than the
+      // pane at every zoom.
+      const inner = el.firstElementChild as HTMLElement | null;
+      const chrome = el.offsetHeight - el.clientHeight;
+      const content = inner ? inner.offsetHeight + chrome : fitted;
+      const h = Math.min(fitted, content);
       // Only write on a real change: this height is what the observer below is
       // watching, so re-setting it every callback is how a resize loop starts.
       if (el.style.height !== `${h}px`) el.style.height = `${h}px`;
@@ -332,14 +346,32 @@ export function TimelineView() {
     onScroll();
     window.addEventListener("resize", fit);
     el.addEventListener("scroll", onScroll, { passive: true });
-    // The banner appearing or the controls wrapping moves the pane's top
-    // without a window resize.
-    const ro = new ResizeObserver(fit);
+    // Resizing inside a ResizeObserver callback resizes an element the same
+    // observer is watching, which the browser reports as "ResizeObserver loop
+    // completed with undelivered notifications" — an uncaught error the dev
+    // overlay puts on screen. Deferring the write to the next frame takes the
+    // mutation out of the delivery phase; the guard in fit() is what stops it
+    // there.
+    let frame = 0;
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        fit();
+      });
+    };
+    // body: the draft banner appearing or the controls wrapping moves the
+    // pane's top without a window resize. .tl-inner: opening a season lane or
+    // changing a filter changes the content height, which is the other half of
+    // what fit() measures.
+    const ro = new ResizeObserver(schedule);
     ro.observe(document.body);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
     return () => {
       window.removeEventListener("resize", fit);
       el.removeEventListener("scroll", onScroll);
       ro.disconnect();
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
@@ -599,6 +631,19 @@ export function TimelineView() {
 
   // Which scheduled bar sits under the pointer at drop time (source excluded).
   const barAtPoint = (clientX: number, clientY: number): string | null => {
+    // The pane clips vertically now, so a bar's rect can sit outside the
+    // visible card — dropping a dependency over the legend or the controls
+    // would otherwise link to a bar that scrolled out of view. Nothing outside
+    // the pane is a legal target.
+    const pane = scrollRef.current?.getBoundingClientRect();
+    if (
+      pane &&
+      (clientX < pane.left ||
+        clientX > pane.right ||
+        clientY < pane.top ||
+        clientY > pane.bottom)
+    )
+      return null;
     for (const [id, el] of Object.entries(barRefs.current)) {
       if (!el) continue;
       const rect = el.getBoundingClientRect();
