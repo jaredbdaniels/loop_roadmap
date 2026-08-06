@@ -55,14 +55,6 @@ interface DepPath {
 // have to agree: this is what reserves the vertical space the CSS then uses.
 const FLAG_ROW_H = 21;
 
-// How much of what sits under the pane (the legend, then the unscheduled list)
-// the pane will give up viewport height for. Enough that the legend lands on
-// screen with it; capped so a long "not on the timeline yet" list doesn't
-// squeeze the roadmap to make room for itself. PANE_MIN_H is the floor: on a
-// short window the page scrolls rather than the pane becoming a letterbox.
-const PANE_BELOW_MAX = 132;
-const PANE_MIN_H = 340;
-
 // Estimated rendered width of a flag pill: 0.62rem bold runs about 5.6px per
 // character, plus the diamond, the gap and the horizontal padding. Capped at the
 // same max-width the CSS truncates at, or long titles would reserve room they
@@ -110,6 +102,8 @@ export function TimelineView() {
     setFocusBet((cur) => (cur === id ? null : id));
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const slotRef = useRef<HTMLDivElement | null>(null);
+  const stackRef = useRef<HTMLDivElement | null>(null);
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [depPaths, setDepPaths] = useState<DepPath[]>([]);
@@ -289,87 +283,87 @@ export function TimelineView() {
 
   const unscheduled = vis.filter((i) => !isScheduled(i) && !i.killed);
 
-  // ----- the pane owns its own vertical scroll, so the header can pin -----
-  // `.tl-header` has always been `position: sticky`, but sticky resolves
-  // against the nearest scrollport — and a pane that only ever scrolled
-  // sideways never moves against its own content, so the ruler slid away with
-  // the page and the rows below it lost their dates. Bounding the pane to the
-  // viewport makes it the vertical scroller too, which is what actually pins
-  // the header. Measured rather than a CSS calc(): what sits above the
-  // timeline (the draft banner, a control bar that wraps on a narrow window)
-  // isn't a constant.
+  // ----- pinning the ruler and the seasonality lanes -----
+  // The page scrolls, not the pane: the stats and the filters are meant to go
+  // away, and only the time context — the season/quarter ruler, the months,
+  // and the seasonality lanes under them — stays. `position: sticky` can't do
+  // this, because sticky resolves against the nearest scrollport and that's
+  // `.tl-scroll`, which only ever scrolls sideways. So the stack goes
+  // `position: fixed` once its place in the page passes the top of the window,
+  // with the slot it left behind holding its height so nothing jumps.
+  //
+  // Everything below is written to the DOM rather than to state on purpose:
+  // this runs on every scroll frame, and re-rendering a roadmap's worth of
+  // bars at that rate is the one thing that would make scrolling stutter.
   useLayoutEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const fit = () => {
-      const rect = el.getBoundingClientRect();
-      // Document-relative top: a page that is itself scrolled would otherwise
-      // feed its scroll offset back into the height it produced.
-      const top = rect.top + window.scrollY;
-      // What the legend and the unscheduled list occupy under the pane, plus
-      // the view's own bottom padding. Measured, not assumed: the legend wraps.
-      const view = el.parentElement;
-      const below = view
-        ? Math.min(
-            view.getBoundingClientRect().bottom - rect.bottom,
-            PANE_BELOW_MAX,
-          )
-        : 0;
-      // Floor, not round: half a pixel over is enough to introduce the page
-      // scrollbar this measurement exists to avoid.
-      const fitted = Math.max(
-        PANE_MIN_H,
-        Math.floor(window.innerHeight - top - below),
-      );
-      // A short roadmap shouldn't be stretched to the viewport — the pane would
-      // end in blank card below where `.tl-body` stops, and .tl-grid/.tl-today
-      // are inset to the body, so the gridlines and the today line would stop
-      // mid-card. Measure the content off `.tl-inner` rather than the pane's
-      // own scrollHeight, which reports the bounded height back when the
-      // content is the shorter of the two. The chrome term is the borders plus
-      // the horizontal scrollbar, which stays put: the axis is wider than the
-      // pane at every zoom.
-      const inner = el.firstElementChild as HTMLElement | null;
-      const chrome = el.offsetHeight - el.clientHeight;
-      const content = inner ? inner.offsetHeight + chrome : fitted;
-      const h = Math.min(fitted, content);
-      // Only write on a real change: this height is what the observer below is
-      // watching, so re-setting it every callback is how a resize loop starts.
-      if (el.style.height !== `${h}px`) el.style.height = `${h}px`;
+    const pane = scrollRef.current;
+    const slot = slotRef.current;
+    const stack = stackRef.current;
+    if (!pane || !slot || !stack) return;
+
+    let pinned = false;
+    const update = () => {
+      const paneBox = pane.getBoundingClientRect();
+      const height = stack.offsetHeight;
+      // The slot keeps its place in the flow whether or not the stack is in
+      // it, so its top is what says where the stack belongs.
+      const slotTop = slot.getBoundingClientRect().top;
+      const shouldPin = slotTop < 0 && paneBox.bottom > 0;
+
+      if (shouldPin) {
+        // Ride the card's bottom edge out of the window rather than hanging
+        // over the legend once the roadmap itself is gone.
+        const top = Math.min(0, Math.round(paneBox.bottom - height));
+        // The pane's left border, then its content box — the stack lines up
+        // with the roadmap, not with the card's edge.
+        stack.style.top = `${top}px`;
+        stack.style.left = `${Math.round(paneBox.left + pane.clientLeft)}px`;
+        stack.style.width = `${pane.clientWidth}px`;
+        // Drives both halves of the horizontal sync in CSS: the track slides
+        // left by the pane's scroll, and the pills that would have been
+        // `position: sticky` slide back the other way. Sticky itself is inert
+        // in here — a fixed subtree has no scrollport to resolve against.
+        stack.style.setProperty("--pin-x", `${pane.scrollLeft}px`);
+        if (!pinned) {
+          slot.style.height = `${height}px`;
+          stack.classList.add("pinned");
+          pinned = true;
+        }
+      } else if (pinned) {
+        stack.classList.remove("pinned");
+        stack.style.top = "";
+        stack.style.left = "";
+        stack.style.width = "";
+        stack.style.removeProperty("--pin-x");
+        slot.style.height = "";
+        pinned = false;
+      }
     };
-    // Drives the header's drop shadow: it only earns one once there are rows
-    // underneath it. See `.tl-scroll[data-scrolled]` in globals.css.
-    const onScroll = () => {
-      el.dataset.scrolled = el.scrollTop > 0 ? "1" : "0";
-    };
-    fit();
-    onScroll();
-    window.addEventListener("resize", fit);
-    el.addEventListener("scroll", onScroll, { passive: true });
-    // Resizing inside a ResizeObserver callback resizes an element the same
-    // observer is watching, which the browser reports as "ResizeObserver loop
-    // completed with undelivered notifications" — an uncaught error the dev
-    // overlay puts on screen. Deferring the write to the next frame takes the
-    // mutation out of the delivery phase; the guard in fit() is what stops it
-    // there.
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    // Horizontal scroll of the roadmap under a pinned ruler.
+    pane.addEventListener("scroll", update, { passive: true });
+    // Opening a season lane changes the stack's height, which is the slot's
+    // height too. Deferred a frame: writing to the DOM inside a
+    // ResizeObserver callback is what produces "ResizeObserver loop completed
+    // with undelivered notifications" in the dev overlay.
     let frame = 0;
-    const schedule = () => {
+    const ro = new ResizeObserver(() => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        fit();
+        if (pinned) slot.style.height = `${stack.offsetHeight}px`;
+        update();
       });
-    };
-    // body: the draft banner appearing or the controls wrapping moves the
-    // pane's top without a window resize. .tl-inner: opening a season lane or
-    // changing a filter changes the content height, which is the other half of
-    // what fit() measures.
-    const ro = new ResizeObserver(schedule);
+    });
+    ro.observe(stack);
     ro.observe(document.body);
-    if (el.firstElementChild) ro.observe(el.firstElementChild);
     return () => {
-      window.removeEventListener("resize", fit);
-      el.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      pane.removeEventListener("scroll", update);
       ro.disconnect();
       if (frame) cancelAnimationFrame(frame);
     };
@@ -712,28 +706,72 @@ export function TimelineView() {
     <div className="timeline-view">
       <div className="tl-scroll" ref={scrollRef}>
         <div className="tl-inner" style={{ width: totalDays * ppd }}>
-          <div className="tl-header">
-            <div className="tl-qrow">
-              {quarterCells.map((c, i) => (
-                <div
-                  key={i}
-                  className="tl-qcell"
-                  style={{ width: c.width }}
-                  // The first and last cells can be clipped to a sliver by the
-                  // axis range, so both names stay reachable on hover.
-                  title={`${c.season} · ${c.label}`}
-                >
-                  <span className="tl-qcell-season">{c.season}</span>
-                  <span className="tl-qcell-fy">{c.label}</span>
+          {/* The time context, and the one part of the view that pins: the
+              ruler and the seasonality lanes read against every row below, so
+              they stay while the page scrolls the stats and the filters away.
+              The slot holds the stack's height once the stack goes fixed; the
+              track keeps the roadmap's full width so the fixed, window-wide
+              stack doesn't reflow its contents to the visible width. */}
+          <div className="tl-pin-slot" ref={slotRef}>
+            <div className="tl-pinstack" ref={stackRef}>
+              <div
+                className="tl-pin-track"
+                style={{ width: totalDays * ppd }}
+              >
+                <div className="tl-header">
+                  <div className="tl-qrow">
+                    {quarterCells.map((c, i) => (
+                      <div
+                        key={i}
+                        className="tl-qcell"
+                        style={{ width: c.width }}
+                        // The first and last cells can be clipped to a sliver
+                        // by the axis range, so both names stay reachable on
+                        // hover.
+                        title={`${c.season} · ${c.label}`}
+                      >
+                        <span className="tl-qcell-season">{c.season}</span>
+                        <span className="tl-qcell-fy">{c.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="tl-mrow">
+                    {monthCells.map((c, i) => (
+                      <div
+                        key={i}
+                        className="tl-mcell"
+                        style={{ width: c.width }}
+                      >
+                        {c.label}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-            <div className="tl-mrow">
-              {monthCells.map((c, i) => (
-                <div key={i} className="tl-mcell" style={{ width: c.width }}>
-                  {c.label}
-                </div>
-              ))}
+
+                {/* Seasonality context sits above the work: what this roadmap
+                    is scheduled against, on the camp's calendar and on ours.
+                    Part of the pinned stack, so a curve's peak stays over the
+                    rows however far down the roadmap you are. */}
+                <SeasonLanes
+                  rangeStart={start}
+                  rangeEnd={end}
+                  ppd={ppd}
+                  totalWidth={totalDays * ppd}
+                  open={seasonLaneOpen}
+                  onToggle={toggleSeasonLane}
+                />
+
+                {/* The body's own today line stops where the body does, and
+                    the lanes are no longer in it. Same date, drawn through the
+                    stack, so the marker isn't cut in two. */}
+                {todayLeft !== null && (
+                  <div
+                    className="tl-today tl-today-pin"
+                    style={{ left: todayLeft }}
+                    aria-hidden
+                  />
+                )}
+              </div>
             </div>
           </div>
 
@@ -761,17 +799,6 @@ export function TimelineView() {
                 aria-hidden
               />
             )}
-
-            {/* Seasonality context sits above the work: what this roadmap is
-                scheduled against, on the camp's calendar and on ours. */}
-            <SeasonLanes
-              rangeStart={start}
-              rangeEnd={end}
-              ppd={ppd}
-              totalWidth={totalDays * ppd}
-              open={seasonLaneOpen}
-              onToggle={toggleSeasonLane}
-            />
 
             {betBands.length > 0 && (
               <div className="tl-bet-band">

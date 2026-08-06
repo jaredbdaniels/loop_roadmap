@@ -732,19 +732,26 @@ body.exporting .board-wrap,
 body.exporting .tl-scroll {
   overflow: visible !important;
 }
-/* The measured pane height is an inline style, so this needs !important to
-   win: a capture bounded to the viewport would crop the roadmap to whatever
-   happened to be on screen. */
-body.exporting .tl-scroll {
-  height: auto !important;
-}
-/* Sticky against a scrollport that no longer exists just offsets the header
-   inside the capture — and the pinned-state shadow would bake a band across
-   the image, since the pane's scrollTop resets after the capture reads the
-   styles. */
-body.exporting .tl-header {
+/* A stack that is pinned when the export starts would otherwise be captured
+   where the window has it — fixed to the top, offset sideways by the pane's
+   scroll — instead of at the top of the roadmap. Dropped back into its slot,
+   which is already holding exactly its height. The !important is doing real
+   work: TimelineView writes the pinned geometry as inline styles. */
+body.exporting .tl-pinstack {
   position: static !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  clip-path: none !important;
   box-shadow: none !important;
+}
+body.exporting .tl-pin-track,
+body.exporting .tl-pinstack .tl-season-head,
+body.exporting .tl-pinstack .tl-season-name {
+  transform: none !important;
+}
+body.exporting .tl-pin-slot {
+  height: auto !important;
 }
 
 /* =========================================================================
@@ -1666,19 +1673,14 @@ body.exporting .tl-header {
    Timeline view
    ========================================================================= */
 .timeline-view {
-  /* Bottom padding stays small because the pane below is height-bounded and
-     ends at the viewport — 64px of page under it would only push the legend
-     off screen, which is the room the pane gave up to show it. */
-  padding: 8px 28px 20px;
+  padding: 8px 28px 64px;
 }
-/* Both axes: the height is set from JS (see fitPane in TimelineView), and a
-   bounded pane is what gives `.tl-header` a scrollport to stick to. */
+/* The page scrolls vertically; the pane only ever scrolls sideways. What stays
+   on screen is the pinned stack below, not the pane. */
 .tl-scroll {
-  overflow: auto;
-  /* Sideways only: swiping past either end of a two-year axis shouldn't
-     trigger the browser's back gesture. Vertical overscroll still chains to
-     the page, which is how the legend and the unscheduled list below the pane
-     stay reachable with the same wheel gesture. */
+  overflow-x: auto;
+  /* Swiping past either end of a two-year axis shouldn't trigger the browser's
+     back gesture. */
   overscroll-behavior-x: contain;
   background: var(--cm-white);
   border: 1px solid var(--cm-border);
@@ -1690,20 +1692,51 @@ body.exporting .tl-header {
   position: relative;
   min-width: 100%;
 }
-/* Pinned to the top of the pane while the rows scroll under it. Above every
-   z-index inside the timeline (flags at 5, a hovered bar at 6, a link preview
-   at 7) — anything that passed under it at 5 used to show through. */
-.tl-header {
-  position: sticky;
-  top: 0;
+
+/* ----- the pinned stack: the ruler and the seasonality lanes -----
+   `position: sticky` can't hold these, because sticky resolves against the
+   nearest scrollport and that's `.tl-scroll`, which never scrolls vertically.
+   So TimelineView switches the stack to `position: fixed` once its slot passes
+   the top of the window, and drives the geometry from there. */
+.tl-pin-slot {
+  position: relative;
+}
+.tl-pinstack {
+  position: relative;
   z-index: 12;
+  background: var(--cm-white);
+}
+.tl-pinstack.pinned {
+  position: fixed;
+  top: 0;
+  /* Clipped sideways so the ruler can't paint over the page beside the card —
+     but open at the bottom, which `overflow: hidden` couldn't do: a season's
+     hover card hangs well below the row it belongs to. */
+  clip-path: inset(0 0 -320px 0);
+  box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.4);
+}
+/* The horizontal half of the sync. --pin-x is the pane's scrollLeft: the track
+   slides under the window by that much... */
+.tl-pinstack.pinned .tl-pin-track {
+  transform: translateX(calc(-1 * var(--pin-x, 0px)));
+}
+/* ...and the labels that ride the left edge slide back the same amount. They
+   are `position: sticky` in flow, which is inert inside a fixed subtree — no
+   scrollport to resolve against — so while pinned they're moved by hand. */
+.tl-pinstack.pinned .tl-season-head,
+.tl-pinstack.pinned .tl-season-name {
+  transform: translateX(var(--pin-x, 0px));
+}
+.tl-header {
+  position: relative;
+  z-index: 5;
   background: var(--cm-white);
   border-bottom: 1px solid var(--cm-border-strong);
 }
-/* Only once it's actually holding position: a shadow over a roadmap that
-   hasn't been scrolled is decoration. */
-.tl-scroll[data-scrolled="1"] .tl-header {
-  box-shadow: 0 6px 12px -8px rgba(0, 0, 0, 0.35);
+/* The body's today line stops at the body; this one carries it through the
+   ruler and the lanes above it. */
+.tl-today-pin {
+  z-index: 6;
 }
 .tl-qrow,
 .tl-mrow {
