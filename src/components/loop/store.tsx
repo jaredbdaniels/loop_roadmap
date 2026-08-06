@@ -100,8 +100,11 @@ interface LoopContextValue {
   setView: (v: ViewKey) => void;
   zoom: ZoomKey;
   setZoom: (z: ZoomKey) => void;
-  filterMission: string;
-  setFilterMission: (m: string) => void;
+  // Scope every view to a set of teams. Empty array = no scope (all teams);
+  // one entry = the classic single-team drill-down; several = look at more
+  // than one team at once (e.g. two Platform teams side by side).
+  filterMission: string[];
+  setFilterMission: (m: string[]) => void;
   // Scope every view to a single person owner ("all" = no scope, the
   // OWNER_UNASSIGNED sentinel = only unowned items). Mirrors filterMission and
   // is applied in the same central visibleItems().
@@ -235,7 +238,7 @@ export function LoopProvider({
 
   const [view, setView] = useState<ViewKey>(initialView);
   const [zoom, setZoom] = useState<ZoomKey>("quarter");
-  const [filterMission, setFilterMission] = useState("all");
+  const [filterMission, setFilterMission] = useState<string[]>([]);
   const [filterOwner, setFilterOwner] = useState("all");
   const [filterBet, setFilterBet] = useState("all");
   const [groupBy, setGroupBy] = useState<GroupByKey>(initialGroupBy);

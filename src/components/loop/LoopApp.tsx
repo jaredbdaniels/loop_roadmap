@@ -22,16 +22,12 @@ import {
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import type { GroupByKey, ViewKey, ZoomKey } from "@/lib/loop/constants";
-import {
-  MISSIONS,
-  MISSION_INFO,
-  OWNERS,
-  OWNER_UNASSIGNED,
-} from "@/lib/loop/constants";
+import { OWNERS, OWNER_UNASSIGNED } from "@/lib/loop/constants";
 import type { Bet, Item, Milestone, Weights } from "@/lib/loop/types";
 import { authClient } from "@/lib/auth-client";
 import { LoopProvider, useLoop } from "./store";
 import { StatsBar } from "./StatsBar";
+import { TeamFilter } from "./TeamFilter";
 import { BoardView } from "./BoardView";
 import { TeamView } from "./TeamView";
 import { TimelineView } from "./TimelineView";
@@ -345,19 +341,7 @@ function Shell({ userEmail }: { userEmail: string | null }) {
           </select>
         )}
 
-        <select
-          className="cm-select"
-          aria-label="Filter by team"
-          value={filterMission}
-          onChange={(e) => setFilterMission(e.target.value)}
-        >
-          <option value="all">All teams</option>
-          {MISSIONS.map((m) => (
-            <option key={m} value={m} title={MISSION_INFO[m]}>
-              {m}
-            </option>
-          ))}
-        </select>
+        <TeamFilter value={filterMission} onChange={setFilterMission} />
 
         <select
           className="cm-select"

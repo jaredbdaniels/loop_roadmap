@@ -474,6 +474,72 @@ select.cm-select:hover {
   border-color: var(--cm-faint-fg);
 }
 
+/* Team filter — a checkbox dropdown instead of a native <select> so several
+   teams can be scoped in at once, not just one. */
+.team-filter {
+  position: relative;
+}
+button.team-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 8px 13px;
+  background-image: none;
+  font-family: inherit;
+}
+button.team-filter-btn.active {
+  border-color: var(--cm-purple-light);
+  color: var(--cm-purple-deep);
+  background-color: var(--cm-purple-softer);
+}
+.team-filter-label {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.team-filter-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 20;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--cm-surface, var(--cm-white));
+  border: 1px solid var(--cm-border-strong);
+  border-radius: var(--r-md);
+  padding: 6px;
+  box-shadow: var(--sh-md, var(--sh-xs));
+}
+.team-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--cm-fg);
+  padding: 7px 8px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.team-filter-option:hover {
+  background: var(--cm-surface-muted);
+}
+.team-filter-option input {
+  cursor: pointer;
+}
+.team-filter-all {
+  font-weight: 600;
+}
+.team-filter-divider {
+  height: 1px;
+  background: var(--cm-border-strong);
+  margin: 4px 2px 6px;
+}
+
 /* "Show killed" toggle */
 .killed-toggle {
   display: inline-flex;

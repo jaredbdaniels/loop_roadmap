@@ -21,14 +21,17 @@ export function stageMoveKind(
 
 export function visibleItems(
   items: Item[],
-  filterMission: string,
+  filterMission: string[],
   showKilled: boolean,
   filterBet = "all",
   filterOwner = "all",
 ): Item[] {
   return items.filter((i) => {
     if (!showKilled && i.killed) return false;
-    if (filterMission !== "all" && i.mission !== filterMission) return false;
+    // Empty = no scope (all teams); otherwise the item's team must be one of
+    // the selected teams.
+    if (filterMission.length > 0 && !filterMission.includes(i.mission))
+      return false;
     // filterOwner: "all" = no scope, the OWNER_UNASSIGNED sentinel = only items
     // with no owner, otherwise an exact owner-name match.
     if (filterOwner !== "all") {
