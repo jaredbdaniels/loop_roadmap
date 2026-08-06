@@ -101,6 +101,13 @@ export function TimelineView() {
   const toggleFocus = (id: string) =>
     setFocusBet((cur) => (cur === id ? null : id));
 
+  // The cross-team bets summary lane (see BetBar below). Open by default,
+  // unlike the season lanes, since it's the roadmap's own rollup rather than
+  // outside context — but collapsible for the same reason: it still costs a
+  // row per bet before the team bands even start.
+  const [betsOpen, setBetsOpen] = useState(true);
+  const toggleBets = () => setBetsOpen((o) => !o);
+
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const slotRef = useRef<HTMLDivElement | null>(null);
   const stackRef = useRef<HTMLDivElement | null>(null);
@@ -801,29 +808,42 @@ export function TimelineView() {
             )}
 
             {betBands.length > 0 && (
-              <div className="tl-bet-band">
-                <span className="tl-mission-label tl-bet-label">
+              <div className={"tl-bet-band" + (betsOpen ? " open" : "")}>
+                <button
+                  type="button"
+                  className="tl-mission-label tl-bet-label"
+                  aria-expanded={betsOpen}
+                  title="Cross-team bets"
+                  onClick={toggleBets}
+                >
+                  <span className="tl-bet-toggle" aria-hidden>
+                    {betsOpen ? "▾" : "▸"}
+                  </span>
                   Bets
-                </span>
-                {betBands.map(({ init, env, prog, teams }) => (
-                  <div className="tl-row" key={init.id}>
-                    <BetBar
-                      init={init}
-                      range={env!}
-                      prog={prog}
-                      teams={teams}
-                      ppd={ppd}
-                      rangeStart={start}
-                      dimmed={
-                        focusBet !== null && focusBet !== init.id
-                      }
-                      focused={focusBet === init.id}
-                      onToggle={() => toggleFocus(init.id)}
-                      onEdit={() => openBet(init.id)}
-                      shareMode={shareMode}
-                    />
-                  </div>
-                ))}
+                  {!betsOpen && (
+                    <span className="tl-bet-count">{betBands.length}</span>
+                  )}
+                </button>
+                {betsOpen &&
+                  betBands.map(({ init, env, prog, teams }) => (
+                    <div className="tl-row" key={init.id}>
+                      <BetBar
+                        init={init}
+                        range={env!}
+                        prog={prog}
+                        teams={teams}
+                        ppd={ppd}
+                        rangeStart={start}
+                        dimmed={
+                          focusBet !== null && focusBet !== init.id
+                        }
+                        focused={focusBet === init.id}
+                        onToggle={() => toggleFocus(init.id)}
+                        onEdit={() => openBet(init.id)}
+                        shareMode={shareMode}
+                      />
+                    </div>
+                  ))}
               </div>
             )}
 

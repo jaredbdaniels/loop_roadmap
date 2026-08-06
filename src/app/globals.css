@@ -2427,15 +2427,51 @@ body.share-mode .tl-bar .tl-handle {
 
 /* ---- cross-team bets ---- */
 /* Top summary lane, set apart from the team bands below it. Sits directly under
-   the seasonality lanes above, so the two stay visually distinguishable. */
+   the seasonality lanes above, so the two stay visually distinguishable.
+   Collapsible like the season lanes; see TimelineView.tsx. */
 .tl-bet-band {
   position: relative;
   background: var(--cm-surface, rgba(122, 90, 248, 0.04));
   border-bottom: 2px solid var(--cm-border);
+}
+.tl-bet-band.open {
   padding-bottom: 4px;
+}
+.tl-bet-label {
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tl-bet-label:hover {
+  border-color: var(--cm-border-strong);
 }
 .tl-bet-label::before {
   background: var(--cm-fg);
+}
+.tl-bet-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: -2px;
+  border-radius: 4px;
+  background: var(--cm-surface-muted);
+  font-size: 0.6rem;
+  line-height: 1;
+}
+.tl-bet-label:hover .tl-bet-toggle {
+  background: var(--cm-purple-soft);
+  color: var(--cm-purple);
+}
+.tl-bet-count {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cm-faint-fg);
 }
 /* Read-only rolled-up envelope bar — reads as a rollup via a soft stripe. */
 .tl-bet-bar {
