@@ -673,6 +673,14 @@ button.team-filter-btn.active {
   font-size: 0.75rem;
   gap: 5px;
 }
+.cm-button--danger {
+  background: var(--cm-red);
+  color: var(--cm-white);
+  border-color: var(--cm-red);
+}
+.cm-button--danger:hover {
+  background: #b91c1c;
+}
 .cm-button[disabled] {
   opacity: 0.45;
   cursor: not-allowed;
@@ -1719,6 +1727,105 @@ body.exporting .tl-pin-slot {
   color: var(--cm-muted-fg);
   max-width: 60%;
   line-height: 1.4;
+}
+
+/* Delete confirmation — a small overlay stacked on top of whatever modal
+   triggered it. The warning icon shakes once on open; confirming plays a
+   short "poof" before the caller removes the record, so the exit animation
+   always finishes before the item disappears. */
+.confirm-delete-overlay {
+  z-index: 1100;
+  align-items: center;
+}
+.confirm-delete-modal {
+  background: var(--cm-white);
+  border-radius: var(--r-xl);
+  width: 100%;
+  max-width: 380px;
+  padding: 26px 24px 22px;
+  box-shadow: var(--sh-lg);
+  border: 1px solid var(--cm-border);
+  text-align: center;
+  animation: modal-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.confirm-delete-modal.is-deleting {
+  animation: confirm-modal-out 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes confirm-modal-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+.confirm-delete-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--cm-red-surface);
+  color: var(--cm-red);
+  animation: confirm-shake 0.5s ease-in-out 0.1s;
+}
+.confirm-delete-modal.is-deleting .confirm-delete-icon {
+  animation: confirm-poof 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes confirm-shake {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  15% {
+    transform: rotate(-10deg) scale(1.05);
+  }
+  30% {
+    transform: rotate(9deg) scale(1.05);
+  }
+  45% {
+    transform: rotate(-6deg) scale(1.02);
+  }
+  60% {
+    transform: rotate(5deg) scale(1.02);
+  }
+  75% {
+    transform: rotate(-2deg);
+  }
+}
+@keyframes confirm-poof {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.18) rotate(10deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(30deg);
+    opacity: 0;
+  }
+}
+.confirm-delete-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--cm-fg);
+  margin-bottom: 6px;
+}
+.confirm-delete-message {
+  font-size: 0.82rem;
+  color: var(--cm-fg-secondary);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.confirm-delete-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 /* Share dialog — the read-only link + copy button on one row. */
