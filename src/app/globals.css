@@ -2687,6 +2687,23 @@ body.share-mode .tl-bar .tl-handle {
 .tl-deps .dep-dot.conflict {
   fill: var(--cm-red);
 }
+/* Invisible wide stroke over each dependency curve so it's easy to hit with
+   the pointer without widening the line drawn on screen. */
+.tl-deps .tl-dep-hit {
+  stroke: transparent;
+  stroke-width: 10;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.tl-deps .tl-dep-group.hovered path:not(.tl-dep-hit) {
+  stroke: var(--cm-red);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+.tl-deps .tl-dep-group.hovered .dep-dot {
+  fill: var(--cm-red);
+  r: 4.5;
+}
 /* Live preview of a dependency being dragged between bars — sits above bars so
    the line to the cursor stays visible over drop targets. */
 .tl-link-preview {

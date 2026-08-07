@@ -454,7 +454,19 @@ export function LoopProvider({
   const removeItem = useCallback(
     async (id: string) => {
       if (readOnly) return;
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      // Deleting an item can leave other items pointing at it via
+      // `dependsOn` — prune those references locally too, or a later edit
+      // to one of them would resend the dangling id and undo the server-side
+      // cleanup in deleteItem().
+      setItems((prev) =>
+        prev
+          .filter((i) => i.id !== id)
+          .map((i) =>
+            (i.dependsOn || []).includes(id)
+              ? { ...i, dependsOn: i.dependsOn.filter((d) => d !== id) }
+              : i,
+          ),
+      );
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
         return;

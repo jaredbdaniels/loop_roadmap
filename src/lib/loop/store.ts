@@ -202,7 +202,30 @@ export async function upsertItem(item: Item): Promise<void> {
     });
 }
 
+// Deleting an item can leave other items pointing at it via `dependsOn`. Prune
+// those references here (rather than relying on every reader to filter dead
+// ids) so the dangling id doesn't get written back to the DB the next time
+// the referencing item is saved.
 export async function deleteItem(id: string): Promise<void> {
+  const rows = await db.select().from(itemsTable);
+  const deletedTitle = rows.find((r) => r.id === id)?.data.title;
+  const affected = rows
+    .map((r) => r.data)
+    .filter((it) => (it.dependsOn || []).includes(id));
+  const stamp = new Date().toISOString();
+  await Promise.all(
+    affected.map((it) =>
+      upsertItem({
+        ...it,
+        dependsOn: (it.dependsOn || []).filter((d) => d !== id),
+        updatedAt: stamp,
+        activity: [
+          ...(it.activity || []),
+          `Dependency removed: "${deletedTitle ?? "an idea"}" was deleted.`,
+        ],
+      }),
+    ),
+  );
   await db.delete(itemsTable).where(eq(itemsTable.id, id));
 }
 

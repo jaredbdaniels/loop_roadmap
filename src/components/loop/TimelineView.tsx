@@ -49,6 +49,8 @@ interface DepPath {
   conflict: boolean;
   x2: number;
   y2: number;
+  itemId: string;
+  depId: string;
 }
 
 // One stacked row of milestone flags, matching the step in globals.css. The two
@@ -114,6 +116,7 @@ export function TimelineView() {
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const barRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [depPaths, setDepPaths] = useState<DepPath[]>([]);
+  const [hoveredDep, setHoveredDep] = useState<number | null>(null);
 
   const vis = visibleItems(
     items,
@@ -404,6 +407,8 @@ export function TimelineView() {
           conflict,
           x2,
           y2,
+          itemId: item.id,
+          depId,
         });
       });
     });
@@ -705,6 +710,29 @@ export function TimelineView() {
       );
   };
 
+  // Click a dependency line on the timeline to unlink it directly, without
+  // opening the detail modal.
+  const removeDependency = (itemId: string, depId: string) => {
+    if (shareMode) return;
+    const item = getItem(items, itemId);
+    if (!item) return;
+    const dep = getItem(items, depId);
+    const next: Item = {
+      ...item,
+      dependsOn: (item.dependsOn || []).filter((d) => d !== depId),
+      updatedAt: new Date().toISOString(),
+      activity: [
+        ...(item.activity || []),
+        `No longer depends on "${dep ? dep.title : "a deleted idea"}".`,
+      ],
+    };
+    updateItem(next);
+    setHoveredDep(null);
+    toast(
+      `"${item.title}" no longer depends on "${dep ? dep.title : "that idea"}".`,
+    );
+  };
+
   const linkBend = linkLine
     ? Math.max(16, Math.min(40, Math.abs(linkLine.x2 - linkLine.x1) / 2))
     : 0;
@@ -967,7 +995,22 @@ export function TimelineView() {
                 style={{ height: "100%" }}
               >
                 {depPaths.map((p, i) => (
-                  <g key={i}>
+                  <g
+                    key={i}
+                    className={
+                      "tl-dep-group" + (hoveredDep === i ? " hovered" : "")
+                    }
+                    onPointerEnter={() => !shareMode && setHoveredDep(i)}
+                    onPointerLeave={() =>
+                      setHoveredDep((h) => (h === i ? null : h))
+                    }
+                    onClick={() => removeDependency(p.itemId, p.depId)}
+                  >
+                    {!shareMode && (
+                      <path className="tl-dep-hit" d={p.d}>
+                        <title>Click to remove this dependency</title>
+                      </path>
+                    )}
                     <path className={p.conflict ? "conflict" : ""} d={p.d} />
                     <circle
                       className={"dep-dot" + (p.conflict ? " conflict" : "")}
