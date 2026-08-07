@@ -2932,8 +2932,8 @@ body.share-mode .tl-link-handle {
 }
 .sub-row {
   display: grid;
-  grid-template-columns: 22px 1fr 132px 132px 28px;
-  gap: 8px;
+  grid-template-columns: 22px minmax(0, 1fr) 132px 132px 104px 22px;
+  gap: 6px;
   align-items: center;
 }
 .sub-row input[type="text"],
@@ -2944,6 +2944,10 @@ body.share-mode .tl-link-handle {
   font-size: 0.79rem;
   width: 100%;
   box-shadow: var(--sh-xs);
+}
+.sub-row input[type="date"] {
+  font-size: 0.75rem;
+  padding: 7px 6px;
 }
 .sub-row input[type="text"]:focus,
 .sub-row input[type="date"]:focus {
@@ -2973,46 +2977,65 @@ body.share-mode .tl-link-handle {
 .sub-row .sub-del:hover {
   color: var(--cm-red);
 }
-/* Second line of a sub-item: its ADO work-item link + synced status. Indented
-   to line up under the title column so it reads as a detail of the row above. */
-.sub-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
+/* The ADO work-item link is a column of the sub-item row, not a second line:
+   a chip-sized field at rest that widens leftwards over the date columns while
+   focused, so a full URL is still typeable without owning a whole row. */
 .sub-ado {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding-left: 30px;
+  min-width: 0;
+  height: 30px;
 }
 .sub-ado-icon {
   color: var(--cm-faint-fg);
   flex-shrink: 0;
 }
+.sub-ado.has-link .sub-ado-icon {
+  color: var(--cm-purple);
+}
 .sub-ado .sub-ado-url {
-  flex: 1;
-  min-width: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 15px;
+  right: 0;
+  width: auto;
   border: 1px dashed var(--cm-border-strong);
   border-radius: var(--r-sm);
-  padding: 5px 9px;
-  font-size: 0.75rem;
+  padding: 5px 7px;
+  font-size: 0.72rem;
+  background: var(--cm-white);
+  text-overflow: ellipsis;
   box-shadow: var(--sh-xs);
+  transition: left 0.16s ease, width 0.16s ease;
+}
+/* Leave room for the status pill when Sync ADO has filled one in. */
+.sub-ado.has-status .sub-ado-url {
+  left: 56px;
 }
 .sub-ado .sub-ado-url:focus {
+  left: auto;
+  width: 320px;
+  z-index: 2;
   outline: none;
   border-style: solid;
   border-color: var(--cm-purple);
-  box-shadow: var(--ring);
+  /* Reads as a field floating over the date columns, not one bleeding into
+     them — the expanded width overlaps its neighbours by design. */
+  box-shadow: var(--ring), var(--sh-md);
 }
 .sub-ado-status {
   flex-shrink: 0;
-  font-size: 0.72rem;
-  font-weight: 600;
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.62rem;
+  font-weight: 700;
   color: var(--cm-purple);
   background: var(--cm-purple-soft);
   border-radius: 999px;
-  padding: 3px 9px;
+  padding: 2px 6px;
   white-space: nowrap;
 }
 
@@ -4474,8 +4497,8 @@ select.cm-select--draft {
 /* Column headers for the sub-item rows — mirrors the .sub-row grid. */
 .sub-head {
   display: grid;
-  grid-template-columns: 22px 1fr 118px 118px 28px;
-  gap: 8px;
+  grid-template-columns: 22px minmax(0, 1fr) 110px 110px 104px 22px;
+  gap: 6px;
   margin-bottom: 5px;
   font-size: 0.63rem;
   font-weight: 700;
@@ -4486,7 +4509,7 @@ select.cm-select--draft {
 /* Match the headers (was 132px, which starved the title field once the modal
    body was split into two columns). */
 .sub-row {
-  grid-template-columns: 22px 1fr 118px 118px 28px;
+  grid-template-columns: 22px minmax(0, 1fr) 110px 110px 104px 22px;
 }
 
 @media (max-width: 860px) {
@@ -4516,7 +4539,8 @@ select.cm-select--draft {
     grid-template-areas:
       "done  title del"
       ".     start start"
-      ".     end   end";
+      ".     end   end"
+      ".     ado   ado";
     row-gap: 5px;
   }
   .sub-row .sub-done {
@@ -4533,5 +4557,19 @@ select.cm-select--draft {
   }
   .sub-row .sub-del {
     grid-area: del;
+  }
+  /* No neighbouring columns to expand over on a phone — the link field just
+     takes the full width of the row it sits on. */
+  .sub-row .sub-ado {
+    grid-area: ado;
+    gap: 6px;
+  }
+  .sub-row .sub-ado .sub-ado-url,
+  .sub-row .sub-ado .sub-ado-url:focus {
+    position: static;
+    transform: none;
+    flex: 1;
+    min-width: 0;
+    width: auto;
   }
 }

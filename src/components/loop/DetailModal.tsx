@@ -1238,70 +1238,80 @@ export function DetailModal() {
               <span>Sub-item</span>
               <span>Start</span>
               <span>End</span>
+              <span>ADO</span>
               <span />
             </div>
           )}
           <div className="sub-rows">
             {subs.map((s) => (
-              <div key={s.id} className="sub-item">
-                <div className={"sub-row" + (s.done ? " done" : "")}>
-                  <input
-                    type="checkbox"
-                    className="sub-done"
-                    checked={s.done}
-                    title="Done"
-                    onChange={(e) => updateSub(s.id, { done: e.target.checked })}
-                  />
-                  <input
-                    type="text"
-                    className="sub-title"
-                    placeholder="Sub-item title"
-                    value={s.title}
-                    onChange={(e) => updateSub(s.id, { title: e.target.value })}
-                  />
-                  <input
-                    type="date"
-                    className="sub-start"
-                    value={s.targetStart || ""}
-                    onChange={(e) =>
-                      updateSub(s.id, { targetStart: e.target.value || null })
-                    }
-                  />
-                  <input
-                    type="date"
-                    className="sub-end"
-                    value={s.targetEnd || ""}
-                    onChange={(e) =>
-                      updateSub(s.id, { targetEnd: e.target.value || null })
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="sub-del edit-only"
-                    title="Remove sub-item"
-                    onClick={() => removeSub(s.id)}
-                  >
-                    ×
-                  </button>
-                </div>
-                <div className="sub-ado">
-                  <Link2 size={12} strokeWidth={2.2} className="sub-ado-icon" />
-                  <input
-                    type="url"
-                    className="sub-ado-url"
-                    placeholder="ADO work item link — https://dev.azure.com/…"
-                    value={s.adoUrl}
-                    onChange={(e) => updateSub(s.id, { adoUrl: e.target.value })}
-                  />
-                  {s.adoStatus && (
+              <div key={s.id} className={"sub-row" + (s.done ? " done" : "")}>
+                <input
+                  type="checkbox"
+                  className="sub-done"
+                  checked={s.done}
+                  title="Done"
+                  onChange={(e) => updateSub(s.id, { done: e.target.checked })}
+                />
+                <input
+                  type="text"
+                  className="sub-title"
+                  placeholder="Sub-item title"
+                  value={s.title}
+                  onChange={(e) => updateSub(s.id, { title: e.target.value })}
+                />
+                <input
+                  type="date"
+                  className="sub-start"
+                  value={s.targetStart || ""}
+                  onChange={(e) =>
+                    updateSub(s.id, { targetStart: e.target.value || null })
+                  }
+                />
+                <input
+                  type="date"
+                  className="sub-end"
+                  value={s.targetEnd || ""}
+                  onChange={(e) =>
+                    updateSub(s.id, { targetEnd: e.target.value || null })
+                  }
+                />
+                {/* The work-item link rides in the row itself: a chip-sized
+                    field at rest that widens over its neighbours on focus, so
+                    a URL stays typeable without costing a whole second line. */}
+                <div
+                  className={
+                    "sub-ado" +
+                    (s.adoUrl ? " has-link" : "") +
+                    (s.adoStatus ? " has-status" : "")
+                  }
+                >
+                  {s.adoStatus ? (
                     <span
                       className="sub-ado-status"
-                      title="Pulled from Azure DevOps by Sync ADO"
+                      title={`Azure DevOps status: ${s.adoStatus} (pulled by Sync ADO)`}
                     >
                       {s.adoStatus}
                     </span>
+                  ) : (
+                    <Link2 size={11} strokeWidth={2.2} className="sub-ado-icon" />
                   )}
+                  <input
+                    type="url"
+                    className="sub-ado-url"
+                    placeholder="Link"
+                    title={s.adoUrl || "ADO work item link — https://dev.azure.com/…"}
+                    value={s.adoUrl}
+                    onChange={(e) => updateSub(s.id, { adoUrl: e.target.value })}
+                  />
                 </div>
+                <button
+                  type="button"
+                  className="sub-del edit-only"
+                  title="Remove sub-item"
+                  onClick={() => removeSub(s.id)}
+                >
+                  ×
+                </button>
               </div>
             ))}
           </div>
