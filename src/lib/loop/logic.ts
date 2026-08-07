@@ -447,13 +447,19 @@ export function laneOrder(orderedIds: string[]): Record<string, number> {
 }
 
 /* ---------------- ranking ---------------- */
+// Rank is an additive score over the three judged axes. `item.votes` and
+// `w.votes` are deliberately absent: voting was removed from Loop (docs/
+// ai-native-process-alignment.md, objection 1 — a popularity number should not
+// quietly drive the roadmap). Both fields are still stored, because Aha! owns
+// the endorsement count and keeps syncing it in by delta, but a signal with no
+// affordance to change it must not move the score — hiding the input while
+// leaving `votes × w` in the formula would leave rank driven by a number nobody
+// can see, which is worse than showing it.
 export function computeRank(item: Item, w: Weights): number {
-  const votes = item.votes || 0,
-    reach = item.reach || 0,
+  const reach = item.reach || 0,
     confidence = item.confidence || 0,
     fit = item.strategicFit || 0;
   return +(
-    votes * w.votes +
     reach * w.reach +
     confidence * w.confidence +
     fit * w.strategicFit
@@ -1178,7 +1184,6 @@ const DIFF_ITEM_FIELDS: (keyof Item)[] = [
   "targetStart",
   "targetEnd",
   "killed",
-  "votes",
   "reach",
   "confidence",
   "strategicFit",
@@ -1329,7 +1334,7 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
       milestonesChanged.push({ id: d.id, title: d.title, changes });
   }
 
-  const weights = (["votes", "reach", "confidence", "strategicFit"] as const)
+  const weights = (["reach", "confidence", "strategicFit"] as const)
     .filter((k) => live.weights[k] !== draft.weights[k])
     .map((k) => ({ field: k, before: live.weights[k], after: draft.weights[k] }));
 

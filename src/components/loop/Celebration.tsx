@@ -64,18 +64,6 @@ function Burst({ celebration }: { celebration: Celeb }) {
     );
   }
 
-  // A vote is a quick little chip that pops up and fades.
-  if (kind === "vote") {
-    return (
-      <div className="celebrate-burst">
-        <div className="celebrate-vote">
-          <span className="celebrate-vote-plus">+1</span>
-          <span className="celebrate-vote-emoji">{emoji}</span>
-        </div>
-      </div>
-    );
-  }
-
   // Killing an idea gets a somber emoji with a rising puff of smoke.
   if (kind === "kill") {
     return (

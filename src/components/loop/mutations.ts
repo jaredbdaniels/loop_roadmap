@@ -64,10 +64,6 @@ export function movedToStage(item: Item, targetStage: Stage): Item {
   return next;
 }
 
-export function voted(item: Item): Item {
-  return { ...item, votes: (item.votes || 0) + 1, updatedAt: now() };
-}
-
 export function withHorizon(item: Item, key: HorizonKey): Item {
   return {
     ...item,

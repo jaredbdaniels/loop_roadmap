@@ -52,8 +52,8 @@ describe("explain-rank", () => {
   it("defaults neighbors to empty and prompt shows contributions", () => {
     const parsed = explainBody.parse({
       title: "Item A",
-      scores: { votes: 2, reach: 3, confidence: 4, strategicFit: 5 },
-      weights: { votes: 1, reach: 2, confidence: 1, strategicFit: 3 },
+      scores: { reach: 3, confidence: 4, strategicFit: 5 },
+      weights: { reach: 2, confidence: 1, strategicFit: 3 },
       rank: 30,
     });
     expect(parsed.neighbors).toEqual([]);

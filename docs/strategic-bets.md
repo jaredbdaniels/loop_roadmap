@@ -248,9 +248,12 @@ things competing with it.
 Bets have to be comparable. Choosing the 1–3 foundational ones is a comparison, and so is deciding
 whether to move share from one to another.
 
-**Do not lift `computeRank` ([`logic.ts:312`](../src/lib/loop/logic.ts)) up a level.** `votes` is an
-intake popularity signal that means nothing at portfolio level — an exec bet doesn't get upvoted. And
-1–5 integers tuned to sort twenty ideas inside one team's lane will cluster every bet between 3.8 and
+**Do not lift `computeRank` ([`logic.ts`](../src/lib/loop/logic.ts)) up a level.** It was written to
+sort ideas in a lane, not bets in a portfolio. (This argument originally led with `votes` — an intake
+popularity signal that means nothing at portfolio level, since an exec bet doesn't get upvoted. Voting
+was removed from Loop on 2026-08-07 and is no longer in the formula; the reason below is the one that
+still decides it.) 1–5 integers tuned to sort twenty ideas inside one team's lane will cluster every
+bet between 3.8 and
 4.2, which launders judgment as arithmetic and decides nothing. That is precisely the failure the
 Annie Duke framing in `Claude.md` is trying to avoid.
 

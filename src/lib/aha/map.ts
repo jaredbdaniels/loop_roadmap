@@ -137,11 +137,14 @@ export function buildCaptureItem(
 // backlink/reference — and never touch what a human may have edited in Loop
 // (title, stage, mission, KR, description).
 //
-// `votes` is the one subtle case: it's both seeded from Aha! endorsements *and*
-// hand-incrementable in Loop. So rather than overwrite it with Aha!'s raw count
-// (which would erase a human's upvotes), we track the last-synced count in
-// `ahaEndorsements` and apply only the *delta* to `votes`. A fire that omits the
-// count (idea.endorsements === null) leaves both untouched.
+// `votes` is the one subtle case. Nothing in Loop surfaces or edits it any more
+// — voting was removed — but Aha! still owns the endorsement count behind it, so
+// the field keeps syncing rather than being dropped: deleting it would make
+// Aha!'s number unrecoverable. The delta bookkeeping stays for the same reason it
+// was written: rather than overwrite with Aha!'s raw count, we track the
+// last-synced value in `ahaEndorsements` and apply only the *difference*, so
+// whatever is already stored survives a re-fire. A fire that omits the count
+// (idea.endorsements === null) leaves both untouched.
 //
 // Returns the updated item when something Aha!-owned actually changed, or null
 // when there's nothing to do, so the route only writes on real changes.

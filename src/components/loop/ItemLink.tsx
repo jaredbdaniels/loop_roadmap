@@ -14,8 +14,8 @@ import type { Item } from "@/lib/loop/types";
  * One affordance per surface, deliberately. This used to be a `Brief` pill in
  * the card's pill row *and* a `+1 vote` button in its footer, which meant the
  * same URL appeared twice on the cards that had one and the footer's slot went
- * to an action nobody used. Now the footer carries the link and vote shrinks to
- * its count (see `VoteButton`).
+ * to an action nobody used. The footer now carries the link alone — voting was
+ * removed from Loop, so the slot it shared is gone.
  *
  * Two variants, because the pill row is no longer a call site: cards use the
  * labelled `action` button, and the surfaces with no room for a label (timeline
@@ -89,35 +89,5 @@ export function ItemLink({
       <Icon size={variant === "action" ? 12 : 10} strokeWidth={2.6} aria-hidden />
       {variant === "action" && <span>{link.label}</span>}
     </a>
-  );
-}
-
-/**
- * The compact vote affordance that shares a card footer with `ItemLink`.
- *
- * Votes feed `computeRank`, which drives the Rank pill on the same card, so the
- * board keeps a one-click way to add one — it just no longer needs the footer's
- * labelled slot to do it. The count doubles as the label.
- */
-export function VoteButton({
-  votes,
-  onVote,
-}: {
-  votes: number;
-  onVote: () => void;
-}) {
-  return (
-    <button
-      className="vote-link vote-mini"
-      title="Add a vote — votes feed the rank score"
-      aria-label={`Add a vote (currently ${votes})`}
-      onClick={(e) => {
-        stop(e);
-        onVote();
-      }}
-    >
-      <span aria-hidden>▲</span>
-      {votes || 0}
-    </button>
   );
 }

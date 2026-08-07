@@ -108,6 +108,11 @@ export interface Item {
   submitter: Submitter;
   problemStatement: string;
   kr: KeyResult;
+  // Retained, but no longer part of the product: voting was removed from Loop
+  // and nothing in the UI reads or writes this, nor does `computeRank`. It stays
+  // because Aha! owns the endorsement count behind it and keeps syncing it in by
+  // delta (see `ahaEndorsements`) — discarding the field would make Aha!'s
+  // number unrecoverable, and removal was chosen to be losslessly reversible.
   votes: number;
   reach: number;
   confidence: number;
@@ -125,8 +130,8 @@ export interface Item {
   ahaUrl: string;
   ahaReference: string;
   // The last Aha! endorsement count synced onto this item. Bookkeeping only:
-  // it lets a re-fire apply the *delta* in endorsements to `votes` so a human's
-  // own upvotes are preserved rather than overwritten by Aha!'s raw count.
+  // it lets a re-fire apply the *delta* in endorsements to `votes` so whatever is
+  // already stored survives rather than being overwritten by Aha!'s raw count.
   // 0 for items with no Aha! origin.
   ahaEndorsements: number;
   prototypeUrl: string; // legacy single-link field; migrated into `prototypes`
@@ -149,6 +154,9 @@ export interface Item {
 }
 
 export interface Weights {
+  // Kept for the same reason as `Item.votes`, and deliberately not zeroed: the
+  // stored weight survives so turning voting back on restores the tuning some-
+  // one already chose. `computeRank` ignores it and no slider edits it.
   votes: number;
   reach: number;
   confidence: number;

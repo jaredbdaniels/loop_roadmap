@@ -5,6 +5,7 @@ import {
   betReach,
   betUndeclaredSpend,
   betUnstaffedClaims,
+  computeRank,
   diffCount,
   diffStates,
   FLAG_GAP,
@@ -128,6 +129,29 @@ function state(over: Partial<LoopState> = {}): LoopState {
     ...over,
   };
 }
+
+describe("computeRank", () => {
+  it("sums the three judged axes against their weights", () => {
+    const r = computeRank(
+      item({ reach: 4, confidence: 3, strategicFit: 2 }),
+      WEIGHTS,
+    );
+    expect(r).toBe(4 * 3 + 3 * 2 + 2 * 3);
+  });
+
+  // Voting was removed from Loop, and the score had to stop reading it — a
+  // stored number with no affordance to change it must not move the ranking.
+  // `votes` and `weights.votes` still exist (Aha! keeps syncing endorsements in),
+  // which is exactly why this needs a guard rather than a deleted field.
+  it("ignores votes and the stored votes weight", () => {
+    const scored = { reach: 4, confidence: 3, strategicFit: 2 };
+    const base = computeRank(item({ ...scored, votes: 0 }), WEIGHTS);
+    expect(computeRank(item({ ...scored, votes: 99 }), WEIGHTS)).toBe(base);
+    expect(
+      computeRank(item({ ...scored, votes: 99 }), { ...WEIGHTS, votes: 5 }),
+    ).toBe(base);
+  });
+});
 
 describe("framingGaps", () => {
   const framed = item({

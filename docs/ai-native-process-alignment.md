@@ -87,38 +87,51 @@ Worth stating explicitly so nobody reads the emptiness as a staffing problem.
 
 This is a rename plus one new column. It is not a re-plumbing of what the columns do.
 
-## Objection 1 — voting becomes configurable, not deleted
+## Objection 1 — voting is removed from the product, the data is kept
 
-An earlier draft resolved this by deleting voting *and* the `Weights` tuning UI outright, on the
-grounds that the [Opportunities Register](https://app.notion.com/p/39ed23fa124b81a2b2e0fb0bb9b5fa11)
-rubric is additive reach + pain + fit with no vote term. That over-answered the objection: the
-concern is that a popularity number quietly drives the roadmap, not that the number must be
-destroyed.
+**Resolved 2026-08-07: voting is gone from Loop.** Every affordance — the card `+1`, the detail
+modal's Votes field, the share-link count, the `+1` celebration, the Votes weight slider — is removed,
+and the `votes × w` term is out of `computeRank`. The two configuration toggles below were never
+built, and are not going to be.
 
-**Votes and weights stay in the model and become configurable.** Two settings, specified in
-[`settings-tab.md`](./settings-tab.md) — a sibling design doc landing on its own branch, so this link
-resolves once both are merged:
+What changed since the configurable design: nobody wanted the setting. A toggle defaulting to
+off, hidden, and out-of-rank is a feature whose recommended state is "invisible," which is a
+maintenance surface (a config table, a second context, ten conditional touchpoints, a share-link
+default) bought to preserve an option no one asked to exercise. Removing the affordances outright
+reaches the same shipped behavior with less code and no migration.
+
+**The data layer is untouched, deliberately.** `Item.votes` and `Weights.votes` still exist and the
+Aha! webhook still syncs endorsements into `votes` by delta. Aha! owns that number; discarding it
+would make it unrecoverable, and keeping it means this removal is losslessly reversible. Nothing in
+the UI reads or writes it.
+
+**The one thing that had to reach past the UI:** hiding the input while leaving `votes × w` in the
+formula would leave the roadmap driven by a signal nobody can see, which is worse than showing it. So
+the term is dropped from the score and from the `explain-rank` payload, and `logic.test.ts` carries a
+guard asserting that neither `item.votes` nor a stored `weights.votes` can move a rank.
+
+**Weights survive as a concept.** The tuning UI is what lets someone answer "why is this ranked
+here?", so reach / confidence / strategic fit keep their sliders — only the Votes slider goes. The
+stored `weights.votes` value is left as-is rather than zeroed, so the tuning returns intact if voting
+ever does.
+
+This also lands where the [Opportunities Register](https://app.notion.com/p/39ed23fa124b81a2b2e0fb0bb9b5fa11)
+rubric already was: additive reach + pain + fit, no vote term, so "no single loud account can fake a
+mountain's score."
+
+### Superseded — the configurable design (2026-08-04)
+
+Kept for the reasoning, not as a plan of record. An earlier draft deleted voting *and* the `Weights`
+tuning UI outright; that was reversed in favour of two settings specified in
+[`settings-tab.md`](./settings-tab.md), on the grounds that the objection is that a popularity number
+quietly drives the roadmap, not that the number must be destroyed:
 
 - **`votingEnabled`** — whether anyone can click +1 at all.
 - **`voteCountsVisible`** — whether counts render anywhere, including on a shared link.
 
-And the part that makes it a real answer rather than a cosmetic one: **when vote counts are hidden,
-the votes term drops out of the rank score.** Hiding the input while leaving `votes × w` in the
-formula would leave the roadmap driven by a signal nobody can see, which is worse than showing it.
-The Votes weight slider disables with a note when counts are hidden.
-
-Why configure rather than delete:
-
-- **The rubric's argument survives intact.** The additive design exists so "no single loud account can
-  fake a mountain's score." Defaulting a Campminder workspace to votes-hidden and votes-out-of-rank
-  honors that instinct exactly, without a feature removal.
-- **Nothing is destroyed, so nothing needs migrating.** Aha! endorsements keep syncing into `votes` by
-  delta, invisibly. A display toggle that discarded them would make Aha!'s number unrecoverable.
-- **Weights stay defensible.** The tuning UI is what lets someone answer "why is this ranked here?"
-  Deleting it to prevent misuse removes the mechanism that makes rank arguable.
-
-**Recommended default: voting off, counts hidden, votes out of rank.** That is the CPO's position as
-the shipped default — the difference is that it is a setting, and reversible, rather than a deletion.
+Recommended default: voting off, counts hidden, votes out of rank. The 2026-08-07 decision keeps that
+end state and drops the toggles that would have made it optional. The part of the argument that
+survived intact is the data-retention one — never destroy the Aha! count on a display decision.
 
 The field-input intent behind voting still needs a home, and the process already supplies one: the
 Gate 1 review is the forum for Sales, CX, and Support leadership. They attend bringing customer
@@ -158,7 +171,7 @@ elsewhere — capture is not PM/UX-only in practice, whatever the board says.
 
 | Objection | Resolution | Residual |
 | --- | --- | --- |
-| **Voting** — "I generally don't like the concept" | Configurable, defaulting to off and out of the rank score. The rubric's anti-distortion argument is honored as a default rather than enforced by deletion. | The field-input intent moves to Gate 1, as evidence. |
+| **Voting** — "I generally don't like the concept" | Removed from the product (2026-08-07): no affordances, and the votes term is out of the rank score. `votes` stays in the data layer so the Aha! endorsement count keeps syncing and the removal is reversible. | The field-input intent moves to Gate 1, as evidence. |
 | **Capture** — "dysfunctions getting systemized" | Signal is reframed as the promotion decision; direct capture becomes a marked, counted exception. | The Aha! webhook still writes directly into Loop. Must be re-pointed upstream. |
 | **Board states** — "an entirely new outline" | Not new. Four of five stages map to published phases; adopting the phase names and adding Design makes the board a rendering of the guild's process. | The guild's process is itself mostly `Draft` and does not cover Launch Control. Hence the scoping decision above. |
 
@@ -168,8 +181,11 @@ elsewhere — capture is not PM/UX-only in practice, whatever the board says.
 
 - **Six columns, not five.** `Signal / Discovery / Validation / Design / Delivery / Outcome`. The
   Design column exists to give Gate 2 a home and to make the unimplemented `design-finalize` visible.
-- **Votes and weights are configurable, not deleted.** Default off, counts hidden, votes out of the
-  rank score. Hiding counts must drop the votes term from the formula, not just the UI.
+- **Voting is removed from the product; the data is kept.** *(Revised 2026-08-07 — this bullet
+  previously read "configurable, not deleted." The toggles were never built.)* No vote affordances
+  anywhere, and the votes term is out of the rank formula, not just the UI. `Item.votes`,
+  `Weights.votes`, and the Aha! delta sync stay, so Aha!'s number survives and the removal is
+  reversible. Reach / confidence / strategic fit keep their weight sliders.
 - **Signal is the promotion decision.** The column is a queue to promote from, not an intake form.
 - **Direct capture survives as a marked exception**, and the count of register-less items is itself a
   metric.
