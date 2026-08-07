@@ -42,6 +42,7 @@ import {
 import type { Item, Prototype, PrototypeStatus, SubItem } from "@/lib/loop/types";
 import { stageMoveKind } from "./mutations";
 import { useLoop } from "./store";
+import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 import { MissionTag } from "./MissionTag";
 import { ModuleSelect } from "./ModuleSelect";
 import { SuggestButton } from "./SuggestButton";
@@ -96,6 +97,11 @@ export function DetailModal() {
   // `showAll` lets the user expand back to the full editing form. Reset whenever
   // a different item is opened (see the effect keyed on detailId below).
   const [showAll, setShowAll] = useState(false);
+  // Delete goes through a confirmation screen rather than a native confirm()
+  // dialog. `deleting` drives the exit animation; the actual removal fires
+  // after it finishes so the item doesn't vanish mid-animation.
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (item) {
@@ -117,6 +123,8 @@ export function DetailModal() {
     setInitQuery("");
     setInitOpen(false);
     setShowAll(false);
+    setConfirmDeleteOpen(false);
+    setDeleting(false);
     return () => setEditing(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailId]);
@@ -443,13 +451,18 @@ export function DetailModal() {
     closeDetail();
   };
 
-  const del = () => {
-    if (
-      !confirm("Delete this item permanently? This cannot be undone.")
-    )
-      return;
-    removeItem(form.id);
-    closeDetail();
+  const del = () => setConfirmDeleteOpen(true);
+
+  const cancelDel = () => setConfirmDeleteOpen(false);
+
+  const confirmDel = () => {
+    setDeleting(true);
+    // Let the poof animation finish before the item — and this modal along
+    // with it — actually disappears.
+    setTimeout(() => {
+      removeItem(form.id);
+      closeDetail();
+    }, 320);
   };
 
   const prog = subProgress({ ...form, subItems: subs });
@@ -475,6 +488,7 @@ export function DetailModal() {
     .filter((n) => (iq ? n.title.toLowerCase().includes(iq) : true));
 
   return (
+    <>
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && closeDetail()}>
       <div className="modal modal--wide">
         <div className="modal-header">
@@ -1594,6 +1608,15 @@ export function DetailModal() {
         </div>
       </div>
     </div>
+    <ConfirmDeleteModal
+      open={confirmDeleteOpen}
+      deleting={deleting}
+      title="Delete this item?"
+      message={`Delete "${form.title || "Untitled idea"}" permanently? This cannot be undone.`}
+      onConfirm={confirmDel}
+      onCancel={cancelDel}
+    />
+    </>
   );
 }
 
