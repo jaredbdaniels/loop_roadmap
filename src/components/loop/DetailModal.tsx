@@ -28,6 +28,7 @@ import {
 import {
   computeRank,
   createsDepCycle,
+  fmtRange,
   framingGaps,
   genId,
   hasEvidence,
@@ -36,6 +37,7 @@ import {
   krStatus,
   parseDate,
   stageBlockReason,
+  subOutOfRange,
   subProgress,
   toISODate,
 } from "@/lib/loop/logic";
@@ -65,6 +67,18 @@ const GAP_FIELDS: Record<string, { label: string; id: string }> = {
 // The Prototypes section — target of the evidence-gate jump.
 const EVIDENCE_ANCHOR = "detail-prototypes";
 
+// One end of a sub-item's date range, for the read state of a breakdown row.
+// "Sep 1, 2026" reads in noticeably less width than the date input it replaces,
+// which is the room the title column gets back.
+function fmtDay(iso: string | null): string {
+  if (!iso) return "—";
+  return parseDate(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export function DetailModal() {
   const {
     items,
@@ -83,6 +97,11 @@ export function DetailModal() {
 
   const [form, setForm] = useState<Item | null>(null);
   const [subs, setSubs] = useState<SubItem[]>([]);
+  // A breakdown is read far more often than it is edited, so sub-item rows
+  // render as text and only the one being worked on becomes a row of inputs.
+  // Null = every row is in its read state. Only ever one at a time: opening a
+  // second row closes the first, which keeps the section a list you can scan.
+  const [editingSubId, setEditingSubId] = useState<string | null>(null);
   const [protos, setProtos] = useState<Prototype[]>([]);
   // "Depends on" is a deliberate search-to-add picker: type to find the one
   // item this work is sequenced behind, rather than scanning a wall of every
@@ -122,6 +141,7 @@ export function DetailModal() {
     setDepOpen(false);
     setInitQuery("");
     setInitOpen(false);
+    setEditingSubId(null);
     setShowAll(false);
     setConfirmDeleteOpen(false);
     setDeleting(false);
@@ -272,11 +292,14 @@ export function DetailModal() {
     );
   };
 
-  const addSub = () =>
+  const addSub = () => {
+    // A brand-new row is empty, so there is nothing to read — it opens straight
+    // into its edit state rather than as a blank "Untitled sub-item" line.
+    const id = genId();
     setSubs((s) => [
       ...s,
       {
-        id: genId(),
+        id,
         title: "",
         targetStart: null,
         targetEnd: null,
@@ -285,6 +308,8 @@ export function DetailModal() {
         adoStatus: "",
       },
     ]);
+    setEditingSubId(id);
+  };
   const updateSub = (id: string, patch: Partial<SubItem>) => {
     const nextSubs = subs.map((x) => (x.id === id ? { ...x, ...patch } : x));
     // Checking the last open sub-item completes the checklist — a small win.
@@ -298,7 +323,10 @@ export function DetailModal() {
     }
     setSubs(nextSubs);
   };
-  const removeSub = (id: string) => setSubs((s) => s.filter((x) => x.id !== id));
+  const removeSub = (id: string) => {
+    setSubs((s) => s.filter((x) => x.id !== id));
+    setEditingSubId((cur) => (cur === id ? null : cur));
+  };
 
   const addProto = () =>
     setProtos((p) => [
@@ -662,7 +690,11 @@ export function DetailModal() {
         /* Two columns above ~860px: the narrative and the work on the left
            (what this idea is, how it's framed, when it lands, what's being
            built), the properties rail on the right (scores, links out, history).
-           Collapses to a single column below that — see .detail-cols. */
+           Collapses to a single column below that — see .detail-cols. The
+           Breakdown follows underneath at the full modal width: inside the left
+           column its rows had ~110px for the title, which is the one field that
+           says which sub-item you are looking at. */
+        <>
         <div className="detail-cols">
         <div className="detail-col-main">
         <div className="form-section">
@@ -1220,128 +1252,6 @@ export function DetailModal() {
 
         <div className="form-section">
           <div className="form-section-title">
-            <ListTree size={13} strokeWidth={2.4} /> Breakdown
-          </div>
-        <div className="field">
-          <label>
-            Sub-items{" "}
-            <span
-              style={{
-                color: "var(--cm-muted-fg)",
-                fontWeight: 500,
-                textTransform: "none",
-                letterSpacing: 0,
-              }}
-            >
-              {prog ? `(${prog.done}/${prog.total} done)` : "(none yet)"}
-            </span>
-          </label>
-          {/* Column headers once, above the list — the two bare date inputs on
-              each row were otherwise indistinguishable. */}
-          {subs.length > 0 && (
-            <div className="sub-head" aria-hidden>
-              <span />
-              <span>Sub-item</span>
-              <span>Start</span>
-              <span>End</span>
-              <span>ADO</span>
-              <span />
-            </div>
-          )}
-          <div className="sub-rows">
-            {subs.map((s) => (
-              <div key={s.id} className={"sub-row" + (s.done ? " done" : "")}>
-                <input
-                  type="checkbox"
-                  className="sub-done"
-                  checked={s.done}
-                  title="Done"
-                  onChange={(e) => updateSub(s.id, { done: e.target.checked })}
-                />
-                <input
-                  type="text"
-                  className="sub-title"
-                  placeholder="Sub-item title"
-                  value={s.title}
-                  onChange={(e) => updateSub(s.id, { title: e.target.value })}
-                />
-                <input
-                  type="date"
-                  className="sub-start"
-                  value={s.targetStart || ""}
-                  onChange={(e) =>
-                    updateSub(s.id, { targetStart: e.target.value || null })
-                  }
-                />
-                <input
-                  type="date"
-                  className="sub-end"
-                  value={s.targetEnd || ""}
-                  onChange={(e) =>
-                    updateSub(s.id, { targetEnd: e.target.value || null })
-                  }
-                />
-                {/* The work-item link rides in the row itself: a chip-sized
-                    field at rest that widens over its neighbours on focus, so
-                    a URL stays typeable without costing a whole second line. */}
-                <div
-                  className={
-                    "sub-ado" +
-                    (s.adoUrl ? " has-link" : "") +
-                    (s.adoStatus ? " has-status" : "")
-                  }
-                >
-                  {s.adoStatus ? (
-                    <span
-                      className="sub-ado-status"
-                      title={`Azure DevOps status: ${s.adoStatus} (pulled by Sync ADO)`}
-                    >
-                      {s.adoStatus}
-                    </span>
-                  ) : (
-                    <Link2 size={11} strokeWidth={2.2} className="sub-ado-icon" />
-                  )}
-                  <input
-                    type="url"
-                    className="sub-ado-url"
-                    placeholder="Link"
-                    title={s.adoUrl || "ADO work item link — https://dev.azure.com/…"}
-                    value={s.adoUrl}
-                    onChange={(e) => updateSub(s.id, { adoUrl: e.target.value })}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="sub-del edit-only"
-                  title="Remove sub-item"
-                  onClick={() => removeSub(s.id)}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-          <button
-            className="cm-button--ghost cm-button cm-button--small edit-only"
-            type="button"
-            style={{ marginTop: 8 }}
-            onClick={addSub}
-          >
-            + Add sub-item
-          </button>
-          <div className="helper">
-            The breakdown under this idea: milestones or workstreams. Dated
-            sub-items appear as slim bars under the parent on the timeline.
-            Sub-items don&apos;t enter the loop pipeline. Link each to its ADO
-            work item and <strong>Sync ADO</strong> pulls its status and checks
-            it off when the work item closes — so the {prog ? `${prog.done}/${prog.total} done` : "done"} rollup
-            reflects real delivery.
-          </div>
-        </div>
-        </div>
-
-        <div className="form-section">
-          <div className="form-section-title">
             <GraduationCap size={13} strokeWidth={2.4} /> Learn
           </div>
         <div className="field">
@@ -1561,6 +1471,260 @@ export function DetailModal() {
 
         </aside>
         </div>
+
+        <div className="form-section">
+          <div className="form-section-title">
+            <ListTree size={13} strokeWidth={2.4} /> Breakdown
+          </div>
+        <div className="field">
+          <label>
+            Sub-items{" "}
+            <span
+              style={{
+                color: "var(--cm-muted-fg)",
+                fontWeight: 500,
+                textTransform: "none",
+                letterSpacing: 0,
+              }}
+            >
+              {prog ? `(${prog.done}/${prog.total} done)` : "(none yet)"}
+            </span>
+          </label>
+          {/* Column headers once, above the list — the two bare date inputs on
+              an opened row were otherwise indistinguishable, and read rows sit
+              on the same grid so the labels hold for both states. */}
+          {subs.length > 0 && (
+            <div className="sub-head" aria-hidden>
+              <span />
+              <span>Sub-item</span>
+              <span>Start</span>
+              <span>End</span>
+              <span>ADO</span>
+              <span />
+            </div>
+          )}
+          <div className="sub-rows">
+            {subs.map((s) => {
+              // Read and edit rows share one grid, so opening a row swaps text
+              // for inputs in place — the columns never move under the cursor.
+              const editing = editingSubId === s.id;
+              const oob = subOutOfRange(form, s);
+              const cls =
+                "sub-row" + (s.done ? " done" : "") + (oob ? " oob" : "");
+
+              if (!editing)
+                return (
+                  <div
+                    key={s.id}
+                    className={cls + " sub-row--read"}
+                    role="button"
+                    tabIndex={shareMode ? -1 : 0}
+                    aria-label={`Edit sub-item ${s.title || "Untitled sub-item"}`}
+                    title={
+                      (s.title || "Untitled sub-item") +
+                      "\n" +
+                      fmtRange(s) +
+                      (oob ? "\n⚠ Outside the parent's date range" : "") +
+                      (shareMode ? "" : "\nClick to edit")
+                    }
+                    onClick={() => !shareMode && setEditingSubId(s.id)}
+                    onKeyDown={(e) => {
+                      if (shareMode) return;
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setEditingSubId(s.id);
+                      }
+                    }}
+                  >
+                    {/* Checking a box is the one edit worth making without
+                        opening the row, so it stays live in the read state. */}
+                    <input
+                      type="checkbox"
+                      className="sub-done"
+                      checked={s.done}
+                      title="Done"
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) =>
+                        updateSub(s.id, { done: e.target.checked })
+                      }
+                    />
+                    <span className="sub-read-title">
+                      {oob && (
+                        <AlertTriangle
+                          size={11}
+                          strokeWidth={2.4}
+                          className="sub-read-warn"
+                          aria-label="Outside the parent's date range"
+                        />
+                      )}
+                      {s.title || (
+                        <span className="sub-read-untitled">
+                          Untitled sub-item
+                        </span>
+                      )}
+                    </span>
+                    <span className="sub-read-date sub-read-start">
+                      {fmtDay(s.targetStart)}
+                    </span>
+                    <span className="sub-read-date sub-read-end">
+                      {fmtDay(s.targetEnd)}
+                    </span>
+                    {/* Synced state if Sync ADO has run, otherwise the link
+                        itself — either way it opens the work item rather than
+                        showing a URL nobody reads. */}
+                    <span className="sub-read-ado">
+                      {s.adoUrl ? (
+                        <a
+                          href={s.adoUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={
+                            "sub-read-link" + (s.adoStatus ? " has-status" : "")
+                          }
+                          title={
+                            s.adoStatus
+                              ? `Azure DevOps: ${s.adoStatus} — open work item`
+                              : `Open work item — ${s.adoUrl}`
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Link2 size={10} strokeWidth={2.4} />
+                          {s.adoStatus || "Work item"}
+                        </a>
+                      ) : (
+                        <span className="sub-read-nolink">No link</span>
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      className="sub-del edit-only"
+                      title="Remove sub-item"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeSub(s.id);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+
+              return (
+                <div
+                  key={s.id}
+                  className={cls + " sub-row--edit"}
+                  // Moving focus out of the row returns it to its read state.
+                  // Focus moving *within* the row (title → dates → link) keeps
+                  // it open, so tabbing through the fields still works.
+                  onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node | null))
+                      setEditingSubId(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.stopPropagation();
+                      setEditingSubId(null);
+                    }
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    className="sub-done"
+                    checked={s.done}
+                    title="Done"
+                    onChange={(e) => updateSub(s.id, { done: e.target.checked })}
+                  />
+                  <input
+                    type="text"
+                    className="sub-title"
+                    placeholder="Sub-item title"
+                    autoFocus
+                    value={s.title}
+                    onChange={(e) => updateSub(s.id, { title: e.target.value })}
+                    onKeyDown={(e) => {
+                      // Enter closes the row rather than submitting the modal.
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        setEditingSubId(null);
+                      }
+                    }}
+                  />
+                  <input
+                    type="date"
+                    className="sub-start"
+                    value={s.targetStart || ""}
+                    onChange={(e) =>
+                      updateSub(s.id, { targetStart: e.target.value || null })
+                    }
+                  />
+                  <input
+                    type="date"
+                    className="sub-end"
+                    value={s.targetEnd || ""}
+                    onChange={(e) =>
+                      updateSub(s.id, { targetEnd: e.target.value || null })
+                    }
+                  />
+                  {/* The work-item link rides in the row itself: a chip-sized
+                      field at rest that widens over its neighbours on focus, so
+                      a URL stays typeable without costing a whole second line. */}
+                  <div
+                    className={
+                      "sub-ado" +
+                      (s.adoUrl ? " has-link" : "") +
+                      (s.adoStatus ? " has-status" : "")
+                    }
+                  >
+                    {s.adoStatus ? (
+                      <span
+                        className="sub-ado-status"
+                        title={`Azure DevOps status: ${s.adoStatus} (pulled by Sync ADO)`}
+                      >
+                        {s.adoStatus}
+                      </span>
+                    ) : (
+                      <Link2 size={11} strokeWidth={2.2} className="sub-ado-icon" />
+                    )}
+                    <input
+                      type="url"
+                      className="sub-ado-url"
+                      placeholder="Link"
+                      title={s.adoUrl || "ADO work item link — https://dev.azure.com/…"}
+                      value={s.adoUrl}
+                      onChange={(e) => updateSub(s.id, { adoUrl: e.target.value })}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="sub-del edit-only"
+                    title="Remove sub-item"
+                    onClick={() => removeSub(s.id)}
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            className="cm-button--ghost cm-button cm-button--small edit-only"
+            type="button"
+            style={{ marginTop: 8 }}
+            onClick={addSub}
+          >
+            + Add sub-item
+          </button>
+          <div className="helper">
+            The breakdown under this idea: milestones or workstreams. Click a
+            row to edit it. Dated sub-items appear as slim bars under the parent
+            on the timeline. Sub-items don&apos;t enter the loop pipeline. Link
+            each to its ADO work item and <strong>Sync ADO</strong> pulls its
+            status and checks it off when the work item closes — so the {prog ? `${prog.done}/${prog.total} done` : "done"} rollup
+            reflects real delivery.
+          </div>
+        </div>
+        </div>
+        </>
         )}
         </fieldset>
         {item.stage === "Learn" && (

@@ -2939,6 +2939,107 @@ body.share-mode .tl-link-handle {
   text-decoration: line-through;
   color: var(--cm-faint-fg);
 }
+
+/* ---- read state ----
+   A breakdown is scanned far more often than it is edited, so a row renders as
+   text and swaps to the inputs above only when clicked. Both states share the
+   .sub-row grid, so the swap happens in place and no column moves. */
+.sub-row--read {
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  /* Vertical padding only: it matches the inputs the row stands in for, so a
+     row is the same height opened as closed, and the columns keep the exact
+     widths the header advertises. */
+  padding: 7px 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.sub-row--read:hover,
+.sub-row--read:focus-visible {
+  background: var(--cm-surface-muted);
+  border-color: var(--cm-border);
+}
+.sub-row--read:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+body.share-mode .sub-row--read {
+  cursor: default;
+}
+body.share-mode .sub-row--read:hover {
+  background: none;
+  border-color: transparent;
+}
+.sub-read-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--cm-fg);
+  /* The point of the whole exercise: the title gets the room, and when it
+     still runs out it ellipses rather than being cropped mid-glyph. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sub-row--read.done .sub-read-title {
+  text-decoration: line-through;
+  color: var(--cm-faint-fg);
+}
+.sub-read-untitled {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--cm-faint-fg);
+}
+/* Dates out of the parent's range are flagged on the timeline; the breakdown
+   is where you would go to fix them, so the warning belongs here too. */
+.sub-read-warn {
+  flex-shrink: 0;
+  color: var(--cm-orange);
+}
+.sub-read-date {
+  font-size: 0.73rem;
+  color: var(--cm-muted-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sub-read-ado {
+  min-width: 0;
+  font-size: 0.7rem;
+}
+.sub-read-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--cm-purple);
+  text-decoration: none;
+}
+.sub-read-link.has-status {
+  background: var(--cm-purple-soft);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+.sub-read-link:hover {
+  text-decoration: underline;
+}
+.sub-read-nolink {
+  color: var(--cm-faint-fg);
+}
+/* The opened row reads as active, since closing it is a click away rather
+   than a button press. */
+.sub-row--edit {
+  position: relative;
+  border-radius: var(--r-sm);
+  box-shadow: 0 0 0 1px var(--cm-purple-soft);
+}
 .sub-row .sub-del {
   border: 0;
   background: none;
@@ -2969,7 +3070,10 @@ body.share-mode .tl-link-handle {
 .sub-ado.has-link .sub-ado-icon {
   color: var(--cm-purple);
 }
-.sub-ado .sub-ado-url {
+/* Selector carries `.sub-row` so it outweighs `.field input[type="url"]`'s
+   width: 100% — without it the field sizes to the whole column *after* its
+   15px left offset and spills over the delete button. */
+.sub-row .sub-ado .sub-ado-url {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -2986,10 +3090,10 @@ body.share-mode .tl-link-handle {
   transition: left 0.16s ease, width 0.16s ease;
 }
 /* Leave room for the status pill when Sync ADO has filled one in. */
-.sub-ado.has-status .sub-ado-url {
+.sub-row .sub-ado.has-status .sub-ado-url {
   left: 56px;
 }
-.sub-ado .sub-ado-url:focus {
+.sub-row .sub-ado .sub-ado-url:focus {
   left: auto;
   width: 320px;
   z-index: 2;
@@ -4429,7 +4533,7 @@ select.cm-select--draft {
 /* Column headers for the sub-item rows — mirrors the .sub-row grid. */
 .sub-head {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) 110px 110px 104px 22px;
+  grid-template-columns: var(--sub-cols);
   gap: 6px;
   margin-bottom: 5px;
   font-size: 0.63rem;
@@ -4438,10 +4542,16 @@ select.cm-select--draft {
   text-transform: uppercase;
   color: var(--cm-muted-fg);
 }
-/* Match the headers (was 132px, which starved the title field once the modal
-   body was split into two columns). */
+/* Breakdown sits below the two-column body at the full modal width, so the
+   title column is no longer competing with a properties rail for the same
+   940px. The fixed columns are sized for what they hold — "Sep 1, 2026" and a
+   state pill — and everything left over goes to the title. */
+.sub-head,
 .sub-row {
-  grid-template-columns: 22px minmax(0, 1fr) 110px 110px 104px 22px;
+  --sub-cols: 22px minmax(0, 1fr) 116px 116px 132px 22px;
+}
+.sub-row {
+  grid-template-columns: var(--sub-cols);
 }
 
 @media (max-width: 860px) {
@@ -4490,6 +4600,20 @@ select.cm-select--draft {
   .sub-row .sub-del {
     grid-area: del;
   }
+  /* The read state stacks onto the same areas, so a row still swaps between
+     text and inputs without the layout moving. */
+  .sub-row .sub-read-title {
+    grid-area: title;
+  }
+  .sub-row .sub-read-start {
+    grid-area: start;
+  }
+  .sub-row .sub-read-end {
+    grid-area: end;
+  }
+  .sub-row .sub-read-ado {
+    grid-area: ado;
+  }
   /* No neighbouring columns to expand over on a phone — the link field just
      takes the full width of the row it sits on. */
   .sub-row .sub-ado {
@@ -4497,7 +4621,7 @@ select.cm-select--draft {
     gap: 6px;
   }
   .sub-row .sub-ado .sub-ado-url,
-  .sub-row .sub-ado .sub-ado-url:focus {
+  .sub-row .sub-row .sub-ado .sub-ado-url:focus {
     position: static;
     transform: none;
     flex: 1;
