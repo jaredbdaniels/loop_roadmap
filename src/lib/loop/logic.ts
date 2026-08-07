@@ -5,6 +5,7 @@
 import {
   BET_COLORS,
   BET_GOAL_AREAS,
+  CAPTURE_STAGE,
   BET_STATUSES,
   BET_TERMINAL_STATUSES,
   BET_THEMES,
@@ -282,6 +283,18 @@ export function krStatus(
   return "unset";
 }
 
+/* ---------------- the inbox ---------------- */
+// True while an idea is still in the Capture lane — parked, not yet worked.
+//
+// This is the line between "somebody wrote this down" and "we are spending time
+// on it", and it is why the Capture lane can exist alongside the four Headlights
+// bands without competing with them. Everything portfolio-facing reads this:
+// inbox items consume no capacity (`itemQuarters`) and are not counted among the
+// items expected to be framed (`computeStats`).
+export function isInbox(item: Item): boolean {
+  return item.stage === CAPTURE_STAGE;
+}
+
 /* ---------------- gates ---------------- */
 export function isFramed(item: Item): boolean {
   return !!(
@@ -374,6 +387,7 @@ const LINK_LABELS: Record<ItemLinkKind, string> = {
 // Solutioning prefers the design over the brief: by then the problem is stated
 // and the open question is which direction won.
 const LINK_PREFERENCE: Record<Stage, ItemLinkKind[]> = {
+  Capture: ["idea", "brief", "design", "ado"],
   Discovery: ["brief", "idea", "design", "ado"],
   Solutioning: ["design", "brief", "ado", "idea"],
   Building: ["ado", "design", "brief", "idea"],
@@ -757,10 +771,16 @@ export interface Stats {
 export function computeStats(items: Item[]): Stats {
   const active = items.filter((i) => !i.killed);
   const total = active.length;
-  const pastDiscovery = active.filter((i) => i.stage !== "Discovery");
-  const framedGood = pastDiscovery.filter(isFramed).length;
-  const framedRate = pastDiscovery.length
-    ? Math.round((100 * framedGood) / pastDiscovery.length)
+  // Framing is Solutioning work, so the rate is measured over the lanes where
+  // it should already have happened — Solutioning onward. Counting Capture and
+  // Discovery would score items against a bar they are not meant to have
+  // cleared yet, and the number would only ever say "most ideas are early".
+  const shouldBeFramed = active.filter(
+    (i) => STAGES.indexOf(i.stage) >= STAGES.indexOf("Solutioning"),
+  );
+  const framedGood = shouldBeFramed.filter(isFramed).length;
+  const framedRate = shouldBeFramed.length
+    ? Math.round((100 * framedGood) / shouldBeFramed.length)
     : 0;
   const released = active.filter((i) => i.shippedAt || i.stage === "Releasing");
   const withOutcome = released.filter(
@@ -990,7 +1010,14 @@ export function betProgress(
 // A span is counted by the quarters it touches, not by elapsed days, so an epic
 // running 2027-12-01 → 2028-02-29 is one quarter (Q2 FY28), not three months
 // straddling a year boundary.
+//
+// Also 0 for anything still in the Capture inbox, even when it carries dates —
+// and this one line is what keeps every share below honest. Capacity means work
+// we intend to do; a parked idea with a speculative date on it is not that, and
+// letting it into the denominator would deflate every bet's share against a
+// roadmap nobody has agreed to. Same reasoning that excludes killed items.
 export function itemQuarters(item: Item): number {
+  if (isInbox(item)) return 0;
   if (!isScheduled(item)) return 0;
   const a = fiscalQuarterIndex(parseDate(item.targetStart!));
   const b = fiscalQuarterIndex(parseDate(item.targetEnd!));
@@ -1016,6 +1043,15 @@ function shareOf(quarters: number, total: number): number {
   return total > 0 ? +((100 * quarters) / total).toFixed(1) : 0;
 }
 
+// The items whose cost is counted: alive, and out of the Capture inbox. This is
+// the same rule that makes `itemQuarters` return 0 for a parked idea, applied
+// where the epic *count* is reported — otherwise the two halves of a share
+// contradict each other, and "8 epics · 6 epic-quarters" leaves the reader
+// working out which number to believe.
+function costedItems(items: Item[]): Item[] {
+  return items.filter((i) => !i.killed && !isInbox(i));
+}
+
 // What a bet costs: epic-quarters it funds, as a share of the whole roadmap.
 // Funded shares across all bets sum to at most 100, with run-the-business making
 // up the difference. This is the only number ever compared against
@@ -1024,7 +1060,7 @@ export function betFundedShare(
   bet: Bet,
   items: Item[],
 ): { quarters: number; epics: number; share: number } {
-  const funded = betFundedItems(bet, items).filter((i) => !i.killed);
+  const funded = costedItems(betFundedItems(bet, items));
   const quarters = funded.reduce((s, i) => s + itemQuarters(i), 0);
   return {
     quarters,
@@ -1040,7 +1076,7 @@ export function betReach(
   bet: Bet,
   items: Item[],
 ): { quarters: number; epics: number; share: number } {
-  const linked = betItems(bet, items).filter((i) => !i.killed);
+  const linked = costedItems(betItems(bet, items));
   const quarters = linked.reduce((s, i) => s + itemQuarters(i), 0);
   return {
     quarters,
@@ -1057,7 +1093,7 @@ export function runTheBusinessShare(items: Item[]): {
   epics: number;
   share: number;
 } {
-  const unfunded = items.filter((i) => !i.killed && !i.fundedBetId);
+  const unfunded = costedItems(items).filter((i) => !i.fundedBetId);
   const quarters = unfunded.reduce((s, i) => s + itemQuarters(i), 0);
   return {
     quarters,
@@ -1073,11 +1109,11 @@ export function betTeamShares(
   bet: Bet,
   items: Item[],
 ): { team: string; quarters: number; share: number }[] {
-  const funded = betFundedItems(bet, items).filter((i) => !i.killed);
+  const funded = costedItems(betFundedItems(bet, items));
   return betTeams(bet, items)
     .map((team) => {
-      const teamTotal = items
-        .filter((i) => !i.killed && i.mission === team)
+      const teamTotal = costedItems(items)
+        .filter((i) => i.mission === team)
         .reduce((s, i) => s + itemQuarters(i), 0);
       const quarters = funded
         .filter((i) => i.mission === team)

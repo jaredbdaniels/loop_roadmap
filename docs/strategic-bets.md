@@ -156,10 +156,10 @@ flags look like, because nothing in the current seed triggers them.
 Bet — Parent Experience Convergence        grow · foundational · Active · Now
   value  $1.4M retained ARR (basis: modeled)  [illustrative]
   KPI    parent-app WAU  0 → 12,000  (current 0)  [illustrative]
-  planned 25% [illustrative]  ·  funded 5.6% (8 epics · 8 epic-qtrs of 143)  ·  5 teams
+  planned 25% [illustrative]  ·  funded 6.5% (6 epics · 6 epic-qtrs of 93)  ·  5 teams
   Q2 FY27 → Q2 FY28
 
-  ├─ Community & Media    declared   4 epics   1 Building, 1 Solutioning, 2 Discovery
+  ├─ Community & Media    declared   4 epics   1 Building, 1 Solutioning, 2 Capture
   │     Community — Family Engagement & Comms Service
   ├─ Registrations        declared   1 epic    Building         Core — Admin Workflows
   ├─ Custom Fields        declared   1 epic    Solutioning      Platform — Data & Integrations
@@ -215,16 +215,22 @@ rather than being decoration.
   `fiscalQuarterIndex`. This weights a three-quarter epic above a one-quarter one, which the epic
   count doesn't.
 
+  **Work still in the Capture inbox costs nothing**, dates or not. Capture is a holding lane, not a
+  plan, and a parked idea carrying a speculative date would otherwise dilute the denominator every
+  bet is measured against — filling the inbox would quietly shrink the apparent investment in
+  everything real. Same reasoning that excludes killed items. See `itemQuarters` and `costedItems`
+  ([`logic.ts`](../src/lib/loop/logic.ts)).
+
   **The denominator is the whole roadmap, not the sum of the bets.** Getting this wrong inverts the
   headline number: normalized against bets only, Parent Experience Convergence — the sole initiative
-  with any links — is 100%, versus 5.6% of the portfolio. The portfolio denominator is the one that
+  with any links — is 100%, versus 6.5% of the portfolio. The portfolio denominator is the one that
   makes the run-the-business remainder coherent and keeps funded shares summing to ≤100.
 - **Epic-count share.** Cruder, instant, worth showing beside it.
 - **Per-team share.** For each team, what fraction of its dated work each bet consumes. This is the
   over-allocation view at the resolution where the trade-off actually bites.
 - **Eng-quarter share** — the recommended follow-on. `docs/seed-redesign/4_teams.csv` has a `size`
   column (`"4 eng"`, `"5* eng"`) that `gen_taxonomy.py` currently drops; `Team` has no `size` field.
-  Carrying it through turns "5.6% of epics" into "5.6% of engineers," which is the number an exec can
+  Carrying it through turns "6.5% of epics" into "6.5% of engineers," which is the number an exec can
   act on. Caveat: the values are free text and need parsing, and one is asterisked.
 
 Free from fields that already exist: every bet can show its **modernize / new-value / both** mix from
@@ -233,9 +239,10 @@ Free from fields that already exist: every bet can show its **modernize / new-va
 
 ### The remainder is the headline
 
-Run the numbers on today's seed and the point makes itself. 124 epics, all scheduled, **143
-epic-quarters** total. Parent Experience Convergence — the only initiative with any links at all —
-accounts for **8 of them, 5.6%**. The other **94.4% belongs to no bet**.
+Run the numbers on today's seed and the point makes itself. 136 epics, all scheduled, of which 63
+are still parked in the Capture inbox and cost nothing. That leaves **93 epic-quarters** of real
+capacity. Parent Experience Convergence — the only initiative with any links at all — accounts for
+**6 of them, 6.5%**. The other **93.5% belongs to no bet**.
 
 That figure is not a data-quality gap to be cleaned up before the view is useful. It *is* the
 finding: the roadmap is overwhelmingly run-the-business, and the strategic bets are a thin slice on
@@ -509,7 +516,7 @@ fill; everything else is real data from the current seed.
 | KPI | parent-app WAU: baseline 0 → target 12,000 *(illustrative)* |
 | Reversibility | 2/5 — retiring Camp inTouch is a one-way door |
 | Declared JTBDs | `community-media`, `registrations`, `custom-fields`, `payments`, `people-orgs` — the five its epics actually land in, so no unstaffed-claim flag fires. (The tree above adds `alerts-automation` as an invented sixth to show the flag.) |
-| **Derived** | 8 epics · 8 epic-quarters · **funded 5.6%** of 143 · 5 teams · Q2 FY27 → Q2 FY28 |
+| **Derived** | 6 epics · 6 epic-quarters · **funded 6.5%** of 93 · 5 teams · Q2 FY27 → Q2 FY28 (2 further linked epics are still in Capture and cost nothing yet) |
 | Teams | Community — Family Engagement & Comms Service · Core — Admin Workflows · Platform — Data & Integrations · Core — Financial Services · Platform — Identity & Core Services |
 | Type mix | 3 modernize · 1 new-value · 4 both |
 | Kill criteria | *(to be written — currently absent, and its absence is the point)* |

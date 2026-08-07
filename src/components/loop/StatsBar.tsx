@@ -25,7 +25,7 @@ export function StatsBar() {
       icon: Target,
       label: "Framed with problem + KR",
       value: `${s.framedRate}%`,
-      hint: "of items past Discovery",
+      hint: "of items in Solutioning or later",
     },
     {
       icon: CircleCheckBig,

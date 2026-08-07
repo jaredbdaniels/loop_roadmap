@@ -182,7 +182,7 @@ export function TeamView() {
             {rows.map((item) => {
               const rank = computeRank(item, weights);
               const showRank =
-                STAGES.indexOf(item.stage) >= STAGES.indexOf("Solutioning");
+                STAGES.indexOf(item.stage) >= STAGES.indexOf("Discovery");
               const sub = (item.problemStatement || "Not framed yet").slice(
                 0,
                 90,

@@ -106,9 +106,9 @@ describe("isCxIdea", () => {
 });
 
 describe("buildCaptureItem", () => {
-  it("drafts a Discovery item stamped as the Aha! agent, with a backlink", () => {
+  it("drafts a Capture item stamped as the Aha! agent, with a backlink", () => {
     const item = buildCaptureItem(idea({ endorsements: 7 }), { nowISO: NOW });
-    expect(item.stage).toBe("Discovery");
+    expect(item.stage).toBe("Capture");
     expect(item.submitter).toEqual({ type: "agent", name: "Aha Ideas" });
     expect(item.mission).toBe("Cross-cutting");
     expect(item.ahaUrl).toBe("https://campminder.aha.io/ideas/ideas/PROD-I-123");

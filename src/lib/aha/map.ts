@@ -7,8 +7,10 @@ import type { AhaIdea } from "./client";
 // verifies the secret, optionally enriches with the AI copilot, and persists;
 // this module only decides what a captured item looks like.
 //
-// A captured idea lands in the Discovery column as an agent-drafted item — the
+// A captured idea lands in the Capture inbox as an agent-drafted item — the
 // human-verification step stays, exactly as it does for Slack/Granola intake.
+// It is deliberately not dropped straight into Discovery: arriving in the tool
+// is not the same as anyone deciding to spend time on it.
 
 // The team a fresh capture is parked under until a human retags it in review.
 // "Cross-cutting" is a real mission and reads honestly as "not yet assigned".
@@ -66,7 +68,7 @@ export function ahaItemId(idea: AhaIdea): string {
   return "aha_" + key.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 }
 
-// Build a fresh Discovery draft from an Aha! idea. Mirrors the exact default shape
+// Build a fresh Capture draft from an Aha! idea. Mirrors the exact default shape
 // the CaptureModal creates, so an Aha!-captured item is indistinguishable from a
 // hand-captured one except for its origin fields. `enrichment` (when the AI
 // copilot is on) supplies a drafted problem statement / mission / KR; without it
@@ -87,7 +89,7 @@ export function buildCaptureItem(
     owner: "",
     moduleId: null,
     type: null,
-    stage: "Discovery",
+    stage: "Capture",
     order: null,
     horizon: null,
     targetStart: null,

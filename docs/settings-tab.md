@@ -270,10 +270,11 @@ as an audience-facing artifact.
 this shape of responsibility (it filters `killed` and blanks `killedReason` /
 `activity`). Extend it to accept the link's config:
 
-- stages — **the highest-value one.** A Discovery-stage idea rendering to an exec
+- stages — **the highest-value one.** A Capture-lane idea rendering to an exec
   as "the roadmap" is the actual failure mode: a half-formed thought read as a
   commitment. Defaulting an exec link to Building → Releasing fixes more
-  than every chrome setting combined.
+  than every chrome setting combined, and excluding Capture should arguably be
+  the floor for *any* shared link.
 - teams / missions, bets, modules or JTBDs
 - horizon or date window (e.g. current + next season only)
 
@@ -496,9 +497,9 @@ email provider, or a permission model.
 ## Dependency: the stage rename has landed
 
 The stage names were renamed to the Headlights lifecycle vocabulary — `Discovery / Solutioning /
-Building / Releasing`, four columns replacing the earlier five. (The six-column guild vocabulary
-sketched in [`ai-native-process-alignment.md`](./ai-native-process-alignment.md) was considered and
-not taken; see the note at the top of that document.)
+Building / Releasing` — with the `Capture` inbox kept ahead of them. (The six-column guild
+vocabulary sketched in [`ai-native-process-alignment.md`](./ai-native-process-alignment.md) was
+considered and not taken; see the note at the top of that document.)
 
 That dependency is now cleared: stage is the filter that matters most here, and its values are
 settled. It never gated the shared view as a whole — a shared view should probably show no stage
@@ -510,8 +511,8 @@ narrower than it first looks: the stage-scoping filter and the internal board, n
 ## Open questions
 
 - **Which stages should an exec link default to?** Under the Headlights names, Building →
-  Releasing is the obvious answer; worth confirming that Discovery and Solutioning are genuinely
-  too early to show.
+  Releasing is the obvious answer, and Capture should never be in it; worth confirming that
+  Discovery and Solutioning are genuinely too early to show.
 - **Do scoped links get bets at all?** Keeping them means recomputing investment
   and planned-share honestly on the filtered set and labelling the view as
   scoped; dropping them is simpler and loses the strategic framing that's often

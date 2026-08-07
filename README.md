@@ -25,28 +25,39 @@ between the API and the UI. Data is stored per-item as a lossless JSON blob
 (`loop-v2` schema), so **Export JSON** still produces the same file agents can
 read.
 
-## The four lifecycle stages
+## The board: an inbox plus four lifecycle stages
 
-The board's columns are the four lifecycle bands from the **Headlights**
-process, Campminder's monthly rolling 3-month planning review, so a card's lane
-in Loop and a sticky's band on a Headlights board mean the same thing:
+The board's four right-hand columns are the lifecycle bands from the
+**Headlights** process, Campminder's monthly rolling 3-month planning review, so
+a card's lane in Loop and a sticky's band on a Headlights board mean the same
+thing. **Capture** sits ahead of them as the inbox:
 
-| Stage | What it is |
+| Lane | What it is |
 | --- | --- |
+| **Capture** | *Not a Headlights band.* The inbox — ideas that have landed but that nobody has committed time to. Parked, not worked. |
 | **Discovery** | Problem-space work — is the need real and worth investing in? Need-finding, not solution design. |
 | **Solutioning** | Solution-space work — what should we deliver at scale? Path-finding: prototypes, spikes, flow validation. Build-to-learn lives here. |
 | **Building** | Build-to-earn work — production software intended for broad, sustained customer use. |
 | **Releasing** | Software in customers' hands. Beta, pilot, staged rollout and phased enablement all count; releasing is not only GA. |
 
+Keeping Capture out of the lifecycle is what lets it exist without Loop
+inventing a fifth word for the company to learn. Headlights forecasts the next
+three months; an idea nobody has committed to is not in that forecast. So
+**moving a card from Capture to Discovery is a real decision** — "we are going
+to spend time on this" — and until it happens the item **consumes no portfolio
+capacity**, even if it carries speculative dates. Ideas arrive here from the
+Capture modal and the Aha! webhook; `LIFECYCLE_STAGES` in
+`src/lib/loop/constants.ts` is the named boundary.
+
 Two gates guard the boundary out of Solutioning, because framing and evidence
 are both solution-space work: an item cannot enter **Building** (or Releasing)
 without a real problem statement, a measurable KR, and at least one prototype or
-evidence link. Nothing inside Discovery or Solutioning is blocked.
+evidence link. Nothing in Capture, Discovery or Solutioning is blocked.
 
 This replaced Loop's earlier five-stage model (Capture → Frame → Validate →
-Deliver → Learn); Frame and Validate collapsed into Solutioning. Saved and
-imported data migrates automatically — see `STAGE_MIGRATION` in
-`src/lib/loop/constants.ts`.
+Deliver → Learn); Frame and Validate collapsed into Solutioning and Capture
+stayed put. Saved and imported data migrates automatically — see
+`STAGE_MIGRATION` in `src/lib/loop/constants.ts`.
 
 ## Prioritization is a property, not a stage
 

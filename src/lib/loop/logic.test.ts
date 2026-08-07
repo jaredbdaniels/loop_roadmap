@@ -43,7 +43,7 @@ function item(over: Partial<Item> = {}): Item {
     owner: "",
     moduleId: null,
     type: null,
-    stage: "Discovery",
+    stage: "Capture",
     order: null,
     horizon: null,
     targetStart: null,
@@ -197,12 +197,13 @@ describe("stageBlockReason", () => {
 
   const withEvidence = { ...framed, prototypeUrl: "https://figma.test/p1" };
 
-  it("lets an unframed item move freely inside Discovery and Solutioning", () => {
+  it("lets an unframed item move freely up to Solutioning", () => {
     const bare = {
       ...framed,
       problemStatement: "",
       kr: { ...framed.kr, metric: "", baseline: null, target: null },
     };
+    expect(stageBlockReason(bare, "Capture")).toBeNull();
     expect(stageBlockReason(bare, "Discovery")).toBeNull();
     expect(stageBlockReason(bare, "Solutioning")).toBeNull();
   });
@@ -539,8 +540,11 @@ describe("migrateItems stage migration", () => {
     item({ ...over, stage: stage as unknown as Item["stage"] });
   const stageOf = (stage: string) => migrateItems([withStage(stage)])[0].stage;
 
-  it("maps the five-stage loop onto the four Headlights bands", () => {
-    expect(stageOf("Capture")).toBe("Discovery");
+  it("maps the five-stage loop onto the current lanes", () => {
+    // Capture is deliberately absent from STAGE_MIGRATION — the lane still
+    // exists and still means the same thing, so a stored row stays put rather
+    // than being promoted into Discovery behind someone's back.
+    expect(stageOf("Capture")).toBe("Capture");
     expect(stageOf("Frame")).toBe("Solutioning");
     expect(stageOf("Validate")).toBe("Solutioning");
     expect(stageOf("Deliver")).toBe("Building");
@@ -712,24 +716,43 @@ describe("bet funding", () => {
 });
 
 describe("bet investment", () => {
+  // Capacity is only ever measured over work that left the Capture inbox, so
+  // these fixtures sit in a lifecycle band — the default `item()` is an inbox
+  // row and deliberately costs nothing.
   const scheduled = (over: Partial<Item> = {}) =>
-    item({ targetStart: "2026-09-01", targetEnd: "2026-11-30", ...over });
+    item({
+      stage: "Building",
+      targetStart: "2026-09-01",
+      targetEnd: "2026-11-30",
+      ...over,
+    });
 
   it("counts an epic spanning a fiscal-year boundary as one quarter", () => {
     // Dec 2027 – Feb 2028 is Q2 FY28 at both ends. Counting elapsed months, or
     // subtracting calendar years, would call this three or five.
     expect(
-      itemQuarters(
-        item({ targetStart: "2027-12-01", targetEnd: "2028-02-29" }),
-      ),
+      itemQuarters(scheduled({ targetStart: "2027-12-01", targetEnd: "2028-02-29" })),
     ).toBe(1);
     // And a genuine multi-quarter span still counts every quarter it touches.
     expect(
-      itemQuarters(
-        item({ targetStart: "2026-09-01", targetEnd: "2027-05-31" }),
-      ),
+      itemQuarters(scheduled({ targetStart: "2026-09-01", targetEnd: "2027-05-31" })),
     ).toBe(3);
-    expect(itemQuarters(item())).toBe(0); // unscheduled
+    expect(itemQuarters(item({ stage: "Discovery" }))).toBe(0); // unscheduled
+  });
+
+  // The Capture lane is an inbox, not a plan. A parked idea that happens to
+  // carry speculative dates must not dilute the denominator every bet's share
+  // is measured against — otherwise filling the inbox quietly shrinks the
+  // apparent investment in everything real.
+  it("gives the Capture inbox no capacity, dates or not", () => {
+    expect(itemQuarters(scheduled({ stage: "Capture" }))).toBe(0);
+    const items = [
+      scheduled({ id: "a", betIds: ["b1"], fundedBetId: "b1" }),
+      scheduled({ id: "parked", stage: "Capture" }),
+    ];
+    expect(totalEpicQuarters(items)).toBe(1);
+    expect(betFundedShare(bet({ id: "b1" }), items).share).toBe(100);
+    expect(runTheBusinessShare(items).share).toBe(0);
   });
 
   it("divides funded share by the whole roadmap, not by the bets", () => {
