@@ -43,6 +43,7 @@ import { placedOnTimeline, visibleItems } from "./mutations";
 import { MissionTag } from "./MissionTag";
 import { ItemLink } from "./ItemLink";
 import { SeasonLanes } from "./SeasonLanes";
+import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 
 interface DepPath {
   d: string;
@@ -710,8 +711,47 @@ export function TimelineView() {
       );
   };
 
-  // Click a dependency line on the timeline to unlink it directly, without
-  // opening the detail modal.
+  // Click a dependency line on the timeline to unlink it, without opening the
+  // detail modal. The click doesn't unlink on its own: these curves are thin,
+  // they cross bars people are dragging, and an accidental hit would silently
+  // drop a sequencing decision nobody would notice until the dates drifted. So
+  // the click stages the removal and a confirmation step names both ends of the
+  // link first.
+  const [pendingDep, setPendingDep] = useState<{
+    itemId: string;
+    depId: string;
+  } | null>(null);
+  const [removingDep, setRemovingDep] = useState(false);
+
+  const askRemoveDependency = (itemId: string, depId: string) => {
+    if (shareMode || removingDep) return;
+    setPendingDep({ itemId, depId });
+    // Hold the editing guard while the question is on screen so a background
+    // poll can't replace the items out from under it.
+    setEditing(true);
+  };
+
+  const cancelRemoveDependency = () => {
+    setPendingDep(null);
+    setRemovingDep(false);
+    setEditing(false);
+    setHoveredDep(null);
+  };
+
+  const confirmRemoveDependency = () => {
+    if (!pendingDep || removingDep) return;
+    const { itemId, depId } = pendingDep;
+    setRemovingDep(true);
+    // Let the poof animation finish before the line disappears, the same way
+    // the detail modal defers a delete.
+    setTimeout(() => {
+      removeDependency(itemId, depId);
+      setPendingDep(null);
+      setRemovingDep(false);
+      setEditing(false);
+    }, 320);
+  };
+
   const removeDependency = (itemId: string, depId: string) => {
     if (shareMode) return;
     const item = getItem(items, itemId);
@@ -732,6 +772,13 @@ export function TimelineView() {
       `"${item.title}" no longer depends on "${dep ? dep.title : "that idea"}".`,
     );
   };
+
+  // Both ends of the staged link, resolved for the confirmation copy. Either
+  // can be missing if the other end was deleted while the dialog was open.
+  const pendingDepItem = pendingDep ? getItem(items, pendingDep.itemId) : null;
+  const pendingDepBlocker = pendingDep
+    ? getItem(items, pendingDep.depId)
+    : null;
 
   const linkBend = linkLine
     ? Math.max(16, Math.min(40, Math.abs(linkLine.x2 - linkLine.x1) / 2))
@@ -994,32 +1041,42 @@ export function TimelineView() {
                 height="100%"
                 style={{ height: "100%" }}
               >
-                {depPaths.map((p, i) => (
-                  <g
-                    key={i}
-                    className={
-                      "tl-dep-group" + (hoveredDep === i ? " hovered" : "")
-                    }
-                    onPointerEnter={() => !shareMode && setHoveredDep(i)}
-                    onPointerLeave={() =>
-                      setHoveredDep((h) => (h === i ? null : h))
-                    }
-                    onClick={() => removeDependency(p.itemId, p.depId)}
-                  >
-                    {!shareMode && (
-                      <path className="tl-dep-hit" d={p.d}>
-                        <title>Click to remove this dependency</title>
-                      </path>
-                    )}
-                    <path className={p.conflict ? "conflict" : ""} d={p.d} />
-                    <circle
-                      className={"dep-dot" + (p.conflict ? " conflict" : "")}
-                      cx={p.x2}
-                      cy={p.y2}
-                      r={3.5}
-                    />
-                  </g>
-                ))}
+                {depPaths.map((p, i) => {
+                  // The line stays lit while its confirmation is open, so it's
+                  // obvious behind the dialog which link is being removed —
+                  // the pointer has left the curve by then.
+                  const pending =
+                    !!pendingDep &&
+                    pendingDep.itemId === p.itemId &&
+                    pendingDep.depId === p.depId;
+                  return (
+                    <g
+                      key={i}
+                      className={
+                        "tl-dep-group" +
+                        (hoveredDep === i || pending ? " hovered" : "")
+                      }
+                      onPointerEnter={() => !shareMode && setHoveredDep(i)}
+                      onPointerLeave={() =>
+                        setHoveredDep((h) => (h === i ? null : h))
+                      }
+                      onClick={() => askRemoveDependency(p.itemId, p.depId)}
+                    >
+                      {!shareMode && (
+                        <path className="tl-dep-hit" d={p.d}>
+                          <title>Click to remove this dependency</title>
+                        </path>
+                      )}
+                      <path className={p.conflict ? "conflict" : ""} d={p.d} />
+                      <circle
+                        className={"dep-dot" + (p.conflict ? " conflict" : "")}
+                        cx={p.x2}
+                        cy={p.y2}
+                        r={3.5}
+                      />
+                    </g>
+                  );
+                })}
               </svg>
             )}
 
@@ -1099,7 +1156,7 @@ export function TimelineView() {
         </div>
         <span className="tl-legend-help">
           {!shareMode &&
-            "Click or drag an empty spot in a team band to add an item there. Drag the ● at a bar's end onto another bar to link a dependency. "}
+            "Click or drag an empty spot in a team band to add an item there. Drag the ● at a bar's end onto another bar to link a dependency; click a dashed link to remove it. "}
           Drag a bar to move it; drag its edges to resize. Snaps to weeks.
         </span>
       </div>
@@ -1130,6 +1187,22 @@ export function TimelineView() {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        open={!!pendingDep}
+        deleting={removingDep}
+        title="Remove this dependency?"
+        message={
+          `"${pendingDepItem?.title || "This idea"}" will no longer wait for ` +
+          `"${pendingDepBlocker?.title || "that idea"}" to finish. Nothing is ` +
+          `deleted and no dates change — you can link them again by dragging ` +
+          `from the ● at the end of "${pendingDepBlocker?.title || "the blocker"}".`
+        }
+        confirmLabel="Remove dependency"
+        busyLabel="Removing…"
+        onConfirm={confirmRemoveDependency}
+        onCancel={cancelRemoveDependency}
+      />
     </div>
   );
 }

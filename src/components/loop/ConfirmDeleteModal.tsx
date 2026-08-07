@@ -3,16 +3,21 @@
 import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 
-// A dedicated confirmation screen for permanent deletes, layered on top of
-// whatever modal triggered it. The warning icon shakes once on open to draw
-// the eye, and confirming plays a short "poof" exit before the caller actually
-// removes the record — so the animation always finishes before the item is
-// gone, not after.
+// A dedicated confirmation screen for destructive actions, layered on top of
+// whatever modal or view triggered it. The warning icon shakes once on open to
+// draw the eye, and confirming plays a short "poof" exit before the caller
+// actually removes the record — so the animation always finishes before the
+// thing is gone, not after.
+//
+// The action labels default to a permanent item delete; callers removing
+// something less final (a dependency link, say) pass their own wording.
 export function ConfirmDeleteModal({
   open,
   deleting,
   title,
   message,
+  confirmLabel = "Delete permanently",
+  busyLabel = "Deleting…",
   onConfirm,
   onCancel,
 }: {
@@ -20,6 +25,8 @@ export function ConfirmDeleteModal({
   deleting: boolean;
   title: string;
   message: string;
+  confirmLabel?: string;
+  busyLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -61,7 +68,7 @@ export function ConfirmDeleteModal({
             onClick={onConfirm}
             disabled={deleting}
           >
-            {deleting ? "Deleting…" : "Delete permanently"}
+            {deleting ? busyLabel : confirmLabel}
           </button>
         </div>
       </div>
