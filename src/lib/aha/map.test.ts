@@ -106,9 +106,9 @@ describe("isCxIdea", () => {
 });
 
 describe("buildCaptureItem", () => {
-  it("drafts a Capture item stamped as the Aha! agent, with a backlink", () => {
+  it("drafts a Discovery item stamped as the Aha! agent, with a backlink", () => {
     const item = buildCaptureItem(idea({ endorsements: 7 }), { nowISO: NOW });
-    expect(item.stage).toBe("Capture");
+    expect(item.stage).toBe("Discovery");
     expect(item.submitter).toEqual({ type: "agent", name: "Aha Ideas" });
     expect(item.mission).toBe("Cross-cutting");
     expect(item.ahaUrl).toBe("https://campminder.aha.io/ideas/ideas/PROD-I-123");
@@ -194,7 +194,7 @@ describe("refreshCaptureItem", () => {
       ahaUrl: "https://x.aha.io/i/1",
       ahaReference: "P-1",
       title: "Human-renamed title",
-      stage: "Frame",
+      stage: "Solutioning",
     } as Partial<Item>);
     const updated = refreshCaptureItem(
       existing,
@@ -207,7 +207,7 @@ describe("refreshCaptureItem", () => {
     expect(updated!.ahaEndorsements).toBe(9);
     // Human edits are never clobbered.
     expect(updated!.title).toBe("Human-renamed title");
-    expect(updated!.stage).toBe("Frame");
+    expect(updated!.stage).toBe("Solutioning");
     expect(updated!.activity.at(-1)).toContain("endorsements synced: 3 → 9");
   });
 

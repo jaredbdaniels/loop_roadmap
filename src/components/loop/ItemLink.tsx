@@ -8,7 +8,7 @@ import type { Item } from "@/lib/loop/types";
  * The one link out to an item's artifact — brief, design, or ADO work item.
  *
  * Which artifact depends on the item's stage, resolved by `itemLink` (logic.ts).
- * Replaces the old fixed Notion-only link: an item in Deliver wants its work
+ * Replaces the old fixed Notion-only link: an item in Building wants its work
  * item, not the brief it was framed from.
  *
  * One affordance per surface, deliberately. This used to be a `Brief` pill in

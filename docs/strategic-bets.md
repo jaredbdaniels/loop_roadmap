@@ -159,12 +159,12 @@ Bet — Parent Experience Convergence        grow · foundational · Active · N
   planned 25% [illustrative]  ·  funded 5.6% (8 epics · 8 epic-qtrs of 143)  ·  5 teams
   Q2 FY27 → Q2 FY28
 
-  ├─ Community & Media    declared   4 epics   1 Deliver, 1 Validate, 2 Capture
+  ├─ Community & Media    declared   4 epics   1 Building, 1 Solutioning, 2 Discovery
   │     Community — Engagement & Advancement
-  ├─ Registrations        declared   1 epic    Deliver          Admin Workflows
-  ├─ Custom Fields        declared   1 epic    Validate         Platform — Data & Integrations
-  ├─ Payments             declared   1 epic    Validate         Platform — Payments
-  ├─ People & Orgs        declared   1 epic    Validate         Platform — Identity & Core Services
+  ├─ Registrations        declared   1 epic    Building         Admin Workflows
+  ├─ Custom Fields        declared   1 epic    Solutioning      Platform — Data & Integrations
+  ├─ Payments             declared   1 epic    Solutioning      Platform — Payments
+  ├─ People & Orgs        declared   1 epic    Solutioning      Platform — Identity & Core Services
   └─ Alerts & Automation  ⚠ declared, 0 epics   ← claimed, nothing staffed   [illustrative]
 ```
 

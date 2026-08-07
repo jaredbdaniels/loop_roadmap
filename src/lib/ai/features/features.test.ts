@@ -130,14 +130,14 @@ describe("summary", () => {
         {
           title: "Ship X",
           mission: "Alpha",
-          stage: "Deliver",
+          stage: "Building",
           horizon: "now",
           kr: "time: 9 → 3 days",
           window: "Aug–Oct",
         },
       ],
     });
-    expect(p).toContain("[Deliver/now] Ship X (Alpha)");
+    expect(p).toContain("[Building/now] Ship X (Alpha)");
     expect(p).toContain("KR: time: 9 → 3 days");
   });
 });

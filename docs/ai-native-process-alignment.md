@@ -1,6 +1,19 @@
 # Aligning Loop to the AI-Native Product Process
 
-Status: design, not built. This is the model to argue with before any code is written.
+Status: **superseded on the rename (Aug 2026); the rest still stands.**
+
+> **What actually happened to the board states.** Objection 3 was answered, but not with the six
+> guild-vocabulary columns proposed below. The stages were instead aligned to the **Headlights**
+> process — the monthly rolling 3-month planning review product and engineering leadership already
+> runs — giving four columns: `Discovery / Solutioning / Building / Releasing`. Old stages map
+> `Capture → Discovery`, `Frame + Validate → Solutioning`, `Deliver → Building`,
+> `Learn → Releasing`. The reasoning is the same one this document argues from — the board should
+> speak a vocabulary the company already agreed, not one a tool invented — applied to the ceremony
+> leadership actually reviews the portfolio in. Read the rename table below as the option that was
+> considered and not taken; everything else here (voting, capture-as-intake, the deferred items) is
+> unaffected.
+
+This is the model to argue with before any code is written.
 
 **Scope of this document.** It answers the three objections raised against rolling Loop out, and
 nothing else. An earlier draft grew into a seven-change program — enforced validation gates, a new

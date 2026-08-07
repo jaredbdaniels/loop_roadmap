@@ -52,7 +52,7 @@ import type {
 
 /* ---------------- normalization / migration ---------------- */
 // Fills defaults on older/imported data and migrates earlier stage models to
-// the current five-stage loop.
+// the current four Headlights lifecycle bands.
 // Every team name this app has used that is no longer a team, mapped to the one
 // that inherited the work: first the original codenames (Apollo, Phoenix, …),
 // then the product-area sub-domains that replaced them and which the
@@ -96,6 +96,10 @@ const RETIRED_TEAM: Record<string, string> = {
 };
 
 const CURRENT_TEAMS = new Set(MISSIONS);
+
+// Stage names — current and historical — that mean the work reached customers,
+// and so imply a shipped date on any row that lacks one.
+const SHIPPED_STAGES = new Set(["Releasing", "Learn", "Ship"]);
 
 export function migrateItems(items: Item[]): Item[] {
   return items.map((raw) => {
@@ -201,10 +205,10 @@ export function migrateItems(items: Item[]): Item[] {
       (raw as { successMetric?: string }).successMetric,
     );
     delete (i as { successMetric?: string }).successMetric;
+    // Any stage that means "customers have it" implies a shipped date, whether
+    // it is the current band or one of the names that migrate into it.
     const stage = i.stage as string;
-    if (stage === "Ship" && !i.shippedAt)
-      i.shippedAt = i.updatedAt || i.createdAt || new Date().toISOString();
-    if (stage === "Learn" && !i.shippedAt)
+    if (SHIPPED_STAGES.has(stage) && !i.shippedAt)
       i.shippedAt = i.updatedAt || i.createdAt || new Date().toISOString();
     if (STAGE_MIGRATION[stage]) i.stage = STAGE_MIGRATION[stage];
     return i;
@@ -339,16 +343,18 @@ const LINK_LABELS: Record<ItemLinkKind, string> = {
 };
 
 // Per stage, which artifact is the one you most likely want — but every stage
-// lists all four, because preference is not availability. An item in Deliver
+// lists all four, because preference is not availability. An item in Building
 // with no work item linked yet and a good brief has to open the brief; a button
 // that dead-ends is worse than one that sends you somewhere slightly less
 // specific. First kind in the list that actually has a URL wins.
+//
+// Solutioning prefers the design over the brief: by then the problem is stated
+// and the open question is which direction won.
 const LINK_PREFERENCE: Record<Stage, ItemLinkKind[]> = {
-  Capture: ["brief", "idea", "design", "ado"],
-  Frame: ["brief", "idea", "design", "ado"],
-  Validate: ["design", "brief", "ado", "idea"],
-  Deliver: ["ado", "design", "brief", "idea"],
-  Learn: ["ado", "design", "brief", "idea"],
+  Discovery: ["brief", "idea", "design", "ado"],
+  Solutioning: ["design", "brief", "ado", "idea"],
+  Building: ["ado", "design", "brief", "idea"],
+  Releasing: ["ado", "design", "brief", "idea"],
 };
 
 function trimmed(s: string | null | undefined): string {
@@ -397,7 +403,7 @@ function resolveLinkKind(
 // linked artifact at all — in which case the surface asks for one rather than
 // rendering a disabled button (see ItemLink.tsx).
 export function itemLink(item: Item): ItemLink | null {
-  const preference = LINK_PREFERENCE[item.stage] || LINK_PREFERENCE.Frame;
+  const preference = LINK_PREFERENCE[item.stage] || LINK_PREFERENCE.Solutioning;
   for (const kind of preference) {
     const hit = resolveLinkKind(item, kind);
     if (hit) return { kind, label: LINK_LABELS[kind], ...hit };
@@ -405,17 +411,27 @@ export function itemLink(item: Item): ItemLink | null {
   return null;
 }
 
+// Both gates now sit on the same boundary — the one out of Solutioning.
+//
+// Framing (a real problem statement and a measurable KR) and evidence (a
+// prototype that was actually built and read) are both solution-space work, and
+// Solutioning is the band where they happen. So nothing crosses into Building
+// or Releasing without them, and nothing inside Discovery or Solutioning is
+// blocked for not having them yet. Under the old five-stage model these gates
+// were split across Frame → Validate → Deliver; collapsing Frame and Validate
+// into one band leaves one boundary for both to sit on.
 export function stageBlockReason(
   item: Item,
   targetStage: string,
 ): string | null {
   const targetIdx = STAGES.indexOf(targetStage as (typeof STAGES)[number]);
-  if (targetIdx >= STAGES.indexOf("Validate") && !isFramed(item))
+  if (targetIdx < STAGES.indexOf("Building")) return null;
+  if (!isFramed(item))
     return `"${item.title}" still needs ${joinList(
       framingGaps(item),
     )} before it can move to ${targetStage}.`;
-  if (targetStage === "Deliver" && !hasEvidence(item))
-    return `"${item.title}" needs a prototype or evidence link before it can move to Deliver. Build something small and evaluate it first.`;
+  if (!hasEvidence(item))
+    return `"${item.title}" needs a prototype or evidence link before it can move to ${targetStage}. Build something small and evaluate it first.`;
   return null;
 }
 
@@ -530,7 +546,7 @@ export function getItem(items: Item[], id: string): Item | undefined {
 }
 
 export function blockerSatisfied(dep: Item): boolean {
-  return dep.killed || !!dep.shippedAt || dep.stage === "Learn";
+  return dep.killed || !!dep.shippedAt || dep.stage === "Releasing";
 }
 
 export function unmetDeps(item: Item, items: Item[]): Item[] {
@@ -718,19 +734,17 @@ export interface Stats {
 export function computeStats(items: Item[]): Stats {
   const active = items.filter((i) => !i.killed);
   const total = active.length;
-  const pastCapture = active.filter((i) => i.stage !== "Capture");
-  const framedGood = pastCapture.filter(isFramed).length;
-  const framedRate = pastCapture.length
-    ? Math.round((100 * framedGood) / pastCapture.length)
+  const pastDiscovery = active.filter((i) => i.stage !== "Discovery");
+  const framedGood = pastDiscovery.filter(isFramed).length;
+  const framedRate = pastDiscovery.length
+    ? Math.round((100 * framedGood) / pastDiscovery.length)
     : 0;
-  const shippedOrLearn = active.filter(
-    (i) => i.shippedAt || i.stage === "Learn",
-  );
-  const withOutcome = shippedOrLearn.filter(
+  const released = active.filter((i) => i.shippedAt || i.stage === "Releasing");
+  const withOutcome = released.filter(
     (i) => i.outcomeReading && i.outcomeReading.trim().length > 0,
   ).length;
-  const learnRate = shippedOrLearn.length
-    ? Math.round((100 * withOutcome) / shippedOrLearn.length)
+  const learnRate = released.length
+    ? Math.round((100 * withOutcome) / released.length)
     : 0;
   const decided = items.filter((i) => i.killed || i.committedAt);
   const days = decided
@@ -931,14 +945,17 @@ export function betEnvelope(
 }
 
 // Progress across the bet's linked items (mirrors subProgress' shape): `done`
-// counts items that have shipped (reached the Learn stage).
+// counts items that have reached customers (the Releasing band).
 export function betProgress(
   bet: Bet,
   items: Item[],
 ): { done: number; total: number } | null {
   const linked = betItems(bet, items);
   if (!linked.length) return null;
-  return { done: linked.filter((i) => i.stage === "Learn").length, total: linked.length };
+  return {
+    done: linked.filter((i) => i.stage === "Releasing").length,
+    total: linked.length,
+  };
 }
 
 /* ---------------- bet investment ----------------

@@ -25,13 +25,13 @@ export function StatsBar() {
       icon: Target,
       label: "Framed with problem + KR",
       value: `${s.framedRate}%`,
-      hint: "of items past Capture",
+      hint: "of items past Discovery",
     },
     {
       icon: CircleCheckBig,
       label: "Shipped with outcome read",
       value: `${s.learnRate}%`,
-      hint: "closes the Learn loop",
+      hint: "closes the loop after release",
     },
     {
       icon: Timer,

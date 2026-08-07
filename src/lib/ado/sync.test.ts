@@ -26,7 +26,7 @@ function item(over: Partial<Item> = {}): Item {
     owner: "",
     moduleId: null,
     type: null,
-    stage: "Deliver",
+    stage: "Building",
     order: null,
     horizon: null,
     targetStart: null,

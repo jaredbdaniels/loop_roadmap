@@ -3,12 +3,26 @@
 
 import { TEAMS, getDomain } from "./taxonomy";
 
+// The four lifecycle bands from the Headlights process — the monthly rolling
+// 3-month planning ceremony product and engineering leadership review. Loop uses
+// the same four words so a card's lane here and a sticky's band on a Headlights
+// board mean exactly the same thing, and no one has to translate between them.
+//
+//   Discovery    problem-space work: is this need real and worth investing in?
+//                Need-finding, the opportunity side of an opportunity-solution
+//                tree. Not solution design.
+//   Solutioning  solution-space work: what should we deliver at scale to meet
+//                the need? Path-finding — prototypes, spikes, flow validation.
+//                This is where build-to-learn happens.
+//   Building     build-to-earn work: production software the company intends to
+//                deliver broadly and sustainably.
+//   Releasing    software in customers' hands. Beta, pilot, staged rollout and
+//                phased enablement all count — releasing is not only GA.
 export const STAGES = [
-  "Capture",
-  "Frame",
-  "Validate",
-  "Deliver",
-  "Learn",
+  "Discovery",
+  "Solutioning",
+  "Building",
+  "Releasing",
 ] as const;
 
 export type Stage = (typeof STAGES)[number];
@@ -37,24 +51,39 @@ export const ITEM_TYPE_INFO: Record<
 };
 
 export const STAGE_COLORS: Record<string, string> = {
-  Capture: "#A0A0A0",
-  Frame: "#3DA5D9",
-  Validate: "#FFA61E",
-  Deliver: "#00AA47",
-  Learn: "#27065C",
+  Discovery: "#A0A0A0",
+  Solutioning: "#3DA5D9",
+  Building: "#00AA47",
+  Releasing: "#27065C",
 };
 
 // Mapping from earlier stage models, applied to any imported or saved data.
-// Prioritization used to be its own stage; it's now a continuous ranking that
-// applies inside every lane (drag to order, or sort a lane by business value),
-// so ranked-but-not-yet-built items fold back into Frame.
+//
+// The immediately preceding model was Loop's own five-stage loop (Capture →
+// Frame → Validate → Deliver → Learn). Frame and Validate were both
+// solution-space work — stating the problem and its KR, then prototyping
+// against it — so they collapse into the single Solutioning band; the other
+// three map one-to-one.
+//
+// Earlier still, prioritization was its own stage. It is now a continuous
+// ranking that applies inside every lane (drag to order, or sort a lane by
+// business value), so ranked-but-not-yet-built items fold into Solutioning.
 export const STAGE_MIGRATION: Record<string, Stage> = {
-  "Rank & Vote": "Frame",
-  Prioritize: "Frame",
-  Prototype: "Validate",
-  Evaluate: "Validate",
-  Commit: "Deliver",
-  Ship: "Deliver",
+  // The five-stage loop.
+  Capture: "Discovery",
+  Frame: "Solutioning",
+  Validate: "Solutioning",
+  Deliver: "Building",
+  Learn: "Releasing",
+  // Older models.
+  "Rank & Vote": "Solutioning",
+  Prioritize: "Solutioning",
+  Prototype: "Solutioning",
+  Evaluate: "Solutioning",
+  Commit: "Building",
+  // Ship used to fold into Deliver, because the old model had nowhere else to
+  // put it. Releasing is now that place.
+  Ship: "Releasing",
 };
 
 // The delivery teams, derived from TEAMS in the JTBD map (taxonomy.ts) so

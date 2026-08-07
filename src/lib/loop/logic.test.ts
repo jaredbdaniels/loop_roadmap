@@ -29,6 +29,7 @@ import {
   stageBlockReason,
   totalEpicQuarters,
 } from "./logic";
+import { STAGES } from "./constants";
 import type { Bet, Item, LoopState, Milestone, Prototype, Weights } from "./types";
 
 const WEIGHTS: Weights = { votes: 1, reach: 3, confidence: 2, strategicFit: 3 };
@@ -42,7 +43,7 @@ function item(over: Partial<Item> = {}): Item {
     owner: "",
     moduleId: null,
     type: null,
-    stage: "Capture",
+    stage: "Discovery",
     order: null,
     horizon: null,
     targetStart: null,
@@ -194,13 +195,37 @@ describe("stageBlockReason", () => {
     kr: { statement: "", metric: "Signup conversion", unit: "%", baseline: 80, target: 90, current: 85 },
   });
 
-  it("allows a framed item into Validate", () => {
-    expect(stageBlockReason(framed, "Validate")).toBeNull();
+  const withEvidence = { ...framed, prototypeUrl: "https://figma.test/p1" };
+
+  it("lets an unframed item move freely inside Discovery and Solutioning", () => {
+    const bare = {
+      ...framed,
+      problemStatement: "",
+      kr: { ...framed.kr, metric: "", baseline: null, target: null },
+    };
+    expect(stageBlockReason(bare, "Discovery")).toBeNull();
+    expect(stageBlockReason(bare, "Solutioning")).toBeNull();
+  });
+
+  it("allows a framed item with evidence into Building", () => {
+    expect(stageBlockReason(withEvidence, "Building")).toBeNull();
+  });
+
+  it("blocks a framed item with no evidence out of Building", () => {
+    expect(stageBlockReason(framed, "Building")).toContain(
+      "needs a prototype or evidence link",
+    );
+  });
+
+  it("applies both gates to Releasing as well as Building", () => {
+    expect(stageBlockReason(framed, "Releasing")).toContain(
+      "needs a prototype or evidence link",
+    );
   });
 
   it("names the specific missing field in the block message", () => {
     const noBaseline = { ...framed, kr: { ...framed.kr, baseline: null } };
-    const reason = stageBlockReason(noBaseline, "Validate");
+    const reason = stageBlockReason(noBaseline, "Building");
     expect(reason).toContain("a baseline value");
     expect(reason).not.toContain("a metric");
     expect(reason).not.toContain("a target value");
@@ -212,7 +237,7 @@ describe("stageBlockReason", () => {
       problemStatement: "",
       kr: { ...framed.kr, metric: "", baseline: null, target: null },
     };
-    expect(stageBlockReason(bare, "Deliver")).toContain(
+    expect(stageBlockReason(bare, "Building")).toContain(
       "a problem statement, a metric, a baseline value, and a target value",
     );
   });
@@ -460,6 +485,47 @@ describe("migrateItems owner backfill", () => {
 
   it("preserves an assigned owner", () => {
     expect(ownerOf({ owner: "Jared" })).toBe("Jared");
+  });
+});
+
+describe("migrateItems stage migration", () => {
+  // Legacy stage names are, by definition, outside the current `Stage` union,
+  // so these fixtures go through `unknown` rather than pretending otherwise.
+  const withStage = (stage: string, over: Partial<Item> = {}): Item =>
+    item({ ...over, stage: stage as unknown as Item["stage"] });
+  const stageOf = (stage: string) => migrateItems([withStage(stage)])[0].stage;
+
+  it("maps the five-stage loop onto the four Headlights bands", () => {
+    expect(stageOf("Capture")).toBe("Discovery");
+    expect(stageOf("Frame")).toBe("Solutioning");
+    expect(stageOf("Validate")).toBe("Solutioning");
+    expect(stageOf("Deliver")).toBe("Building");
+    expect(stageOf("Learn")).toBe("Releasing");
+  });
+
+  it("maps the pre-loop stage names too", () => {
+    expect(stageOf("Rank & Vote")).toBe("Solutioning");
+    expect(stageOf("Prioritize")).toBe("Solutioning");
+    expect(stageOf("Prototype")).toBe("Solutioning");
+    expect(stageOf("Evaluate")).toBe("Solutioning");
+    expect(stageOf("Commit")).toBe("Building");
+    expect(stageOf("Ship")).toBe("Releasing");
+  });
+
+  it("leaves a current stage alone and is idempotent", () => {
+    for (const s of STAGES) expect(stageOf(s)).toBe(s);
+    const once = migrateItems([withStage("Learn")]);
+    expect(migrateItems(once)[0].stage).toBe("Releasing");
+  });
+
+  it("backfills shippedAt for every stage that means customers have it", () => {
+    for (const s of ["Ship", "Learn", "Releasing"]) {
+      const [m] = migrateItems([withStage(s, { shippedAt: null })]);
+      expect(m.shippedAt, s).toBeTruthy();
+    }
+    expect(
+      migrateItems([withStage("Building", { shippedAt: null })])[0].shippedAt,
+    ).toBeNull();
   });
 });
 
@@ -819,9 +885,9 @@ describe("itemLink", () => {
     expect(itemLink(item())).toBeNull();
   });
 
-  it("sends a framed item to its brief", () => {
+  it("sends an item with only a brief to the brief", () => {
     const link = itemLink(
-      item({ stage: "Frame", notionUrl: "https://notion.test/x", notionTitle: "Forms PRD" }),
+      item({ stage: "Discovery", notionUrl: "https://notion.test/x", notionTitle: "Forms PRD" }),
     );
     expect(link).toMatchObject({
       kind: "brief",
@@ -831,10 +897,10 @@ describe("itemLink", () => {
     });
   });
 
-  it("prefers the design once the item is validating, even with a brief linked", () => {
+  it("prefers the design once the item is solutioning, even with a brief linked", () => {
     const link = itemLink(
       item({
-        stage: "Validate",
+        stage: "Solutioning",
         notionUrl: "https://notion.test/x",
         prototypes: [proto()],
       }),
@@ -845,7 +911,7 @@ describe("itemLink", () => {
   it("picks the converged direction over the others", () => {
     const link = itemLink(
       item({
-        stage: "Validate",
+        stage: "Solutioning",
         prototypes: [
           proto({ id: "p1", createdAt: "2026-02-01T00:00:00.000Z" }),
           proto({ id: "p2", url: "https://figma.test/p2", status: "chosen", title: "Inline" }),
@@ -858,7 +924,7 @@ describe("itemLink", () => {
   it("picks the newest live direction when none is chosen, ignoring rejected ones", () => {
     const link = itemLink(
       item({
-        stage: "Validate",
+        stage: "Solutioning",
         prototypes: [
           proto({ id: "p1", createdAt: "2026-01-01T00:00:00.000Z" }),
           proto({ id: "p2", url: "https://figma.test/p2", createdAt: "2026-03-01T00:00:00.000Z" }),
@@ -875,14 +941,14 @@ describe("itemLink", () => {
   });
 
   it("falls back to the legacy single prototype link", () => {
-    const link = itemLink(item({ stage: "Validate", prototypeUrl: "https://v0.test/old" }));
+    const link = itemLink(item({ stage: "Solutioning", prototypeUrl: "https://v0.test/old" }));
     expect(link).toMatchObject({ kind: "design", url: "https://v0.test/old", detail: "" });
   });
 
   it("sends an item in delivery to its work item", () => {
     const link = itemLink(
       item({
-        stage: "Deliver",
+        stage: "Building",
         notionUrl: "https://notion.test/x",
         prototypes: [proto()],
         adoUrl: "https://ado.test/1",
@@ -900,7 +966,7 @@ describe("itemLink", () => {
   it("uses a sub-item's work item when the epic has none of its own", () => {
     const link = itemLink(
       item({
-        stage: "Deliver",
+        stage: "Building",
         subItems: [
           { id: "s1", title: "No link", targetStart: null, targetEnd: null, done: false, adoUrl: "", adoStatus: "" },
           { id: "s2", title: "Build API", targetStart: null, targetEnd: null, done: false, adoUrl: "https://ado.test/2", adoStatus: "" },
@@ -911,7 +977,7 @@ describe("itemLink", () => {
   });
 
   it("falls through to the brief for an item in delivery with no work item", () => {
-    const link = itemLink(item({ stage: "Deliver", notionUrl: "https://notion.test/x" }));
+    const link = itemLink(item({ stage: "Building", notionUrl: "https://notion.test/x" }));
     expect(link?.kind).toBe("brief");
   });
 

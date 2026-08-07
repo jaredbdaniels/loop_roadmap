@@ -270,9 +270,9 @@ as an audience-facing artifact.
 this shape of responsibility (it filters `killed` and blanks `killedReason` /
 `activity`). Extend it to accept the link's config:
 
-- stages — **the highest-value one.** A Capture-stage idea rendering to an exec
+- stages — **the highest-value one.** A Discovery-stage idea rendering to an exec
   as "the roadmap" is the actual failure mode: a half-formed thought read as a
-  commitment. Defaulting an exec link to Committed → Deliver → Learn fixes more
+  commitment. Defaulting an exec link to Building → Releasing fixes more
   than every chrome setting combined.
 - teams / missions, bets, modules or JTBDs
 - horizon or date window (e.g. current + next season only)
@@ -493,25 +493,25 @@ email provider, or a permission model.
 
 ---
 
-## Dependency: the stage rename lands first
+## Dependency: the stage rename has landed
 
-The stage names are being renamed to the guild's phase vocabulary — `Signal / Discovery / Validation /
-Design / Delivery / Outcome`, six columns replacing today's five. See
-[`ai-native-process-alignment.md`](./ai-native-process-alignment.md).
+The stage names were renamed to the Headlights lifecycle vocabulary — `Discovery / Solutioning /
+Building / Releasing`, four columns replacing the earlier five. (The six-column guild vocabulary
+sketched in [`ai-native-process-alignment.md`](./ai-native-process-alignment.md) was considered and
+not taken; see the note at the top of that document.)
 
-That gates the scope filter here, since stage is the filter that matters most and its values are
-about to change. It does **not** gate the shared view as a whole: a shared view should probably show
-no stage vocabulary at all, which is the point of separating publish from share. So the ordering is
-narrower than it first looks — the rename blocks the stage-scoping work and the internal board, not
-the exec view.
+That dependency is now cleared: stage is the filter that matters most here, and its values are
+settled. It never gated the shared view as a whole — a shared view should probably show no stage
+vocabulary at all, which is the point of separating publish from share. So the unblocked work is
+narrower than it first looks: the stage-scoping filter and the internal board, not the exec view.
 
 ---
 
 ## Open questions
 
-- **Which stages should an exec link default to?** Under the new names, Delivery → Outcome is the
-  obvious answer, with Design a judgment call; worth confirming that Discovery and Validation are
-  genuinely too early to show.
+- **Which stages should an exec link default to?** Under the Headlights names, Building →
+  Releasing is the obvious answer; worth confirming that Discovery and Solutioning are genuinely
+  too early to show.
 - **Do scoped links get bets at all?** Keeping them means recomputing investment
   and planned-share honestly on the filtered set and labelling the view as
   scoped; dropping them is simpler and loses the strategic framing that's often

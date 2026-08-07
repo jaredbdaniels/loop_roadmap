@@ -112,8 +112,8 @@ export function DetailModal() {
   // an bet to link this item to, rather than scanning every one.
   const [initQuery, setInitQuery] = useState("");
   const [initOpen, setInitOpen] = useState(false);
-  // Items that have reached Learn open in a simplified, capture-first layout;
-  // `showAll` lets the user expand back to the full editing form. Reset whenever
+  // Items that have reached Releasing open in a simplified, capture-first
+  // layout; `showAll` lets the user expand back to the full editing form. Reset whenever
   // a different item is opened (see the effect keyed on detailId below).
   const [showAll, setShowAll] = useState(false);
   // Delete goes through a confirmation screen rather than a native confirm()
@@ -191,10 +191,10 @@ export function DetailModal() {
   const setKrNum = (k: "baseline" | "target" | "current", raw: string) =>
     setKr(k, raw.trim() === "" ? null : Number(raw));
 
-  // Once an item has shipped into Learn, default to the simplified learning-
+  // Once an item has reached Releasing, default to the simplified learning-
   // capture layout. Gate on the *persisted* stage (item.stage), not the editable
   // form.stage, so changing the stage dropdown mid-edit doesn't reflow the view.
-  const learnMode = item.stage === "Learn" && !showAll;
+  const learnMode = item.stage === "Releasing" && !showAll;
 
   // --- AI drafts. None of these persist; they fill the form for the user to
   // review and save (or discard by closing). Failures toast and change nothing.
@@ -445,9 +445,9 @@ export function DetailModal() {
         next = { ...next, stage: item.stage };
       } else {
         next.activity = [...(next.activity || []), `Moved to ${targetStage}.`];
-        if (targetStage === "Deliver" && !next.committedAt)
+        if (targetStage === "Building" && !next.committedAt)
           next.committedAt = next.updatedAt;
-        if (targetStage === "Learn" && !next.shippedAt)
+        if (targetStage === "Releasing" && !next.shippedAt)
           next.shippedAt = next.updatedAt;
         // React to the move: a ship sets the unicorn loose, a forward step
         // cheers, a step back sighs.
@@ -566,13 +566,13 @@ export function DetailModal() {
         >
         {learnMode ? (
           <>
-          {/* Simplified, capture-first layout for shipped (Learn-stage) items.
+          {/* Simplified, capture-first layout for released items.
               Foregrounds the hypothesis→result story and the learnings; the full
               planning form is one "Show all fields" click away (below). */}
           <div className="form-section" style={{ borderTop: 0, paddingTop: 0 }}>
             <div
               className="form-section-title"
-              style={{ color: STAGE_COLORS.Learn }}
+              style={{ color: STAGE_COLORS.Releasing }}
             >
               <GraduationCap size={13} strokeWidth={2.4} /> Close the loop
             </div>
@@ -796,7 +796,9 @@ export function DetailModal() {
         <div className="field">
           <label htmlFor={GAP_FIELDS["a problem statement"].id}>
             Problem statement{" "}
-            <span style={{ color: "var(--cm-red)" }}>(required to leave Frame)</span>
+            <span style={{ color: "var(--cm-red)" }}>
+              (required to leave Solutioning)
+            </span>
           </label>
           <textarea
             id={GAP_FIELDS["a problem statement"].id}
@@ -837,7 +839,9 @@ export function DetailModal() {
         <div className="field">
           <label htmlFor={GAP_FIELDS["a metric"].id}>
             Outcome KR — what you&apos;ll measure{" "}
-            <span style={{ color: "var(--cm-red)" }}>(required to leave Frame)</span>
+            <span style={{ color: "var(--cm-red)" }}>
+              (required to leave Solutioning)
+            </span>
           </label>
           <input
             id={GAP_FIELDS["a metric"].id}
@@ -1150,7 +1154,7 @@ export function DetailModal() {
               Divergent prototyping: for one framed problem, spin up several
               distinct directions — a human or an agent can add each — evaluate
               them against the KR above, then mark one <strong>Chosen</strong> to
-              converge. The evidence gate into Deliver needs at least one linked
+              converge. The evidence gate into Building needs at least one linked
               prototype.
             </div>
             {chosen ? (
@@ -1160,7 +1164,7 @@ export function DetailModal() {
             ) : diverged ? (
               <div className="proto-banner proto-banner--diverged">
                 {liveProtos.length} directions in play, none chosen yet — mark one
-                Chosen to converge before Deliver.
+                Chosen to converge before Building.
               </div>
             ) : null}
             <div className="proto-list">
@@ -1252,10 +1256,10 @@ export function DetailModal() {
 
         <div className="form-section">
           <div className="form-section-title">
-            <GraduationCap size={13} strokeWidth={2.4} /> Learn
+            <GraduationCap size={13} strokeWidth={2.4} /> Releasing
           </div>
         <div className="field">
-          <label>Outcome reading (Learn stage)</label>
+          <label>Outcome reading (Releasing stage)</label>
           <textarea
             value={form.outcomeReading}
             placeholder="What actually happened against the KR above, once shipped. Update the KR's current value to record the reading."
@@ -1727,7 +1731,7 @@ export function DetailModal() {
         </>
         )}
         </fieldset>
-        {item.stage === "Learn" && (
+        {item.stage === "Releasing" && (
           <button
             type="button"
             className="cm-button cm-button--ghost cm-button--small"
@@ -1799,7 +1803,7 @@ function DetailSummary({
   liveProtoCount: number;
   depCount: number;
   betCount: number;
-  // False in the simplified Learn view, where the fields a gap points at aren't
+  // False in the simplified Releasing view, where the fields a gap points at aren't
   // rendered — the gaps still list, they just don't offer a jump.
   canJump: boolean;
 }) {
@@ -1817,8 +1821,8 @@ function DetailSummary({
     stageIdx >= 0 && stageIdx < STAGES.length - 1 ? STAGES[stageIdx + 1] : null;
 
   // What stands between this item and its next stage, in gate order: killed
-  // beats everything, then the framing gate (into Validate), then the evidence
-  // gate (into Deliver), then the all-clear.
+  // beats everything, then the framing gate, then the evidence gate — both of
+  // which guard the boundary out of Solutioning — then the all-clear.
   let tone: "bad" | "warn" | "good" = "good";
   let text = "";
   let jumps: { label: string; id: string }[] = [];
@@ -1829,24 +1833,24 @@ function DetailSummary({
       ? `Killed ${form.killedAt.slice(0, 10)}.`
       : "Killed.";
   } else if (gaps.length) {
-    const pastFrame = stageIdx >= STAGES.indexOf("Validate");
-    tone = pastFrame ? "bad" : "warn";
-    text = pastFrame
-      ? "Already past Frame but still missing:"
-      : `Needs ${gaps.length === 1 ? "this" : "these"} to move past Frame:`;
+    const pastSolutioning = stageIdx >= STAGES.indexOf("Building");
+    tone = pastSolutioning ? "bad" : "warn";
+    text = pastSolutioning
+      ? "Already past Solutioning but still missing:"
+      : `Needs ${gaps.length === 1 ? "this" : "these"} to move past Solutioning:`;
     jumps = gaps.map((g) => GAP_FIELDS[g] ?? { label: g, id: "" });
-  } else if (!hasEvidence(form) && stage === "Validate") {
+  } else if (!hasEvidence(form) && stage === "Solutioning") {
     tone = "warn";
-    text = "Framed and measurable. Needs evidence before Deliver:";
+    text = "Framed and measurable. Needs evidence before Building:";
     jumps = [{ label: "Add a prototype", id: EVIDENCE_ANCHOR }];
   } else if (
     !hasEvidence(form) &&
-    (stage === "Deliver" || stage === "Learn")
+    (stage === "Building" || stage === "Releasing")
   ) {
     tone = "warn";
     text = "No prototype or evidence is linked to this.";
     jumps = [{ label: "Add a prototype", id: EVIDENCE_ANCHOR }];
-  } else if (stage === "Learn") {
+  } else if (stage === "Releasing") {
     text = form.whatWeLearned.trim()
       ? "Loop closed — learnings recorded."
       : "Shipped. Record the reading and what you learned to close the loop.";

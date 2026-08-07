@@ -14,12 +14,12 @@ once and reuses six times.
 
 | # | Feature | Stage | Impact | Cost | Leverage | Surfaces in |
 |---|---------|-------|:------:|:----:|:--------:|-------------|
-| 1 | RICE score suggester | Frame | 9 | 3 | **3.00** | `DetailModal` score editor |
-| 2 | Problem-statement critique | Frame | 6 | 2 | **3.00** | `DetailModal` / `CaptureModal` |
+| 1 | RICE score suggester | Solutioning | 9 | 3 | **3.00** | `DetailModal` score editor |
+| 2 | Problem-statement critique | Solutioning | 6 | 2 | **3.00** | `DetailModal` / `CaptureModal` |
 | 3 | Explain this ranking | Cross-cutting | 5 | 2 | 2.50 | rank badge popover |
-| 4 | KR sharpener | Frame | 7 | 3 | 2.33 | `DetailModal` KR editor |
-| 5 | Idea intake copilot | Capture | 8 | 4 | 2.00 | `CaptureModal` |
-| 6 | Roadmap narrative / exec summary | Learn | 7 | 4 | 1.75 | `ShareModal` / summary action |
+| 4 | KR sharpener | Solutioning | 7 | 3 | 2.33 | `DetailModal` KR editor |
+| 5 | Idea intake copilot | Discovery | 8 | 4 | 2.00 | `CaptureModal` |
+| 6 | Roadmap narrative / exec summary | Releasing | 7 | 4 | 1.75 | `ShareModal` / summary action |
 
 **Non-goals for Phase 1** (deferred to later phases): embeddings / `pgvector`
 dedup, a dependency graph, natural-language board query, write-back to ADO or

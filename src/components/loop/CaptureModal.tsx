@@ -94,7 +94,7 @@ export function CaptureModal() {
       owner,
       moduleId,
       type: null,
-      stage: "Capture",
+      stage: "Discovery",
       order: null,
       submitter: {
         type: submitterType,
@@ -146,7 +146,7 @@ export function CaptureModal() {
     };
     createItem(item);
     close();
-    toast(scheduled ? "Added to the timeline." : "Added to Capture.");
+    toast(scheduled ? "Added to the timeline." : "Added to Discovery.");
   };
 
   return (
@@ -209,7 +209,7 @@ export function CaptureModal() {
         <div className="field">
           <label>Description</label>
           <textarea
-            placeholder="A sentence or two of context. Not a problem statement yet, that comes at Frame."
+            placeholder="A sentence or two of context. Not a problem statement yet, that comes at Solutioning."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -277,14 +277,14 @@ export function CaptureModal() {
         </div>
         <div className="modal-actions">
           <span className="helper">
-            New items start in Capture with no rank. They can&apos;t move to
-            Validate until the problem statement and KR are filled in, and
-            can&apos;t enter Deliver without a prototype or evidence link.
+            New items start in Discovery with no rank. They can&apos;t move to
+            Building until the problem statement and KR are filled in and a
+            prototype or evidence link is attached.
             {scheduled &&
               " Dates come from where you drew it on the timeline — you can drag to adjust later."}
           </span>
           <button className="cm-button" onClick={submit}>
-            {scheduled ? "Add to timeline" : "Add to Capture"}
+            {scheduled ? "Add to timeline" : "Add to Discovery"}
           </button>
         </div>
       </div>

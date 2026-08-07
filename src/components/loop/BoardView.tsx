@@ -70,14 +70,14 @@ function Column({ stage, allVisible }: { stage: Stage; allVisible: Item[] }) {
   // Cards sit in manual priority order (drag to reorder, or sort by value).
   const colItems = allVisible.filter((i) => i.stage === stage).sort(byOrder);
 
+  // Framing and evidence are both Solutioning work, so both gates sit on the
+  // way into Building — see stageBlockReason.
   const gateNote =
-    stage === "Validate"
-      ? "Needs problem + KR to enter"
-      : stage === "Deliver"
-        ? "Needs prototype evidence to enter"
-        : stage === "Learn"
-          ? "Needs outcome reading to close"
-          : "";
+    stage === "Building"
+      ? "Needs problem + KR and prototype evidence to enter"
+      : stage === "Releasing"
+        ? "Needs outcome reading to close"
+        : "";
 
   const dragged = () => items.find((i) => i.id === dragId.current);
 
@@ -197,7 +197,7 @@ function Column({ stage, allVisible }: { stage: Stage; allVisible: Item[] }) {
             }}
           />
         ))}
-        {stage === "Capture" && !shareMode && (
+        {stage === "Discovery" && !shareMode && (
           <button
             className="col-add edit-only"
             type="button"
@@ -229,9 +229,9 @@ function BoardCard({
   const krPct = krProgress(item.kr);
   const stageIdx = STAGES.indexOf(item.stage);
   const rank = computeRank(item, weights);
-  // Ranking now applies in every lane past Capture, since any lane can be
+  // Ranking now applies in every lane past Discovery, since any lane can be
   // hand-ordered or sorted by value.
-  const showRank = stageIdx >= STAGES.indexOf("Frame");
+  const showRank = stageIdx >= STAGES.indexOf("Solutioning");
   const daysOld = daysBetween(item.createdAt, new Date().toISOString());
   const waiting = unmetDeps(item, items);
   const prog = subProgress(item);
@@ -302,11 +302,11 @@ function BoardCard({
           <span className="pill pill-agent">Agent</span>
         )}
         {item.killed && <span className="pill pill-killed">Killed</span>}
-        {!item.killed && item.stage === "Frame" && !framed && (
+        {!item.killed && item.stage === "Solutioning" && !framed && (
           <span className="pill pill-blocked">Needs problem + KR</span>
         )}
         {!item.killed &&
-          item.stage === "Learn" &&
+          item.stage === "Releasing" &&
           !(item.outcomeReading && item.outcomeReading.trim()) && (
             <span className="pill pill-needsoutcome">Needs outcome reading</span>
           )}

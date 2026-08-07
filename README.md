@@ -18,12 +18,35 @@ sees and edits one roadmap, behind Campminder login.
 ## What carried over
 
 All four views (Board by stage, By mission, Timeline, Now / Next / Later),
-the five-stage loop (Capture → Frame → Validate → Deliver → Learn) with the
-Frame + evidence gates, ranking weights, dependencies, sub-items, share mode,
+the lifecycle loop with its framing + evidence gates (see below), ranking
+weights, dependencies, sub-items, share mode,
 and JSON import/export. The domain logic lives in `src/lib/loop/` and is shared
 between the API and the UI. Data is stored per-item as a lossless JSON blob
 (`loop-v2` schema), so **Export JSON** still produces the same file agents can
 read.
+
+## The four lifecycle stages
+
+The board's columns are the four lifecycle bands from the **Headlights**
+process, Campminder's monthly rolling 3-month planning review, so a card's lane
+in Loop and a sticky's band on a Headlights board mean the same thing:
+
+| Stage | What it is |
+| --- | --- |
+| **Discovery** | Problem-space work — is the need real and worth investing in? Need-finding, not solution design. |
+| **Solutioning** | Solution-space work — what should we deliver at scale? Path-finding: prototypes, spikes, flow validation. Build-to-learn lives here. |
+| **Building** | Build-to-earn work — production software intended for broad, sustained customer use. |
+| **Releasing** | Software in customers' hands. Beta, pilot, staged rollout and phased enablement all count; releasing is not only GA. |
+
+Two gates guard the boundary out of Solutioning, because framing and evidence
+are both solution-space work: an item cannot enter **Building** (or Releasing)
+without a real problem statement, a measurable KR, and at least one prototype or
+evidence link. Nothing inside Discovery or Solutioning is blocked.
+
+This replaced Loop's earlier five-stage model (Capture → Frame → Validate →
+Deliver → Learn); Frame and Validate collapsed into Solutioning. Saved and
+imported data migrates automatically — see `STAGE_MIGRATION` in
+`src/lib/loop/constants.ts`.
 
 ## Prioritization is a property, not a stage
 
@@ -35,7 +58,7 @@ and strategic fit against the adjustable weights) so the highest-
 value ideas jump to the top; you can then hand-tweak from there. The hand-ranked
 sequence is what persists, stored as an `order` field per item. (This replaces
 the old standalone "Prioritize" stage; legacy data migrates automatically —
-ranked-but-not-yet-built items fold back into Frame.)
+ranked-but-not-yet-built items fold into Solutioning.)
 
 ## Divergent prototyping (multiple prototypes per idea)
 
@@ -46,7 +69,7 @@ hypothesis, link, author (human *or* agent), status, and outcome reading; you
 evaluate them against the idea's KR, then mark one **Chosen** to converge and
 **Reject** the rest. The board shows an idea's state at a glance — a purple
 "_N_ directions" pill when it has diverged without converging, a green
-"Converged" pill once a direction is chosen. The evidence gate into Deliver
+"Converged" pill once a direction is chosen. The evidence gate into Building
 needs at least one linked prototype (it never hard-blocks divergence itself).
 
 Backward compatible: the old single `prototypeUrl` field is migrated into the

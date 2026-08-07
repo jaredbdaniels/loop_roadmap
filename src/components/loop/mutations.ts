@@ -8,14 +8,14 @@ import {
 import { fmtRange, snapToWeek, toISODate } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 
-// Classify a stage transition for the celebration overlay: reaching Learn is a
-// ship, any other forward (or same-index) move is an advance, and stepping back
-// toward Capture is a regress.
+// Classify a stage transition for the celebration overlay: reaching Releasing
+// is a ship, any other forward (or same-index) move is an advance, and stepping
+// back toward Discovery is a regress.
 export function stageMoveKind(
   from: Stage,
   to: Stage,
 ): "ship" | "advance" | "regress" {
-  if (to === "Learn") return "ship";
+  if (to === "Releasing") return "ship";
   return STAGES.indexOf(to) >= STAGES.indexOf(from) ? "advance" : "regress";
 }
 
@@ -59,8 +59,9 @@ export function movedToStage(item: Item, targetStage: Stage): Item {
     updatedAt,
     activity: [...(item.activity || []), `Moved to ${targetStage}.`],
   };
-  if (targetStage === "Deliver" && !next.committedAt) next.committedAt = updatedAt;
-  if (targetStage === "Learn" && !next.shippedAt) next.shippedAt = updatedAt;
+  if (targetStage === "Building" && !next.committedAt)
+    next.committedAt = updatedAt;
+  if (targetStage === "Releasing" && !next.shippedAt) next.shippedAt = updatedAt;
   return next;
 }
 

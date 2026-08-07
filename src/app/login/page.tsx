@@ -38,7 +38,7 @@ const SYSTEMS = [
 const FEATURES = [
   "Board, Timeline, Horizon & Team views",
   "Transparent prioritization scoring",
-  "Outcome metrics that close the Learn loop",
+  "Outcome metrics that close the loop after release",
 ];
 
 function LoopStages() {
