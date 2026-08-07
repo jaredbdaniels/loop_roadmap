@@ -2,8 +2,7 @@ import { z } from "zod";
 
 // RICE score suggester. Given an item's framing, proposes the three scored
 // axes Loop ranks on — reach, confidence, strategic fit — each on the app's
-// 1–5 scale, with a one-sentence rationale. `votes` is deliberately NOT
-// suggested: it's a human signal, and the model shouldn't manufacture it.
+// 1–5 scale, with a one-sentence rationale.
 
 export const riceBody = z.object({
   title: z.string().min(1),
@@ -35,7 +34,7 @@ export const riceSystem = [
   "- strategicFit: how well it serves the current company strategy.",
   "Base every score only on the framing you are given; when the framing is thin,",
   "prefer a middle score (3) and say so. Give a single crisp sentence of",
-  "rationale per axis. Do not invent facts and do not score votes.",
+  "rationale per axis. Do not invent facts.",
 ].join("\n");
 
 export function buildRicePrompt(i: RiceInput): string {

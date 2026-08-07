@@ -18,7 +18,6 @@ const FIELD_LABELS: Record<string, string> = {
   targetStart: "Start",
   targetEnd: "End",
   killed: "Killed",
-  votes: "Votes",
   reach: "Reach",
   confidence: "Confidence",
   strategicFit: "Strategic fit",

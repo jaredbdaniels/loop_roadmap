@@ -47,11 +47,10 @@ export interface CapturePrefill {
 //   ship    — a card reached Learn: full confetti + a creature streak
 //   advance — a forward stage move (or a checklist finished): creature streak
 //   regress — a backward stage move: a muted emoji drifting down, no party
-//   vote    — a +1: a quick little "+1" pop
 //   kill     — an idea killed: a somber emoji with a puff of smoke
 // The positive kinds rotate through CREATURES so they stay fresh; the others
 // draw from their own themed rosters.
-export type CelebrationKind = "ship" | "advance" | "regress" | "vote" | "kill";
+export type CelebrationKind = "ship" | "advance" | "regress" | "kill";
 
 export interface Celebration {
   id: number;
@@ -61,10 +60,9 @@ export interface Celebration {
 }
 
 const CREATURES = ["🦄", "🐉", "🚀", "🐋", "🦩", "🌈", "🦖", "🎈"];
-// Themed rosters for the non-party kinds — a downbeat for regressions, a warm
-// nudge for votes, and a fittingly final send-off for kills.
+// Themed rosters for the non-party kinds — a downbeat for regressions and a
+// fittingly final send-off for kills.
 const REGRESS_EMOJI = ["😵‍💫", "📉", "🫠", "💨"];
-const VOTE_EMOJI = ["💜", "👍", "✨", "🙌"];
 const KILL_EMOJI = ["🪦", "💀", "👋"];
 
 // How long each kind stays on screen before it's cleared (ms). Matches the CSS
@@ -73,7 +71,6 @@ const CELEBRATION_DURATION: Record<CelebrationKind, number> = {
   ship: 2800,
   advance: 1600,
   regress: 1600,
-  vote: 1100,
   kill: 2000,
 };
 
@@ -81,11 +78,9 @@ function emojiFor(kind: CelebrationKind, seq: number): string {
   const roster =
     kind === "regress"
       ? REGRESS_EMOJI
-      : kind === "vote"
-        ? VOTE_EMOJI
-        : kind === "kill"
-          ? KILL_EMOJI
-          : CREATURES;
+      : kind === "kill"
+        ? KILL_EMOJI
+        : CREATURES;
   return roster[(seq - 1) % roster.length];
 }
 

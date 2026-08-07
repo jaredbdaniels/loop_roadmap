@@ -224,12 +224,18 @@ export function DetailModal() {
     const { data, error } = await explainAi.run({
       title: form.title,
       scores: {
-        votes: form.votes || 0,
         reach: form.reach || 0,
         confidence: form.confidence || 0,
         strategicFit: form.strategicFit || 0,
       },
-      weights,
+      // Only the three weights the score actually uses. `weights` still carries
+      // a stored `votes` entry that `computeRank` ignores; sending it would
+      // invite the model to narrate a factor that isn't in the number.
+      weights: {
+        reach: weights.reach,
+        confidence: weights.confidence,
+        strategicFit: weights.strategicFit,
+      },
       rank: rankPreview,
       neighbors: rankNeighbors,
     });
@@ -524,7 +530,7 @@ export function DetailModal() {
           canJump={!learnMode}
         />
         {/* In read-only share mode, disable every field at once. The mutating
-            buttons (Save/Kill/Delete/vote/add) are separately hidden via the
+            buttons (Save/Kill/Delete/add) are separately hidden via the
             `edit-only` class, so viewers can look but not touch. */}
         <fieldset
           disabled={shareMode}
@@ -1358,28 +1364,6 @@ export function DetailModal() {
           </div>
         {/* The computed rank score used to sit beside this; it now reads live in
             the summary at the top, where it's visible without scrolling. */}
-        <div className="field">
-          <label>Votes</label>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span
-              style={{
-                fontSize: "1.1rem",
-                fontWeight: 700,
-                color: "var(--cm-purple)",
-              }}
-            >
-              {form.votes || 0}
-            </span>
-            <button
-              className="cm-button--small cm-button edit-only"
-              type="button"
-              onClick={() => set("votes", (form.votes || 0) + 1)}
-            >
-              +1 vote
-            </button>
-          </div>
-        </div>
-
         <div className="ai-inline">
           <SuggestButton
             loading={explainAi.loading}
@@ -1704,7 +1688,6 @@ function DetailSummary({
 
   const stats: { label: string; value: string }[] = [
     { label: "Rank", value: String(rank) },
-    { label: "Votes", value: String(form.votes || 0) },
     {
       label: "Sub-items",
       value: progress ? `${progress.done}/${progress.total}` : "—",

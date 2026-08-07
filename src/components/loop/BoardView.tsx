@@ -29,9 +29,9 @@ import {
 } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 import { useLoop } from "./store";
-import { movedToStage, stageMoveKind, visibleItems, voted } from "./mutations";
+import { movedToStage, stageMoveKind, visibleItems } from "./mutations";
 import { MissionTag } from "./MissionTag";
-import { ItemLink, VoteButton } from "./ItemLink";
+import { ItemLink } from "./ItemLink";
 
 export function BoardView() {
   const { items, filterMission, showKilled, filterBet, filterOwner } =
@@ -221,8 +221,7 @@ function BoardCard({
   item: Item;
   onDropBefore: () => void;
 }) {
-  const { items, weights, dragId, openDetail, updateItem, celebrate, shareMode } =
-    useLoop();
+  const { items, weights, dragId, openDetail, shareMode } = useLoop();
   const [ghost, setGhost] = useState(false);
   const [dropBefore, setDropBefore] = useState(false);
 
@@ -380,40 +379,22 @@ function BoardCard({
         </div>
       )}
       <div className="card-meta">
-        <span>
-          {isScheduled(item) ? fmtRange(item) : "Day " + daysOld}
-          {/* The count is normally the footer button's label, and printing it
-              twice on one card read as an error. But that button is an edit
-              control and share mode drops it, so on a read-only roadmap the
-              count comes back here — where it lived before. */}
-          {shareMode && item.votes ? " · " + item.votes + " votes" : ""}
-        </span>
+        <span>{isScheduled(item) ? fmtRange(item) : "Day " + daysOld}</span>
         {showRank && <span className="rank-score">Rank {rank}</span>}
       </div>
       {/* Not `edit-only`: that class is dropped in share mode, and the whole
           point of the link is to work on /share and /preview, which is where the
-          roadmap actually gets reviewed. Only the vote control — and the empty
-          state's invitation to add a link — are gated, which is why share mode
-          also has to check there's a link to show: an unlinked item would
-          otherwise draw the footer's border around nothing. */}
+          roadmap actually gets reviewed. Only the empty state's invitation to add
+          a link is gated, which is why share mode also has to check there's a
+          link to show: an unlinked item would otherwise draw the footer's border
+          around nothing. */}
       {!item.killed && (!shareMode || itemLink(item)) && (
         <div className="card-footer">
-          <div style={{ display: "flex", gap: 6 }}>
-            <ItemLink
-              item={item}
-              variant="action"
-              onRequestLink={shareMode ? undefined : () => openDetail(item.id)}
-            />
-            {!shareMode && (
-              <VoteButton
-                votes={item.votes}
-                onVote={() => {
-                  updateItem(voted(item));
-                  celebrate({ kind: "vote" });
-                }}
-              />
-            )}
-          </div>
+          <ItemLink
+            item={item}
+            variant="action"
+            onRequestLink={shareMode ? undefined : () => openDetail(item.id)}
+          />
         </div>
       )}
     </div>

@@ -13,9 +13,9 @@ import {
 } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 import { useLoop } from "./store";
-import { visibleItems, voted, withHorizon } from "./mutations";
+import { visibleItems, withHorizon } from "./mutations";
 import { MissionTag } from "./MissionTag";
-import { ItemLink, VoteButton } from "./ItemLink";
+import { ItemLink } from "./ItemLink";
 
 export function HorizonView() {
   const {
@@ -112,8 +112,7 @@ function HorizonColumn({
 }
 
 function HorizonCard({ item }: { item: Item }) {
-  const { items, dragId, openDetail, updateItem, celebrate, shareMode } =
-    useLoop();
+  const { items, dragId, openDetail, shareMode } = useLoop();
   const [ghost, setGhost] = useState(false);
 
   const mm = horizonMismatch(item);
@@ -185,27 +184,16 @@ function HorizonCard({ item }: { item: Item }) {
       <h3>{item.title}</h3>
       <div className="hz-dates">{fmtRange(item)}</div>
       {/* Ungated for the same reason as the board card: share mode strips
-          `edit-only`, and the link has to survive there. Vote does not — so in
-          share mode an unlinked item skips the footer rather than drawing its
-          border around nothing. */}
+          `edit-only`, and the link has to survive there. The empty state's
+          invitation does not — so in share mode an unlinked item skips the
+          footer rather than drawing its border around nothing. */}
       {!item.killed && (!shareMode || itemLink(item)) && (
         <div className="card-footer">
-          <div style={{ display: "flex", gap: 6 }}>
-            <ItemLink
-              item={item}
-              variant="action"
-              onRequestLink={shareMode ? undefined : () => openDetail(item.id)}
-            />
-            {!shareMode && (
-              <VoteButton
-                votes={item.votes}
-                onVote={() => {
-                  updateItem(voted(item));
-                  celebrate({ kind: "vote" });
-                }}
-              />
-            )}
-          </div>
+          <ItemLink
+            item={item}
+            variant="action"
+            onRequestLink={shareMode ? undefined : () => openDetail(item.id)}
+          />
         </div>
       )}
     </div>

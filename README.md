@@ -30,8 +30,8 @@ read.
 Prioritization isn't a lane you drag cards into — it's continuous, and it lives
 on every lane. Within any column you **drag cards up and down** to set priority
 order by hand, and the column header's sort button **snaps the lane to
-descending business-value order** (the `computeRank` blend of votes, reach,
-confidence, and strategic fit against the adjustable weights) so the highest-
+descending business-value order** (the `computeRank` blend of reach, confidence,
+and strategic fit against the adjustable weights) so the highest-
 value ideas jump to the top; you can then hand-tweak from there. The hand-ranked
 sequence is what persists, stored as an `order` field per item. (This replaces
 the old standalone "Prioritize" stage; legacy data migrates automatically —

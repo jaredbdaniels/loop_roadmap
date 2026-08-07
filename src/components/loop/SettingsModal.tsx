@@ -3,8 +3,10 @@
 import type { Weights } from "@/lib/loop/types";
 import { useLoop } from "./store";
 
+// No Votes slider: voting was removed from Loop and `computeRank` no longer
+// reads `weights.votes`. The stored weight is left alone rather than zeroed, so
+// the tuning survives if voting ever comes back (see types.ts `Weights`).
 const SLIDERS: { label: string; key: keyof Weights }[] = [
-  { label: "Votes weight", key: "votes" },
   { label: "Reach weight", key: "reach" },
   { label: "Confidence weight", key: "confidence" },
   { label: "Strategic fit weight", key: "strategicFit" },
@@ -51,9 +53,9 @@ export function SettingsModal() {
         </div>
         <div className="modal-body">
         <p className="helper" style={{ marginBottom: 16 }}>
-          Rank score = (votes × w) + (reach × w) + (confidence × w) + (strategic
-          fit × w). Voting is one input, not the decision. Adjust the weights so
-          the number stays defensible.
+          Rank score = (reach × w) + (confidence × w) + (strategic fit × w).
+          Every input is a judgement someone can argue with, not a popularity
+          count. Adjust the weights so the number stays defensible.
         </p>
         {SLIDERS.map(({ label, key }) => (
           <div className="field" key={key}>

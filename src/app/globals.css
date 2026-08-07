@@ -1181,31 +1181,6 @@ body.exporting .tl-pin-slot {
   border-top: 1px dashed var(--cm-border);
   gap: 6px;
 }
-.card-footer .vote-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--cm-purple);
-  background: var(--cm-white);
-  border: 1px solid var(--cm-purple-soft);
-  border-radius: var(--r-pill);
-  padding: 4px 12px;
-  transition: background 0.14s, border-color 0.14s;
-}
-.card-footer .vote-link:hover {
-  background: var(--cm-purple-softer);
-  border-color: var(--cm-purple-light);
-}
-/* Vote shares the footer with the artifact link now, so it gives up the
-   labelled slot: the count is the label. Votes still feed the rank score shown
-   on the same card, which is why the affordance stays on the board at all. */
-.card-footer .vote-mini {
-  gap: 3px;
-  padding: 4px 9px;
-  font-variant-numeric: tabular-nums;
-}
 /* The primary footer action: open this item's brief, design or work item,
    whichever its stage resolves to (ItemLink.tsx). Filled rather than outlined —
    it's the one thing on a card that leaves Loop. */
@@ -3454,48 +3429,6 @@ body.share-mode .tl-link-handle {
   font-size: 0.82rem;
 }
 
-/* Vote — a quick, small "+1" chip that pops up from mid-screen and fades. Light
-   enough to fire on every vote without stealing focus. */
-.celebrate-vote {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: var(--cm-purple, #380f8c);
-  color: #fff;
-  font-weight: 750;
-  font-size: 1rem;
-  box-shadow: var(--sh-lg);
-  animation: celebrate-popup 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  will-change: transform, opacity;
-}
-.celebrate-vote-emoji {
-  font-size: 1.05rem;
-  line-height: 1;
-}
-@keyframes celebrate-popup {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, 4px) scale(0.7);
-  }
-  25% {
-    opacity: 1;
-    transform: translate(-50%, -8px) scale(1.06);
-  }
-  55% {
-    opacity: 1;
-    transform: translate(-50%, -18px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -40px) scale(0.95);
-  }
-}
-
 /* Kill — a somber, desaturated emoji sitting mid-screen while a puff of smoke
    rises and dissipates behind it. */
 .celebrate-kill {
@@ -3557,7 +3490,6 @@ body.share-mode .tl-link-handle {
   .celebrate-runner,
   .celebrate-runner.mini,
   .celebrate-deflate,
-  .celebrate-vote,
   .celebrate-kill {
     top: 50%;
     left: 50%;

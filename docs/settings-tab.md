@@ -120,8 +120,9 @@ be a migration per toggle.
 
 ```ts
 export interface WorkspaceConfig {
-  votingEnabled: boolean;      // can anyone click +1
-  voteCountsVisible: boolean;  // are counts rendered at all
+  // The two voting toggles this interface was originally drafted around
+  // (`votingEnabled`, `voteCountsVisible`) are dropped — voting was removed from
+  // Loop on 2026-08-07 rather than made configurable. See Decision 3.
   defaultView: ViewKey;
   defaultGroupBy: GroupByKey;
   ado: { autoSyncDaily: boolean };
@@ -141,7 +142,20 @@ switching cannot touch it.
 
 ---
 
-## Decision 3 — "hide voting" is two toggles, and it has to reach the rank formula
+## Decision 3 — ~~"hide voting" is two toggles~~ voting was removed instead
+
+> **Superseded 2026-08-07. Voting is gone from Loop and these toggles were never built.** The
+> affordances are removed outright and the votes term is out of `computeRank`; `Item.votes`,
+> `Weights.votes`, and the Aha! delta sync stay in the data layer so Aha!'s count survives and the
+> removal is reversible. Rationale in
+> [`ai-native-process-alignment.md`](./ai-native-process-alignment.md) under objection 1: a toggle
+> whose recommended state is "invisible" buys a config surface to preserve an option nobody asked to
+> exercise.
+>
+> **The rest of this section is retained because it is still the right map of the work.** The
+> touchpoint table below is what a removal has to cover, and the "easy to miss" note is why the rank
+> formula had to change and not just the UI — both were followed. Read `voteCountsVisible: false` as
+> "the shipped state," not "a setting."
 
 **Confirmed 2026-08-04, against the competing proposal.** PR #47's earlier revision specified
 deleting voting and the `Weights` tuning UI outright, per the Opportunities Register's additive
@@ -189,24 +203,28 @@ computation pure — pass config into `rankScore` rather than importing it — s
 
 Worth listing because a CSS-only hide misses over half of them:
 
-| Surface | What's there | Under `voteCountsVisible: false` |
+| Surface | What was there | Shipped 2026-08-07 |
 | --- | --- | --- |
-| `BoardView` card | `· N votes` meta + `+1 vote` link | both gone |
-| `HorizonView` | `+1 vote` link | gone |
-| `DetailModal` | Votes field + `+1 vote` button | field hidden (value preserved in `form`) |
-| `SettingsModal` / Prioritization | Votes weight slider | disabled with a note |
-| `logic.ts` `rankScore` | `votes × w` term | term dropped |
-| `explain-rank` prompt | votes cited as a driver | votes omitted from the payload |
-| `CompareDrawer` | `votes: "Votes"` field label | row suppressed in diffs |
-| `Celebration` | `kind: "vote"` +1 pop | never fires |
-| `StatsBar` | check for a vote total | suppressed if present |
-| `/share/[token]` | per-link chrome, defaulting from workspace config | counts hidden — this is the main reason to build it (see Decision 4) |
+| `BoardView` card | `· N votes` meta + `+1 vote` link | both removed |
+| `HorizonView` | `+1 vote` link | removed |
+| `DetailModal` | Votes field + `+1 vote` button, `Votes` summary stat | all removed; `form.votes` still round-trips on save, so the stored value is untouched |
+| `SettingsModal` / Prioritization | Votes weight slider | slider removed; stored `weights.votes` left as-is, not zeroed |
+| `logic.ts` `computeRank` | `votes × w` term | term dropped, with a regression guard in `logic.test.ts` |
+| `explain-rank` | votes in the schema, system prompt, and contributions | removed from all three, and from the client payload |
+| `CompareDrawer` | `votes: "Votes"` field label | label + `DIFF_ITEM_FIELDS` entry + weights-diff entry removed |
+| `Celebration` / `store` | `kind: "vote"` +1 pop | kind, roster, duration, and `celebrate-vote` CSS removed |
+| `mutations.ts` | `voted()` | removed |
+| `StatsBar` | check for a vote total | none present — nothing to do |
+| `/share/[token]` | count on read-only cards | gone with the `BoardView` meta; no per-link config needed |
+| `lib/aha/map.ts` | endorsement → `votes` delta sync | **unchanged, deliberately** — Aha! owns the number |
 
-**Never delete vote data on a display toggle.** The Aha! webhook keeps arriving
-regardless: `ahaEndorsements` syncs in and moves `votes` by the *delta* between
-fires. That should keep working with voting hidden — Aha! owns that number, Loop
-is just storing it. Hiding is a view concern; the toggle must be losslessly
-reversible.
+**Never delete vote data when removing the feature.** The Aha! webhook keeps
+arriving regardless: `ahaEndorsements` syncs in and moves `votes` by the *delta*
+between fires. That still works with voting gone — Aha! owns that number, Loop is
+just storing it. Which affordances exist is a product decision; the storage must
+stay losslessly reversible. This is the constraint the 2026-08-07 removal was
+built to respect, and it is why `Item.votes` and `Weights.votes` survive in the
+types with nothing reading them.
 
 ---
 
