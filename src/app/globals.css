@@ -835,15 +835,28 @@ body.exporting .tl-pin-slot {
   padding: 8px 28px 64px;
   overflow-x: auto;
 }
+/* Lanes share whatever width the window gives them instead of sitting at a
+   fixed 288px and leaving the rest of a wide monitor blank. The number of lanes
+   is not fixed — five normally, four in share mode where Intake is hidden — so a
+   width tuned for one count strands space at the other.
+
+   `min-width` (not `width`) is what keeps horizontal scrolling: flex items
+   cannot shrink below it, so a narrow window overflows `.board` and
+   `.board-wrap` scrolls, exactly as before. The `max-width` cap stops cards
+   becoming banners on an ultrawide display, and `safe center` shares out
+   whatever slack the cap leaves — "safe" so that an overflowing board still
+   starts at the left edge and stays reachable, rather than being centred and
+   clipped past the start of the scroll range. */
 .board {
   display: flex;
   gap: 16px;
-  min-width: max-content;
   align-items: flex-start;
+  justify-content: safe center;
 }
 .column {
-  width: 288px;
-  flex-shrink: 0;
+  flex: 1 1 288px;
+  min-width: 288px;
+  max-width: 520px;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid var(--cm-border);
   border-radius: var(--r-lg);
