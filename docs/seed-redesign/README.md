@@ -228,12 +228,10 @@ value" is meaningful immediately.
    Workflows) and UltraCamp (UltraCamp) are explicit containment on the map. The
    durable fix is to nest each team block inside its domain container so
    containment exports.
-2. **Three names carry loose ends.** Platform — Identity & Core Services also
+2. **Two names carry loose ends.** Platform — Identity & Core Services also
    holds Alerts & Automation, Branding and Navigation; Community — Family
-   Engagement & Comms Service also holds Camp Store and Safety & Incidents; and
-   Family Comms sits with Community — Staffing rather than with the team whose
-   name says Comms Service. All scope questions surfaced by naming, not naming
-   problems.
+   Engagement & Comms Service also holds Camp Store and Safety & Incidents. Both
+   are scope questions surfaced by naming, not naming problems.
 3. **Two people each lead two teams** (Tracie: Identity & Core Services + Financial Services;
    Dani: Admin Workflows + Staffing), and Identity & Core Services
    covers 7 modules with 4 engineers against Financial Services' 1 module with 2.

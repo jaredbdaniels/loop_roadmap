@@ -56,7 +56,7 @@ JTBD_TEAM["UltraCamp"] = "UltraCamp"
 TEAM_BY_TITLE = {
     # Customer Love is a function, not a domain slice: its epic belongs to it even
     # though the module (Camp Productivity) sits with the Admin Workflows team.
-    "Customer Love Tiger Team (Summer '26)": "Admin Workflows — Customer Love",
+    "Customer Love Tiger Team (Summer '26)": "Core — Customer Love",
 }
 # Modules added to the map here rather than folded from an old one, but whose old
 # taxonomy id still exists and resolves to the right domain.

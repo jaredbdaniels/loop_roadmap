@@ -200,18 +200,18 @@ export const TEAMS: Team[] = [
     jtbdIds: ["migration"],
   },
   {
-    id: "admin-workflows-customer-love",
-    label: "Admin Workflows — Customer Love",
-    domainId: "core",
-    lead: "",
-    jtbdIds: [],
-  },
-  {
     id: "core-admin-workflows",
     label: "Core — Admin Workflows",
     domainId: "core",
     lead: "Dani",
     jtbdIds: ["registrations", "program-offerings", "internal-comms", "scheduling", "health-medical", "housing", "camper-location", "transportation", "food-services", "facilities"],
+  },
+  {
+    id: "core-customer-love",
+    label: "Core — Customer Love",
+    domainId: "core",
+    lead: "",
+    jtbdIds: [],
   },
   {
     id: "core-financial-services",
@@ -225,14 +225,14 @@ export const TEAMS: Team[] = [
     label: "Community — Family Engagement & Comms Service",
     domainId: "community",
     lead: "Jeremy",
-    jtbdIds: ["community-media", "camp-store", "alumni", "fundraising", "safety-incidents"],
+    jtbdIds: ["community-media", "camp-store", "alumni", "fundraising", "safety-incidents", "family-comms"],
   },
   {
     id: "community-staffing",
     label: "Community — Staffing",
     domainId: "community",
     lead: "Dani",
-    jtbdIds: ["staff", "family-comms"],
+    jtbdIds: ["staff"],
   },
   {
     id: "ultracamp",

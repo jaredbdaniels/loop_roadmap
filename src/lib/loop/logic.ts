@@ -74,7 +74,7 @@ const RETIRED_TEAM: Record<string, string> = {
   Gazebo: "",
   "Cross-cutting": "Community — Staffing",
   // Sub-domains from the previous map.
-  Communication: "Community — Staffing",
+  Communication: "Community — Family Engagement & Comms Service",
   Family: "Community — Family Engagement & Comms Service",
   Staff: "Community — Staffing",
   Productivity: "Core — Admin Workflows",
@@ -98,14 +98,21 @@ const RETIRED_TEAM: Record<string, string> = {
   "Platform — Payments": "Core — Financial Services",
   "Platform — Financial Services": "Core — Financial Services",
   "Admin Workflows": "Core — Admin Workflows",
-  // The two Community teams renamed for the scope each leads with, ownership
-  // unchanged: Staff & Family Comms became Staffing, and Engagement &
-  // Advancement became Family Engagement & Comms Service.
+  // The two Community teams renamed for the scope each leads with: Staff &
+  // Family Comms became Staffing, and Engagement & Advancement became Family
+  // Engagement & Comms Service, which then took the Family Comms JTBD over from
+  // it. These are the no-module fallbacks — a row anchored to a module still
+  // resolves through its JTBD first, so a Family Comms item saved under the old
+  // Staff & Family Comms name lands on the Comms Service team, not on Staffing.
   "Community — Staff & Family Comms": "Community — Staffing",
   "Community — Engagement & Advancement":
     "Community — Family Engagement & Comms Service",
   // Platform — AI took the name of the JTBD it owns end to end.
   "Platform — AI": "Platform — AI Platform",
+  // Customer Love re-parented from the Admin Workflows domain to Core, and its
+  // prefix followed. It owns no JTBD, so the retirement table is the only route
+  // a stored row has back to it.
+  "Admin Workflows — Customer Love": "Core — Customer Love",
   // Ambiguous both as a codename and as the old Integration sub-domain; the
   // module's JTBD wins over this entry whenever the item has one.
   Platform: "Platform — Identity & Core Services",

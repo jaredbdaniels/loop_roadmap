@@ -109,7 +109,7 @@ TEAM_DOMAIN_BY_NAME = {
     "Platform — Migration": "product-platform",
     "Core — Admin Workflows": "core",
     "Core — Financial Services": "core",
-    "Admin Workflows — Customer Love": "core",
+    "Core — Customer Love": "core",
     "Community — Staffing": "community",
     "Community — Family Engagement & Comms Service": "community",
     "UltraCamp": "ultracamp",

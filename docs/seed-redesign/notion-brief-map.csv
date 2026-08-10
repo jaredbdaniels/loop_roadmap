@@ -2,8 +2,8 @@ item_id,item_title,mission,notion_title,notion_url,confidence,notes
 ep-applications-registration-01,Registration Modernization — MVP → GA,Core — Admin Workflows,Launch Control: Registration,https://app.notion.com/p/37cd23fa124b80d6b757e0017ee7ffd2,high,The live LC for the registration program; this item is the MVP-to-GA umbrella.
 ep-applications-registration-03,"Register in one pass, mobile-first (GA)",Core — Admin Workflows,Positioning Brief — Full Registration Launch (Tier 1),https://app.notion.com/p/39ed23fa124b81d0b3f2fc976079523d,medium,"Tier 1 positioning covers the full public launch, which is this GA item rather than the umbrella. Could reasonably hang off -01 instead."
 ep-community-engagement-02,Merge Camp inTouch + Campanion (phase 1),Community — Family Engagement & Comms Service,Launch Control for Staff Access in Campanion,https://app.notion.com/p/1c2d23fa124b803bb73fd1978559c6d0,low,"From April 2025 and probably stale. Staff access in Campanion touches this merge work, but could equally be permissions or the staff domain. Expect to clear this one."
-ep-family-communication-01,Ask Camp,Community — Staffing,Launch Control: Ask Camp,https://app.notion.com/p/345d23fa124b80fa8bfac8b3b9239b72,medium,"AMBIGUOUS — SEE NOTE. The LC describes the parent-facing grounded-answer chat in Campanion (PM Anna), which matches this item's description exactly. But ep-productized-ai-01 'AskCamp' is the same product seen from the AI-platform side, and -02/-03 continue it. One Notion brief, four roadmap items: decide which one owns the link."
-ep-marketing-recruitment-01,Camp marketing & recruiting/inquiry,Community — Staffing,Positioning Brief — Interest Form (Tier 2),https://app.notion.com/p/39ed23fa124b81aba295e44f421b5685,low,"'Interest Form' reads as inquiry capture, which is this item's area, but the brief may well belong to the registration program instead."
+ep-family-communication-01,Ask Camp,Community — Family Engagement & Comms Service,Launch Control: Ask Camp,https://app.notion.com/p/345d23fa124b80fa8bfac8b3b9239b72,medium,"AMBIGUOUS — SEE NOTE. The LC describes the parent-facing grounded-answer chat in Campanion (PM Anna), which matches this item's description exactly. But ep-productized-ai-01 'AskCamp' is the same product seen from the AI-platform side, and -02/-03 continue it. One Notion brief, four roadmap items: decide which one owns the link."
+ep-marketing-recruitment-01,Camp marketing & recruiting/inquiry,Community — Family Engagement & Comms Service,Positioning Brief — Interest Form (Tier 2),https://app.notion.com/p/39ed23fa124b81aba295e44f421b5685,low,"'Interest Form' reads as inquiry capture, which is this item's area, but the brief may well belong to the registration program instead."
 ep-media-01,"Photos, albums & face finder modern",Community — Family Engagement & Comms Service,Launch Control: Photo Season Passes FY26 - BETA,https://app.notion.com/p/26ad23fa124b80e5930af543fe55213c,medium,"Season Passes is the pricing/packaging launch on top of photos, not the photo modernization itself. Positioning inputs: /p/328d23fa124b8074909fcdc642e92ae5"
 ep-medical-operations-01,Health center & medical modern,Core — Admin Workflows,Mini Launch: Medical Log & Treatment Attachments,https://app.notion.com/p/3abd23fa124b812a9f3ff380ac99216e,medium,A Tier 2 mini launch for one slice of the health-center work; this item is the whole modernization. Narrower than the item it's attached to.
 ep-recruiting-hiring-01,Staff pipeline AI automations (ATS),Community — Staffing,Launch Control: Staff Hiring,https://app.notion.com/p/295d23fa124b80cfa9cfdc1ba591d71c,medium,"Staff hiring LC vs. this item's ATS pipeline automations — same area, and the item is the only hiring-pipeline work on the roadmap. A GTM positioning doc also exists: /p/388d23fa124b81c390f5e0aa1eab0237"
@@ -22,7 +22,7 @@ ep-billing-revops-01,Campminder billing / RevOps,Platform — Identity & Core Se
 ep-branding-experience-01,Branding & white-label service,Platform — Identity & Core Services,,,,
 ep-branding-experience-02,Custom module names / vocabulary,Platform — Identity & Core Services,,,,
 ep-camp-accounting-01,Camp accounting integration,Core — Financial Services,,,,
-ep-camp-productivity-01,Customer Love Tiger Team (Summer '26),Admin Workflows — Customer Love,,,,
+ep-camp-productivity-01,Customer Love Tiger Team (Summer '26),Core — Customer Love,,,,
 ep-camp-productivity-02,Internal staff coordination (bulletins/tasks),Core — Admin Workflows,,,,
 ep-camp-setup-01,Season/session setup modern,Core — Admin Workflows,,,,
 ep-camp-store-pos-01,Camp store / POS,Community — Family Engagement & Comms Service,,,,
@@ -44,12 +44,12 @@ ep-events-and-rentals-01,Conference Center / Rentals & Events — needs an owner
 ep-facilities-maintenance-01,Facilities & maintenance (off-season),Core — Admin Workflows,,,,
 ep-family-billing-01,Family billing modern,Core — Financial Services,,,,
 ep-family-billing-02,Show families what they owe and let them pay in-app,Core — Financial Services,,,,
-ep-family-communication-02,Reusable communications service,Community — Staffing,,,,
-ep-family-communication-03,Automated + scheduled comms,Community — Staffing,,,,
-ep-family-communication-04,2-way conversations + external comms capture,Community — Staffing,,,,
-ep-family-communication-05,Let families control how they're contacted,Community — Staffing,,,,
-ep-family-communication-06,Agentic comms (AI drafts/answers),Community — Staffing,,,,
-ep-family-communication-07,Capture external email threads on the record,Community — Staffing,,,,
+ep-family-communication-02,Reusable communications service,Community — Family Engagement & Comms Service,,,,
+ep-family-communication-03,Automated + scheduled comms,Community — Family Engagement & Comms Service,,,,
+ep-family-communication-04,2-way conversations + external comms capture,Community — Family Engagement & Comms Service,,,,
+ep-family-communication-05,Let families control how they're contacted,Community — Family Engagement & Comms Service,,,,
+ep-family-communication-06,Agentic comms (AI drafts/answers),Community — Family Engagement & Comms Service,,,,
+ep-family-communication-07,Capture external email threads on the record,Community — Family Engagement & Comms Service,,,,
 ep-financial-setup-01,Financial setup self-serve,Core — Financial Services,,,,
 ep-financial-setup-02,Promotion / offering / pricing setup,Core — Financial Services,,,,
 ep-financial-setup-03,Price every offering from one service,Core — Financial Services,,,,

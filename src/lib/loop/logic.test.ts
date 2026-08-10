@@ -439,8 +439,8 @@ describe("migrateItems team remap", () => {
   });
 
   it("lets the module win over the retirement table", () => {
-    // Phoenix retires to Staff & Family Comms, but a Payments module
-    // overrides it — the module is the durable anchor.
+    // Phoenix retires to Staffing, but a Payments module overrides it — the
+    // module is the durable anchor.
     expect(missionOf({ mission: "Phoenix", moduleId: "payment-processing" })).toBe(
       "Core — Financial Services",
     );
@@ -479,6 +479,14 @@ describe("migrateItems team remap", () => {
     expect(
       missionOf({ mission: "Community — Staff & Family Comms", moduleId: null }),
     ).toBe("Community — Staffing");
+    // Family Comms left that team for the Comms Service one, so an anchored row
+    // follows its JTBD rather than the retirement table.
+    expect(
+      missionOf({
+        mission: "Community — Staff & Family Comms",
+        moduleId: "family-communication",
+      }),
+    ).toBe("Community — Family Engagement & Comms Service");
     expect(
       missionOf({
         mission: "Community — Engagement & Advancement",

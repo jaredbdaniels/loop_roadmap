@@ -385,18 +385,21 @@ OWNS = {
     "AI Platform Team": (["AI Platform"], "Platform — AI Platform",
                          "One module, named for it. Prefixed for consistency with the "
                          "other Product Platform teams."),
-    "Apollo": (["Staff", "Family Comms"], "Community — Staffing",
-               "Named for the staff scope it leads with. Family Comms rides along and "
-               "is the loose end in this name."),
+    "Apollo": (["Staff"], "Community — Staffing",
+               "One module, named for it: everything from hiring a seasonal to paying "
+               "them."),
     "Alpha": (["Community & Media", "Camp Store", "Alumni", "Fundraising",
-               "Safety & Incidents"], "Community — Family Engagement & Comms Service",
-              "Community & Media plus Alumni and Fundraising are family engagement and "
-              "the service around it. Camp Store and Safety & Incidents sit outside "
-              "that name — a scope question, not a naming one."),
-    "Customer Love": ([], "Admin Workflows — Customer Love",
+               "Safety & Incidents", "Family Comms"],
+              "Community — Family Engagement & Comms Service",
+              "Community & Media plus Alumni and Fundraising are family engagement, and "
+              "Family Comms is the comms service the name's second half points at. Camp "
+              "Store and Safety & Incidents sit outside that name — a scope question, "
+              "not a naming one."),
+    "Customer Love": ([], "Core — Customer Love",
                       "Placed inside Admin Workflows on the map, so it delivers into "
-                      "Core. A standing team now, not the Summer '26 tiger team. Keeps "
-                      "its name because it is a function, not a domain slice."),
+                      "Core, and prefixed for that domain like its siblings. A standing "
+                      "team now, not the Summer '26 tiger team; it owns no JTBD because "
+                      "it is a function, not a domain slice."),
     "UltraCamp": ([], "UltraCamp",
                   "Owns the whole UltraCamp domain; takes the domain name."),
 }
