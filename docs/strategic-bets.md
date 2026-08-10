@@ -163,7 +163,7 @@ Bet — Parent Experience Convergence        grow · foundational · Active · N
   │     Community — Engagement & Advancement
   ├─ Registrations        declared   1 epic    Building         Admin Workflows
   ├─ Custom Fields        declared   1 epic    Solutioning      Platform — Data & Integrations
-  ├─ Payments             declared   1 epic    Solutioning      Platform — Payments
+  ├─ Payments             declared   1 epic    Solutioning      Platform — Financial Services
   ├─ People & Orgs        declared   1 epic    Solutioning      Platform — Identity & Core Services
   └─ Alerts & Automation  ⚠ declared, 0 epics   ← claimed, nothing staffed   [illustrative]
 ```
@@ -510,7 +510,7 @@ fill; everything else is real data from the current seed.
 | Reversibility | 2/5 — retiring Camp inTouch is a one-way door |
 | Declared JTBDs | `community-media`, `registrations`, `custom-fields`, `payments`, `people-orgs` — the five its epics actually land in, so no unstaffed-claim flag fires. (The tree above adds `alerts-automation` as an invented sixth to show the flag.) |
 | **Derived** | 8 epics · 8 epic-quarters · **funded 5.6%** of 143 · 5 teams · Q2 FY27 → Q2 FY28 |
-| Teams | Community — Engagement & Advancement · Admin Workflows · Platform — Data & Integrations · Platform — Payments · Platform — Identity & Core Services |
+| Teams | Community — Engagement & Advancement · Admin Workflows · Platform — Data & Integrations · Platform — Financial Services · Platform — Identity & Core Services |
 | Type mix | 3 modernize · 1 new-value · 4 both |
 | Kill criteria | *(to be written — currently absent, and its absence is the point)* |
 

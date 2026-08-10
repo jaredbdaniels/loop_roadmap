@@ -369,8 +369,9 @@ OWNS = {
                      "Consent are one coherent identity/account scope. Alerts & "
                      "Automation, Branding and Navigation ride along and are the loose "
                      "ends in this name."),
-    "FANCY TEAM 3": (["Payments"], "Platform — Payments",
-                     "One module, end to end. Named for it."),
+    "FANCY TEAM 3": (["Payments"], "Platform — Financial Services",
+                     "One module, end to end. Named for the financial scope it "
+                     "owns rather than for payments alone."),
     "FANCY TEAM 1": (["Registrations", "Program Offerings", "Internal Comms",
                       "Scheduling", "Health & Medical", "Housing", "Camper Location",
                       "Transportation", "Food Services", "Facilities"],

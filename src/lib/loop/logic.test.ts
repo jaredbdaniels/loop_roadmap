@@ -345,7 +345,9 @@ describe("resolveDomain", () => {
 
   it("falls back to the team mapping when no module is set", () => {
     expect(
-      resolveDomain(item({ moduleId: null, mission: "Platform — Payments" })),
+      resolveDomain(
+        item({ moduleId: null, mission: "Platform — Financial Services" }),
+      ),
     ).toBe("product-platform");
   });
 
@@ -437,7 +439,7 @@ describe("migrateItems team remap", () => {
     // Phoenix retires to Staff & Family Comms, but a Payments module
     // overrides it — the module is the durable anchor.
     expect(missionOf({ mission: "Phoenix", moduleId: "payment-processing" })).toBe(
-      "Platform — Payments",
+      "Platform — Financial Services",
     );
   });
 
@@ -447,8 +449,20 @@ describe("migrateItems team remap", () => {
     );
     // Sub-domains from the previous map are retired too, not just codenames.
     expect(missionOf({ mission: "Financials", moduleId: null })).toBe(
-      "Platform — Payments",
+      "Platform — Financial Services",
     );
+  });
+
+  it("carries a renamed team to its new label", () => {
+    // Platform — Payments became Platform — Financial Services. A row with no
+    // module rides the retirement table; one anchored to a Payments module gets
+    // there via the JTBD, which is the same team either way.
+    expect(missionOf({ mission: "Platform — Payments", moduleId: null })).toBe(
+      "Platform — Financial Services",
+    );
+    expect(
+      missionOf({ mission: "Platform — Payments", moduleId: "family-billing" }),
+    ).toBe("Platform — Financial Services");
   });
 
   it("is idempotent — a migrated team is left alone", () => {

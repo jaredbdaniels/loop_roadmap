@@ -69,7 +69,7 @@ const RETIRED_TEAM: Record<string, string> = {
   Delta: "Admin Workflows",
   "Delta 2": "Admin Workflows",
   Phoenix: "Community — Staff & Family Comms",
-  "Phoenix 2": "Platform — Payments",
+  "Phoenix 2": "Platform — Financial Services",
   "Data Dev": "Platform — Data & Integrations",
   Gazebo: "",
   "Cross-cutting": "Community — Staff & Family Comms",
@@ -79,7 +79,7 @@ const RETIRED_TEAM: Record<string, string> = {
   Staff: "Community — Staff & Family Comms",
   Productivity: "Admin Workflows",
   "Camp Operations": "Admin Workflows",
-  Financials: "Platform — Payments",
+  Financials: "Platform — Financial Services",
   "All Things UltraCamp": "UltraCamp",
   "Forms & Documents": "Platform — Data & Integrations",
   Integration: "Platform — Data & Integrations",
@@ -90,6 +90,10 @@ const RETIRED_TEAM: Record<string, string> = {
   Automation: "Platform — Identity & Core Services",
   "Rentals & Events": "",
   "Staff Payroll": "Community — Staff & Family Comms",
+  // Renamed teams, whose stored label is retired the same way a retired team's
+  // is: Payments became Financial Services when the team's scope grew past
+  // taking payments.
+  "Platform — Payments": "Platform — Financial Services",
   // Ambiguous both as a codename and as the old Integration sub-domain; the
   // module's JTBD wins over this entry whenever the item has one.
   Platform: "Platform — Identity & Core Services",

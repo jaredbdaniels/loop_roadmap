@@ -91,7 +91,7 @@ for label, jlabel in EXTRA_MODULES:
 teams = list(csv.DictReader(open(os.path.join(HERE, "4_teams.csv"))))
 TEAM_DOMAIN_BY_NAME = {
     "Platform — Identity & Core Services": "product-platform",
-    "Platform — Payments": "product-platform",
+    "Platform — Financial Services": "product-platform",
     "Platform — Data & Integrations": "product-platform",
     "Platform — AI": "product-platform",
     "Platform — Migration": "product-platform",
@@ -266,8 +266,8 @@ export function moduleJtbd(
 
 // Team ids, for interfaces that need a stable ASCII token rather than a display
 // label — notably the AI capture enum, where the em dash in a label like
-// "Platform — Payments" is easy for a model to get wrong (hyphen, en dash) and
-// would fail schema validation.
+// "Platform — Financial Services" is easy for a model to get wrong (hyphen, en
+// dash) and would fail schema validation.
 export const TEAM_IDS: string[] = TEAMS.map((t) => t.id);
 
 const TEAM_LABEL_BY_ID = new Map(TEAMS.map((t) => [t.id, t.label]));

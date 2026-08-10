@@ -186,6 +186,13 @@ export const TEAMS: Team[] = [
     jtbdIds: ["reporting", "custom-fields", "integrations", "vendors"],
   },
   {
+    id: "platform-financial-services",
+    label: "Platform — Financial Services",
+    domainId: "product-platform",
+    lead: "Tracie",
+    jtbdIds: ["payments"],
+  },
+  {
     id: "platform-identity-core-services",
     label: "Platform — Identity & Core Services",
     domainId: "product-platform",
@@ -198,13 +205,6 @@ export const TEAMS: Team[] = [
     domainId: "product-platform",
     lead: "",
     jtbdIds: ["migration"],
-  },
-  {
-    id: "platform-payments",
-    label: "Platform — Payments",
-    domainId: "product-platform",
-    lead: "Tracie",
-    jtbdIds: ["payments"],
   },
   {
     id: "admin-workflows",
@@ -296,8 +296,8 @@ export function moduleJtbd(
 
 // Team ids, for interfaces that need a stable ASCII token rather than a display
 // label — notably the AI capture enum, where the em dash in a label like
-// "Platform — Payments" is easy for a model to get wrong (hyphen, en dash) and
-// would fail schema validation.
+// "Platform — Financial Services" is easy for a model to get wrong (hyphen, en
+// dash) and would fail schema validation.
 export const TEAM_IDS: string[] = TEAMS.map((t) => t.id);
 
 const TEAM_LABEL_BY_ID = new Map(TEAMS.map((t) => [t.id, t.label]));

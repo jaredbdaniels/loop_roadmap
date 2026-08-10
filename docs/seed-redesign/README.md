@@ -231,9 +231,9 @@ value" is meaningful immediately.
    Alerts & Automation, Branding and Navigation; Community — Engagement &
    Advancement also holds Camp Store and Safety & Incidents. Both are scope
    questions surfaced by naming, not naming problems.
-3. **Two people each lead two teams** (Tracie: Identity & Core Services + Payments;
+3. **Two people each lead two teams** (Tracie: Identity & Core Services + Financial Services;
    Dani: Admin Workflows + Staff & Family Comms), and Identity & Core Services
-   covers 7 modules with 4 engineers against Payments' 1 module with 2.
+   covers 7 modules with 4 engineers against Financial Services' 1 module with 2.
 2. **Two JTBD conflicts** from consolidation, in `jtbd_conflict`: Data Movement
    (Connecting External Tools vs Navigating the Product) and UltraCamp
    (Converging UltraCamp vs Expanding into Adjacent Segments).
