@@ -130,14 +130,19 @@ export const OWNERS: string[] = [
 ];
 
 // The purpose line shown under a team name in the Team view and in the hover
-// tooltips wherever a team name appears: the domain it delivers into, that
-// domain's product owner, and the team's engineering lead. Derived from the
-// taxonomy so it never drifts from the roster above.
+// tooltips wherever a team name appears: the domain it delivers into and the
+// team's engineering lead. Derived from the taxonomy so it never drifts from the
+// roster above.
+//
+// Deliberately no product owner: `Domain.owner` is the owner of a whole domain,
+// not of any one team inside it, and repeating it on every team band read as if
+// each team had its own. It shows where a domain is the thing on screen — the
+// domain bands in the Team and timeline views, and the resolved-domain line under
+// ModuleSelect.
 export const MISSION_INFO: Record<string, string> = Object.fromEntries(
   TEAMS.map((t) => {
     const d = getDomain(t.domainId);
     const parts = [d?.label ?? t.label];
-    if (d?.owner) parts.push(d.owner);
     if (t.lead) parts.push(`eng: ${t.lead}`);
     return [t.label, parts.join(" · ")];
   }),
