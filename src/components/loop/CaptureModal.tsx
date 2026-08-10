@@ -94,7 +94,7 @@ export function CaptureModal() {
       owner,
       moduleId,
       type: null,
-      stage: "Capture",
+      stage: "Intake",
       order: null,
       submitter: {
         type: submitterType,
@@ -146,7 +146,7 @@ export function CaptureModal() {
     };
     createItem(item);
     close();
-    toast(scheduled ? "Added to the timeline." : "Added to Capture.");
+    toast(scheduled ? "Added to the timeline." : "Added to Intake.");
   };
 
   return (
@@ -277,16 +277,16 @@ export function CaptureModal() {
         </div>
         <div className="modal-actions">
           <span className="helper">
-            New items land in Capture, the inbox — parked, not yet worked, and
-            not counted as portfolio capacity. Moving one to Discovery is the
-            decision to spend time on it. Nothing reaches Building until the
-            problem statement and KR are filled in and a prototype or evidence
-            link is attached.
+            New items land in Intake — parked, not yet worked, and not counted
+            as portfolio capacity. Moving one to Discovery is the decision to
+            spend time on it. Nothing reaches Building until the problem
+            statement and KR are filled in and a prototype or evidence link is
+            attached.
             {scheduled &&
               " Dates come from where you drew it on the timeline — you can drag to adjust later."}
           </span>
           <button className="cm-button" onClick={submit}>
-            {scheduled ? "Add to timeline" : "Add to Capture"}
+            {scheduled ? "Add to timeline" : "Add to Intake"}
           </button>
         </div>
       </div>

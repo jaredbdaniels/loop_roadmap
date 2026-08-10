@@ -3,18 +3,22 @@
 
 import { TEAMS, getDomain } from "./taxonomy";
 
-// The intake lane. **Capture is not a Headlights band** — it is the inbox that
+// The intake lane. **Intake is not a Headlights band** — it is the inbox that
 // feeds them, and everything sitting in it is explicitly *not yet* intended
 // investment. That distinction is the whole reason it can exist without Loop
-// inventing a fifth word for the company to learn: Headlights forecasts the next
-// three months, and an idea nobody has committed time to is not in that
-// forecast. Ideas land here from the Capture modal and the Aha! webhook, and
-// moving one to Discovery is a real decision — "we are going to spend time on
-// this" — rather than a formality.
+// inventing a fifth lifecycle word for the company to learn: Headlights
+// forecasts the next three months, and an idea nobody has committed time to is
+// not in that forecast. Ideas land here from the capture modal and the Aha!
+// webhook, and moving one to Discovery is a real decision — "we are going to
+// spend time on this" — rather than a formality.
 //
-// Consequently nothing portfolio-facing counts it: see `isInbox` and
+// Named for the state, not the act that produced it: capturing is what you do,
+// Intake is where the idea then sits. The lane was called "Capture" until the
+// two started competing for the same word.
+//
+// Consequently nothing portfolio-facing counts it: see `isIntake` and
 // `itemQuarters` in logic.ts.
-export const CAPTURE_STAGE = "Capture" as const;
+export const INTAKE_STAGE = "Intake" as const;
 
 // The four lifecycle bands from the Headlights process — the monthly rolling
 // 3-month planning ceremony product and engineering leadership review. Loop uses
@@ -41,8 +45,9 @@ export const LIFECYCLE_STAGES = [
   "Releasing",
 ] as const;
 
-// Every lane on the board, in order: the inbox, then the four lifecycle bands.
-export const STAGES = [CAPTURE_STAGE, ...LIFECYCLE_STAGES] as const;
+// Every lane on the board, in order: the intake inbox, then the four lifecycle
+// bands.
+export const STAGES = [INTAKE_STAGE, ...LIFECYCLE_STAGES] as const;
 
 export type Stage = (typeof STAGES)[number];
 export type LifecycleStage = (typeof LIFECYCLE_STAGES)[number];
@@ -70,10 +75,10 @@ export const ITEM_TYPE_INFO: Record<
   both: { label: "Both", fg: "#6A3FA0", bg: "#EDE6F7" },
 };
 
-// Grey for the inbox — it reads as "not yet real", which is exactly what Capture
+// Grey for the inbox — it reads as "not yet real", which is exactly what Intake
 // means — then the four bands progress blue → amber → green → purple.
 export const STAGE_COLORS: Record<string, string> = {
-  Capture: "#A0A0A0",
+  Intake: "#A0A0A0",
   Discovery: "#3DA5D9",
   Solutioning: "#FFA61E",
   Building: "#00AA47",
@@ -86,16 +91,17 @@ export const STAGE_COLORS: Record<string, string> = {
 // Frame → Validate → Deliver → Learn). Frame and Validate were both
 // solution-space work — stating the problem and its KR, then prototyping
 // against it — so they collapse into the single Solutioning band; the other
-// three map one-to-one. Capture is deliberately absent from this table: the
-// lane still exists and still means the same thing, so a stored "Capture" is
-// already correct and must not be promoted into Discovery behind someone's
-// back — that would silently claim time nobody agreed to spend.
+// three map one-to-one. Capture became Intake — same lane, same meaning, a name
+// for the state rather than for the act that produced it. It maps across rather
+// than into Discovery: promoting a parked idea behind someone's back would
+// silently claim time nobody agreed to spend.
 //
 // Earlier still, prioritization was its own stage. It is now a continuous
 // ranking that applies inside every lane (drag to order, or sort a lane by
 // business value), so ranked-but-not-yet-built items fold into Solutioning.
 export const STAGE_MIGRATION: Record<string, Stage> = {
   // The five-stage loop.
+  Capture: "Intake",
   Frame: "Solutioning",
   Validate: "Solutioning",
   Deliver: "Building",

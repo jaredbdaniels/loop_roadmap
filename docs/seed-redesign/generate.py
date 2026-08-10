@@ -425,7 +425,7 @@ for r in rows:
     q = r["Quarter"]
     start, end = QUARTER_DATES[q]
     basis = "planned" if r["Status"] == "Planned" else "directional"
-    stage = {"now": "Building", "next": "Solutioning", "later": "Capture"}[horizon_for(start)]
+    stage = {"now": "Building", "next": "Solutioning", "later": "Intake"}[horizon_for(start)]
     notes = []
     sheet_team = r["Owning Team"]
     label, subid = ALL_CAPS[cid]
@@ -488,7 +488,7 @@ DRAFTED = [
 for cid, title, typ, persona, delivery, outcome, signal, q, note in DRAFTED:
     start, end = QUARTER_DATES[q]
     basis = "planned" if start < "2027-09-01" else "directional"
-    stage = {"now": "Building", "next": "Solutioning", "later": "Capture"}[horizon_for(start)]
+    stage = {"now": "Building", "next": "Solutioning", "later": "Intake"}[horizon_for(start)]
     n = "DRAFTED to give this capability an epic — proposed, not agreed."
     if note:
         n += " " + note

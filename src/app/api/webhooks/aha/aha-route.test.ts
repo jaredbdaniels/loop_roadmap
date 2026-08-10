@@ -69,13 +69,13 @@ describe("POST /api/webhooks/aha", () => {
     expect(res.status).toBe(400);
   });
 
-  it("creates a draft Capture item from a valid idea", async () => {
+  it("creates a draft Intake item from a valid idea", async () => {
     const res = await POST(req(ideaBody));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ ok: true, action: "created" });
     expect(upsertItem).toHaveBeenCalledTimes(1);
     const saved = vi.mocked(upsertItem).mock.calls[0][0] as Item;
-    expect(saved.stage).toBe("Capture");
+    expect(saved.stage).toBe("Intake");
     expect(saved.submitter).toEqual({ type: "agent", name: "Aha Ideas" });
     expect(saved.ahaReference).toBe("PROD-I-123");
     expect(saved.votes).toBe(4);

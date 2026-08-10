@@ -20,8 +20,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 // POST /api/webhooks/aha — ingest a CX idea from the Aha! Ideas portal as a draft
-// Capture item. Aha! pushes here via an automation/webhook; the human review
-// happens afterward in the Capture inbox.
+// Intake item. Aha! pushes here via an automation/webhook; the human review
+// happens afterward in the Intake lane.
 //
 // Gates mirror the ADO sync's graceful-degrade contract:
 //   501 not configured — AHA_WEBHOOK_SECRET unset (rest of app unaffected)
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     });
   }
 
-  // New idea → draft a Capture item. When the AI copilot is enabled, reuse it to
+  // New idea → draft an Intake item. When the AI copilot is enabled, reuse it to
   // draft a problem statement / mission / KR from the idea body; enrichment is
   // best-effort, so a provider hiccup still captures the raw idea for a human.
   const enrichment = await maybeEnrich(idea);

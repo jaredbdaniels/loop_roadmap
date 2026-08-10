@@ -205,7 +205,7 @@ for e in epics:
         "owner": e.get("owner", ""),
         "moduleId": module_id(module),
         "type": e["type"] or None,
-        "stage": e["stage"] or "Capture",
+        "stage": e["stage"] or "Intake",
         "order": None,
         "horizon": e["horizon"] or None,
         "targetStart": e["target_start"] or None,

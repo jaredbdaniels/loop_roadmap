@@ -5,11 +5,13 @@ Status: **superseded on the rename (Aug 2026); the rest still stands.**
 > **What actually happened to the board states.** Objection 3 was answered, but not with the six
 > guild-vocabulary columns proposed below. The stages were instead aligned to the **Headlights**
 > process — the monthly rolling 3-month planning review product and engineering leadership already
-> runs: `Discovery / Solutioning / Building / Releasing`, with the existing **Capture** lane kept
-> ahead of them as an inbox rather than promoted into the lifecycle. Old stages map
-> `Frame + Validate → Solutioning`, `Deliver → Building`, `Learn → Releasing`; Capture stays put.
-> That keeps the answer to objection 2 (intake) visible as its own lane, explicitly outside the
-> board leadership forecasts against, and costing no capacity until someone promotes it. The reasoning is the same one this document argues from — the board should
+> runs: `Discovery / Solutioning / Building / Releasing`, with the existing Capture lane kept ahead
+> of them as an inbox — renamed **Intake** — rather than promoted into the lifecycle. Old stages map
+> `Capture → Intake`, `Frame + Validate → Solutioning`, `Deliver → Building`, `Learn → Releasing`.
+> That keeps the answer to objection 2 visible as its own lane, explicitly outside the board
+> leadership forecasts against, and costing no capacity until someone promotes it. Note the shape
+> matches this document's own recommendation for Signal — "a queue to promote from, not a form to
+> fill in" — even though its six-column vocabulary was not adopted. The reasoning is the same one this document argues from — the board should
 > speak a vocabulary the company already agreed, not one a tool invented — applied to the ceremony
 > leadership actually reviews the portfolio in. Read the rename table below as the option that was
 > considered and not taken; everything else here (voting, capture-as-intake, the deferred items) is

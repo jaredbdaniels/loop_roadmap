@@ -197,7 +197,7 @@ function Column({ stage, allVisible }: { stage: Stage; allVisible: Item[] }) {
             }}
           />
         ))}
-        {stage === "Capture" && !shareMode && (
+        {stage === "Intake" && !shareMode && (
           <button
             className="col-add edit-only"
             type="button"
@@ -229,8 +229,8 @@ function BoardCard({
   const krPct = krProgress(item.kr);
   const stageIdx = STAGES.indexOf(item.stage);
   const rank = computeRank(item, weights);
-  // Ranking applies in every lane past the Capture inbox, since any lane can
-  // be hand-ordered or sorted by value.
+  // Ranking applies in every lane past Intake, since any lane can be
+  // hand-ordered or sorted by value.
   const showRank = stageIdx >= STAGES.indexOf("Discovery");
   const daysOld = daysBetween(item.createdAt, new Date().toISOString());
   const waiting = unmetDeps(item, items);

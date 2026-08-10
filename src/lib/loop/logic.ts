@@ -5,7 +5,6 @@
 import {
   BET_COLORS,
   BET_GOAL_AREAS,
-  CAPTURE_STAGE,
   BET_STATUSES,
   BET_TERMINAL_STATUSES,
   BET_THEMES,
@@ -15,6 +14,7 @@ import {
   BET_VERDICTS,
   DAY,
   HORIZONS,
+  INTAKE_STAGE,
   ITEM_TYPES,
   MISSIONS,
   PLANNED_HORIZONS,
@@ -283,16 +283,16 @@ export function krStatus(
   return "unset";
 }
 
-/* ---------------- the inbox ---------------- */
-// True while an idea is still in the Capture lane — parked, not yet worked.
+/* ---------------- the intake inbox ---------------- */
+// True while an idea is still in the Intake lane — parked, not yet worked.
 //
 // This is the line between "somebody wrote this down" and "we are spending time
-// on it", and it is why the Capture lane can exist alongside the four Headlights
+// on it", and it is why the Intake lane can exist alongside the four Headlights
 // bands without competing with them. Everything portfolio-facing reads this:
-// inbox items consume no capacity (`itemQuarters`) and are not counted among the
-// items expected to be framed (`computeStats`).
-export function isInbox(item: Item): boolean {
-  return item.stage === CAPTURE_STAGE;
+// intake items consume no capacity (`itemQuarters`) and are not counted among
+// the items expected to be framed (`computeStats`).
+export function isIntake(item: Item): boolean {
+  return item.stage === INTAKE_STAGE;
 }
 
 /* ---------------- gates ---------------- */
@@ -387,7 +387,7 @@ const LINK_LABELS: Record<ItemLinkKind, string> = {
 // Solutioning prefers the design over the brief: by then the problem is stated
 // and the open question is which direction won.
 const LINK_PREFERENCE: Record<Stage, ItemLinkKind[]> = {
-  Capture: ["idea", "brief", "design", "ado"],
+  Intake: ["idea", "brief", "design", "ado"],
   Discovery: ["brief", "idea", "design", "ado"],
   Solutioning: ["design", "brief", "ado", "idea"],
   Building: ["ado", "design", "brief", "idea"],
@@ -772,7 +772,7 @@ export function computeStats(items: Item[]): Stats {
   const active = items.filter((i) => !i.killed);
   const total = active.length;
   // Framing is Solutioning work, so the rate is measured over the lanes where
-  // it should already have happened — Solutioning onward. Counting Capture and
+  // it should already have happened — Solutioning onward. Counting Intake and
   // Discovery would score items against a bar they are not meant to have
   // cleared yet, and the number would only ever say "most ideas are early".
   const shouldBeFramed = active.filter(
@@ -1011,13 +1011,13 @@ export function betProgress(
 // running 2027-12-01 → 2028-02-29 is one quarter (Q2 FY28), not three months
 // straddling a year boundary.
 //
-// Also 0 for anything still in the Capture inbox, even when it carries dates —
-// and this one line is what keeps every share below honest. Capacity means work
-// we intend to do; a parked idea with a speculative date on it is not that, and
-// letting it into the denominator would deflate every bet's share against a
-// roadmap nobody has agreed to. Same reasoning that excludes killed items.
+// Also 0 for anything still in Intake, even when it carries dates — and this one
+// line is what keeps every share below honest. Capacity means work we intend to
+// do; a parked idea with a speculative date on it is not that, and letting it
+// into the denominator would deflate every bet's share against a roadmap nobody
+// has agreed to. Same reasoning that excludes killed items.
 export function itemQuarters(item: Item): number {
-  if (isInbox(item)) return 0;
+  if (isIntake(item)) return 0;
   if (!isScheduled(item)) return 0;
   const a = fiscalQuarterIndex(parseDate(item.targetStart!));
   const b = fiscalQuarterIndex(parseDate(item.targetEnd!));
@@ -1043,13 +1043,13 @@ function shareOf(quarters: number, total: number): number {
   return total > 0 ? +((100 * quarters) / total).toFixed(1) : 0;
 }
 
-// The items whose cost is counted: alive, and out of the Capture inbox. This is
-// the same rule that makes `itemQuarters` return 0 for a parked idea, applied
-// where the epic *count* is reported — otherwise the two halves of a share
-// contradict each other, and "8 epics · 6 epic-quarters" leaves the reader
-// working out which number to believe.
+// The items whose cost is counted: alive, and out of Intake. This is the same
+// rule that makes `itemQuarters` return 0 for a parked idea, applied where the
+// epic *count* is reported — otherwise the two halves of a share contradict each
+// other, and "8 epics · 6 epic-quarters" leaves the reader working out which
+// number to believe.
 function costedItems(items: Item[]): Item[] {
-  return items.filter((i) => !i.killed && !isInbox(i));
+  return items.filter((i) => !i.killed && !isIntake(i));
 }
 
 // What a bet costs: epic-quarters it funds, as a share of the whole roadmap.

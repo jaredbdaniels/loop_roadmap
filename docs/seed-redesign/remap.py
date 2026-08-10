@@ -276,7 +276,7 @@ for (cap, title, typ, persona, delivery, outcome, metric, q, init, from_title,
         "quarter": q, "target_start": start, "target_end": end,
         "date_basis": "planned" if start < "2027-09-01" else "directional",
         "horizon": horizon,
-        "stage": {"now": "Building", "next": "Solutioning", "later": "Capture"}[horizon],
+        "stage": {"now": "Building", "next": "Solutioning", "later": "Intake"}[horizon],
         "source": "re-cut",
         "gaps": "kr-baseline+target",
         "review_notes": (f"Re-cut from '{from_title}', which had no capability on the "

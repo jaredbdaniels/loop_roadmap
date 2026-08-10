@@ -159,7 +159,7 @@ Bet — Parent Experience Convergence        grow · foundational · Active · N
   planned 25% [illustrative]  ·  funded 6.5% (6 epics · 6 epic-qtrs of 93)  ·  5 teams
   Q2 FY27 → Q2 FY28
 
-  ├─ Community & Media    declared   4 epics   1 Building, 1 Solutioning, 2 Capture
+  ├─ Community & Media    declared   4 epics   1 Building, 1 Solutioning, 2 Intake
   │     Community — Family Engagement & Comms Service
   ├─ Registrations        declared   1 epic    Building         Core — Admin Workflows
   ├─ Custom Fields        declared   1 epic    Solutioning      Platform — Data & Integrations
@@ -215,10 +215,10 @@ rather than being decoration.
   `fiscalQuarterIndex`. This weights a three-quarter epic above a one-quarter one, which the epic
   count doesn't.
 
-  **Work still in the Capture inbox costs nothing**, dates or not. Capture is a holding lane, not a
-  plan, and a parked idea carrying a speculative date would otherwise dilute the denominator every
-  bet is measured against — filling the inbox would quietly shrink the apparent investment in
-  everything real. Same reasoning that excludes killed items. See `itemQuarters` and `costedItems`
+  **Work still in Intake costs nothing**, dates or not. Intake is a holding lane, not a plan, and a
+  parked idea carrying a speculative date would otherwise dilute the denominator every bet is
+  measured against — filling the inbox would quietly shrink the apparent investment in everything
+  real. Same reasoning that excludes killed items. See `itemQuarters` and `costedItems`
   ([`logic.ts`](../src/lib/loop/logic.ts)).
 
   **The denominator is the whole roadmap, not the sum of the bets.** Getting this wrong inverts the
@@ -240,7 +240,7 @@ Free from fields that already exist: every bet can show its **modernize / new-va
 ### The remainder is the headline
 
 Run the numbers on today's seed and the point makes itself. 136 epics, all scheduled, of which 63
-are still parked in the Capture inbox and cost nothing. That leaves **93 epic-quarters** of real
+are still parked in Intake and cost nothing. That leaves **93 epic-quarters** of real
 capacity. Parent Experience Convergence — the only initiative with any links at all — accounts for
 **6 of them, 6.5%**. The other **93.5% belongs to no bet**.
 
@@ -516,7 +516,7 @@ fill; everything else is real data from the current seed.
 | KPI | parent-app WAU: baseline 0 → target 12,000 *(illustrative)* |
 | Reversibility | 2/5 — retiring Camp inTouch is a one-way door |
 | Declared JTBDs | `community-media`, `registrations`, `custom-fields`, `payments`, `people-orgs` — the five its epics actually land in, so no unstaffed-claim flag fires. (The tree above adds `alerts-automation` as an invented sixth to show the flag.) |
-| **Derived** | 6 epics · 6 epic-quarters · **funded 6.5%** of 93 · 5 teams · Q2 FY27 → Q2 FY28 (2 further linked epics are still in Capture and cost nothing yet) |
+| **Derived** | 6 epics · 6 epic-quarters · **funded 6.5%** of 93 · 5 teams · Q2 FY27 → Q2 FY28 (2 further linked epics are still in Intake and cost nothing yet) |
 | Teams | Community — Family Engagement & Comms Service · Core — Admin Workflows · Platform — Data & Integrations · Core — Financial Services · Platform — Identity & Core Services |
 | Type mix | 3 modernize · 1 new-value · 4 both |
 | Kill criteria | *(to be written — currently absent, and its absence is the point)* |

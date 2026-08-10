@@ -43,7 +43,7 @@ function item(over: Partial<Item> = {}): Item {
     owner: "",
     moduleId: null,
     type: null,
-    stage: "Capture",
+    stage: "Intake",
     order: null,
     horizon: null,
     targetStart: null,
@@ -203,7 +203,7 @@ describe("stageBlockReason", () => {
       problemStatement: "",
       kr: { ...framed.kr, metric: "", baseline: null, target: null },
     };
-    expect(stageBlockReason(bare, "Capture")).toBeNull();
+    expect(stageBlockReason(bare, "Intake")).toBeNull();
     expect(stageBlockReason(bare, "Discovery")).toBeNull();
     expect(stageBlockReason(bare, "Solutioning")).toBeNull();
   });
@@ -541,10 +541,10 @@ describe("migrateItems stage migration", () => {
   const stageOf = (stage: string) => migrateItems([withStage(stage)])[0].stage;
 
   it("maps the five-stage loop onto the current lanes", () => {
-    // Capture is deliberately absent from STAGE_MIGRATION — the lane still
-    // exists and still means the same thing, so a stored row stays put rather
-    // than being promoted into Discovery behind someone's back.
-    expect(stageOf("Capture")).toBe("Capture");
+    // Capture became Intake — the same lane renamed for the state rather than
+    // the act. It maps across, never into Discovery: promoting a parked idea
+    // behind someone's back would claim time nobody agreed to spend.
+    expect(stageOf("Capture")).toBe("Intake");
     expect(stageOf("Frame")).toBe("Solutioning");
     expect(stageOf("Validate")).toBe("Solutioning");
     expect(stageOf("Deliver")).toBe("Building");
@@ -716,9 +716,9 @@ describe("bet funding", () => {
 });
 
 describe("bet investment", () => {
-  // Capacity is only ever measured over work that left the Capture inbox, so
-  // these fixtures sit in a lifecycle band — the default `item()` is an inbox
-  // row and deliberately costs nothing.
+  // Capacity is only ever measured over work that left Intake, so these
+  // fixtures sit in a lifecycle band — the default `item()` is an intake row
+  // and deliberately costs nothing.
   const scheduled = (over: Partial<Item> = {}) =>
     item({
       stage: "Building",
@@ -740,15 +740,15 @@ describe("bet investment", () => {
     expect(itemQuarters(item({ stage: "Discovery" }))).toBe(0); // unscheduled
   });
 
-  // The Capture lane is an inbox, not a plan. A parked idea that happens to
-  // carry speculative dates must not dilute the denominator every bet's share
-  // is measured against — otherwise filling the inbox quietly shrinks the
-  // apparent investment in everything real.
-  it("gives the Capture inbox no capacity, dates or not", () => {
-    expect(itemQuarters(scheduled({ stage: "Capture" }))).toBe(0);
+  // Intake is an inbox, not a plan. A parked idea that happens to carry
+  // speculative dates must not dilute the denominator every bet's share is
+  // measured against — otherwise filling the inbox quietly shrinks the apparent
+  // investment in everything real.
+  it("gives the Intake lane no capacity, dates or not", () => {
+    expect(itemQuarters(scheduled({ stage: "Intake" }))).toBe(0);
     const items = [
       scheduled({ id: "a", betIds: ["b1"], fundedBetId: "b1" }),
-      scheduled({ id: "parked", stage: "Capture" }),
+      scheduled({ id: "parked", stage: "Intake" }),
     ];
     expect(totalEpicQuarters(items)).toBe(1);
     expect(betFundedShare(bet({ id: "b1" }), items).share).toBe(100);
