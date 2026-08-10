@@ -8,7 +8,7 @@ import { krShape } from "./kr";
 // stamped as an agent.
 
 // `mission` is an enum of team *ids*, not display labels. Team labels contain an
-// em dash ("Platform — Financial Services"); a model asked to reproduce one
+// em dash ("Core — Financial Services"); a model asked to reproduce one
 // exactly will sometimes emit a hyphen or en dash instead, which fails schema
 // validation and errors the whole capture. Ids are lowercase ASCII, so there is
 // nothing to get subtly wrong. CaptureModal maps the id back to a label with

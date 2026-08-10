@@ -335,10 +335,13 @@ describe("diffStates", () => {
 describe("resolveDomain", () => {
   it("resolves from the module, ignoring the team", () => {
     // community-engagement → Community & Media → community, even though the
-    // Admin Workflows team maps to the admin-workflows domain.
+    // Core — Admin Workflows team maps to the core domain.
     expect(
       resolveDomain(
-        item({ moduleId: "community-engagement", mission: "Admin Workflows" }),
+        item({
+          moduleId: "community-engagement",
+          mission: "Core — Admin Workflows",
+        }),
       ),
     ).toBe("community");
   });
@@ -346,15 +349,15 @@ describe("resolveDomain", () => {
   it("falls back to the team mapping when no module is set", () => {
     expect(
       resolveDomain(
-        item({ moduleId: null, mission: "Platform — Financial Services" }),
+        item({ moduleId: null, mission: "Core — Financial Services" }),
       ),
-    ).toBe("product-platform");
+    ).toBe("core");
   });
 
   it("falls back to the team mapping when the module id is unknown", () => {
     expect(
-      resolveDomain(item({ moduleId: "bogus", mission: "Admin Workflows" })),
-    ).toBe("admin-workflows");
+      resolveDomain(item({ moduleId: "bogus", mission: "Core — Admin Workflows" })),
+    ).toBe("core");
   });
 
   it("lands unknown/renamed teams in the unclaimed domain", () => {
@@ -399,7 +402,7 @@ describe("migrateItems capabilityId → moduleId", () => {
   it("resolves the domain through the migrated anchor", () => {
     // Team is a Community one, so a lost anchor would resolve to "community".
     const raw = { ...legacyRow("payment-processing"), mission: "Family" };
-    expect(resolveDomain(migrateItems([raw])[0])).toBe("product-platform");
+    expect(resolveDomain(migrateItems([raw])[0])).toBe("core");
   });
 
   it("prefers an already-migrated moduleId over a leftover capabilityId", () => {
@@ -439,7 +442,7 @@ describe("migrateItems team remap", () => {
     // Phoenix retires to Staff & Family Comms, but a Payments module
     // overrides it — the module is the durable anchor.
     expect(missionOf({ mission: "Phoenix", moduleId: "payment-processing" })).toBe(
-      "Platform — Financial Services",
+      "Core — Financial Services",
     );
   });
 
@@ -449,20 +452,29 @@ describe("migrateItems team remap", () => {
     );
     // Sub-domains from the previous map are retired too, not just codenames.
     expect(missionOf({ mission: "Financials", moduleId: null })).toBe(
-      "Platform — Financial Services",
+      "Core — Financial Services",
     );
   });
 
   it("carries a renamed team to its new label", () => {
-    // Platform — Payments became Platform — Financial Services. A row with no
-    // module rides the retirement table; one anchored to a Payments module gets
-    // there via the JTBD, which is the same team either way.
+    // Payments became Financial Services, which then moved into Core. Both older
+    // labels retire straight to the current one, so a row saved under either
+    // arrives in one hop. A row with no module rides the retirement table; one
+    // anchored to a Payments module gets there via the JTBD, which is the same
+    // team either way.
     expect(missionOf({ mission: "Platform — Payments", moduleId: null })).toBe(
-      "Platform — Financial Services",
+      "Core — Financial Services",
     );
     expect(
       missionOf({ mission: "Platform — Payments", moduleId: "family-billing" }),
-    ).toBe("Platform — Financial Services");
+    ).toBe("Core — Financial Services");
+    expect(
+      missionOf({ mission: "Platform — Financial Services", moduleId: null }),
+    ).toBe("Core — Financial Services");
+    // Admin Workflows took the Core prefix when the domain was drawn around it.
+    expect(missionOf({ mission: "Admin Workflows", moduleId: null })).toBe(
+      "Core — Admin Workflows",
+    );
   });
 
   it("is idempotent — a migrated team is left alone", () => {
@@ -476,8 +488,8 @@ describe("migrateItems team remap", () => {
 
   it("leaves a current team untouched", () => {
     expect(missionOf({ mission: "UltraCamp", moduleId: null })).toBe("UltraCamp");
-    expect(missionOf({ mission: "Admin Workflows", moduleId: null })).toBe(
-      "Admin Workflows",
+    expect(missionOf({ mission: "Core — Admin Workflows", moduleId: null })).toBe(
+      "Core — Admin Workflows",
     );
   });
 

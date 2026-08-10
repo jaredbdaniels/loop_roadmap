@@ -369,15 +369,16 @@ OWNS = {
                      "Consent are one coherent identity/account scope. Alerts & "
                      "Automation, Branding and Navigation ride along and are the loose "
                      "ends in this name."),
-    "FANCY TEAM 3": (["Payments"], "Platform — Financial Services",
+    "FANCY TEAM 3": (["Payments"], "Core — Financial Services",
                      "One module, end to end. Named for the financial scope it "
-                     "owns rather than for payments alone."),
+                     "owns rather than for payments alone. Sits in Core, not "
+                     "Platform: money is camp-operations work, not substrate."),
     "FANCY TEAM 1": (["Registrations", "Program Offerings", "Internal Comms",
                       "Scheduling", "Health & Medical", "Housing", "Camper Location",
                       "Transportation", "Food Services", "Facilities"],
-                     "Admin Workflows",
-                     "Owns the entire Admin Workflows domain, so it takes the domain "
-                     "name with no qualifier."),
+                     "Core — Admin Workflows",
+                     "Owns every admin-facing JTBD in Core, alongside Financial "
+                     "Services."),
     "Data Team": (["Reporting", "Custom Fields", "Integrations", "Vendors"],
                   "Platform — Data & Integrations",
                   "Reporting, data movement and every inbound/outbound connection."),
@@ -393,9 +394,9 @@ OWNS = {
               "advancement. Camp Store and Safety & Incidents sit outside that name — "
               "a scope question, not a naming one."),
     "Customer Love": ([], "Admin Workflows — Customer Love",
-                      "Placed inside Admin Workflows on the map. A standing team now, "
-                      "not the Summer '26 tiger team. Keeps its name because it is a "
-                      "function, not a domain slice."),
+                      "Placed inside Admin Workflows on the map, so it delivers into "
+                      "Core. A standing team now, not the Summer '26 tiger team. Keeps "
+                      "its name because it is a function, not a domain slice."),
     "UltraCamp": ([], "UltraCamp",
                   "Owns the whole UltraCamp domain; takes the domain name."),
 }

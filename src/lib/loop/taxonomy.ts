@@ -52,7 +52,7 @@ export const UNCLAIMED_DOMAIN_ID = "unclaimed";
 
 export const DOMAINS: Domain[] = [
   { id: "product-platform", label: "Product Platform", owner: "Jared" },
-  { id: "admin-workflows", label: "Admin Workflows", owner: "" },
+  { id: "core", label: "Core", owner: "" },
   { id: "community", label: "Community", owner: "" },
   { id: "ultracamp", label: "UltraCamp", owner: "Ali" },
   { id: UNCLAIMED_DOMAIN_ID, label: "Unclaimed Property", owner: "" },
@@ -68,21 +68,21 @@ export const JTBDS: Jtbd[] = [
   { id: "integrations", label: "Integrations", domainId: "product-platform" },
   { id: "migration", label: "Migration", domainId: "product-platform" },
   { id: "navigation", label: "Navigation", domainId: "product-platform" },
-  { id: "payments", label: "Payments", domainId: "product-platform" },
   { id: "people-orgs", label: "People & Orgs", domainId: "product-platform" },
   { id: "policies-consent", label: "Policies & Consent", domainId: "product-platform" },
   { id: "reporting", label: "Reporting", domainId: "product-platform" },
   { id: "vendors", label: "Vendors", domainId: "product-platform" },
-  { id: "camper-location", label: "Camper Location", domainId: "admin-workflows" },
-  { id: "facilities", label: "Facilities", domainId: "admin-workflows" },
-  { id: "food-services", label: "Food Services", domainId: "admin-workflows" },
-  { id: "health-medical", label: "Health & Medical", domainId: "admin-workflows" },
-  { id: "housing", label: "Housing", domainId: "admin-workflows" },
-  { id: "internal-comms", label: "Internal Comms", domainId: "admin-workflows" },
-  { id: "program-offerings", label: "Program Offerings", domainId: "admin-workflows" },
-  { id: "registrations", label: "Registrations", domainId: "admin-workflows" },
-  { id: "scheduling", label: "Scheduling", domainId: "admin-workflows" },
-  { id: "transportation", label: "Transportation", domainId: "admin-workflows" },
+  { id: "camper-location", label: "Camper Location", domainId: "core" },
+  { id: "facilities", label: "Facilities", domainId: "core" },
+  { id: "food-services", label: "Food Services", domainId: "core" },
+  { id: "health-medical", label: "Health & Medical", domainId: "core" },
+  { id: "housing", label: "Housing", domainId: "core" },
+  { id: "internal-comms", label: "Internal Comms", domainId: "core" },
+  { id: "payments", label: "Payments", domainId: "core" },
+  { id: "program-offerings", label: "Program Offerings", domainId: "core" },
+  { id: "registrations", label: "Registrations", domainId: "core" },
+  { id: "scheduling", label: "Scheduling", domainId: "core" },
+  { id: "transportation", label: "Transportation", domainId: "core" },
   { id: "alumni", label: "Alumni", domainId: "community" },
   { id: "camp-store", label: "Camp Store", domainId: "community" },
   { id: "community-media", label: "Community & Media", domainId: "community" },
@@ -119,10 +119,6 @@ export const MODULES: Module[] = [
   { id: "migration-tooling", label: "Migration Tooling", jtbdId: "migration" },
   { id: "menu-navigation", label: "Menu Navigation", jtbdId: "navigation" },
   { id: "search-platform", label: "Search Platform", jtbdId: "navigation" },
-  { id: "camp-accounting", label: "Camp Accounting", jtbdId: "payments" },
-  { id: "family-billing", label: "Family Billing", jtbdId: "payments" },
-  { id: "financial-setup", label: "Financial Setup", jtbdId: "payments" },
-  { id: "payment-processing", label: "Payment Processing", jtbdId: "payments" },
   { id: "people-relationships", label: "People & Relationships", jtbdId: "people-orgs" },
   { id: "audit-logging", label: "Audit Logging", jtbdId: "policies-consent" },
   { id: "privacy-retention", label: "Privacy & Retention", jtbdId: "policies-consent" },
@@ -135,6 +131,10 @@ export const MODULES: Module[] = [
   { id: "attendance-check-in", label: "Attendance Check-in", jtbdId: "housing" },
   { id: "housing-grouping", label: "Housing & Grouping", jtbdId: "housing" },
   { id: "camp-productivity", label: "Camp Productivity", jtbdId: "internal-comms" },
+  { id: "camp-accounting", label: "Camp Accounting", jtbdId: "payments" },
+  { id: "family-billing", label: "Family Billing", jtbdId: "payments" },
+  { id: "financial-setup", label: "Financial Setup", jtbdId: "payments" },
+  { id: "payment-processing", label: "Payment Processing", jtbdId: "payments" },
   { id: "camp-setup", label: "Camp Setup", jtbdId: "program-offerings" },
   { id: "program-planning", label: "Program Planning", jtbdId: "program-offerings" },
   { id: "applications-registration", label: "Applications & Registration", jtbdId: "registrations" },
@@ -186,13 +186,6 @@ export const TEAMS: Team[] = [
     jtbdIds: ["reporting", "custom-fields", "integrations", "vendors"],
   },
   {
-    id: "platform-financial-services",
-    label: "Platform — Financial Services",
-    domainId: "product-platform",
-    lead: "Tracie",
-    jtbdIds: ["payments"],
-  },
-  {
     id: "platform-identity-core-services",
     label: "Platform — Identity & Core Services",
     domainId: "product-platform",
@@ -207,18 +200,25 @@ export const TEAMS: Team[] = [
     jtbdIds: ["migration"],
   },
   {
-    id: "admin-workflows",
-    label: "Admin Workflows",
-    domainId: "admin-workflows",
+    id: "admin-workflows-customer-love",
+    label: "Admin Workflows — Customer Love",
+    domainId: "core",
+    lead: "",
+    jtbdIds: [],
+  },
+  {
+    id: "core-admin-workflows",
+    label: "Core — Admin Workflows",
+    domainId: "core",
     lead: "Dani",
     jtbdIds: ["registrations", "program-offerings", "internal-comms", "scheduling", "health-medical", "housing", "camper-location", "transportation", "food-services", "facilities"],
   },
   {
-    id: "admin-workflows-customer-love",
-    label: "Admin Workflows — Customer Love",
-    domainId: "admin-workflows",
-    lead: "",
-    jtbdIds: [],
+    id: "core-financial-services",
+    label: "Core — Financial Services",
+    domainId: "core",
+    lead: "Tracie",
+    jtbdIds: ["payments"],
   },
   {
     id: "community-engagement-advancement",
@@ -296,8 +296,8 @@ export function moduleJtbd(
 
 // Team ids, for interfaces that need a stable ASCII token rather than a display
 // label — notably the AI capture enum, where the em dash in a label like
-// "Platform — Financial Services" is easy for a model to get wrong (hyphen, en
-// dash) and would fail schema validation.
+// "Core — Financial Services" is easy for a model to get wrong (hyphen, en dash)
+// and would fail schema validation.
 export const TEAM_IDS: string[] = TEAMS.map((t) => t.id);
 
 const TEAM_LABEL_BY_ID = new Map(TEAMS.map((t) => [t.id, t.label]));

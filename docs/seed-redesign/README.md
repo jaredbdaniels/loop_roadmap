@@ -139,11 +139,11 @@ the domain move onto the new map.
   separate unowned domain we added is no longer needed.
 - **Entitlements and Tenant Admin** also land in Account & Service — where the
   Epic Seed sheet wanted them, not in Access.
-- **Program & Activity Planning** resolves to **Admin Workflows → Program
-  Offerings**, not Financials.
+- **Program & Activity Planning** resolves to **Core → Program Offerings**,
+  not Financials.
 - **Telemetry & Support** folds into Support Operations, off Communication.
-- **Financials is gone as a band** — Payments is a Product Platform module, and
-  Camp Store moved to Community.
+- **Financials is gone as a band** — Payments is a Core JTBD, owned by Core —
+  Financial Services, and Camp Store moved to Community.
 - **The staff-check capabilities** fold into Onboarding & Training, matching the
   call already made.
 - Nearly every epic changes domain.
@@ -167,7 +167,8 @@ cross-team initiative (`initiative` column):
 | Let families manage their own household | People & Relationships | People & Orgs |
 
 The dashboard epic is the surface only; what it surfaces belongs to whoever owns
-that data. **Luggage Services** stays in Admin Workflows, under Transportation.
+that data. **Luggage Services** stays with the Admin Workflows team, under
+Transportation.
 
 ## Getting it into the app
 
@@ -245,7 +246,7 @@ value" is meaningful immediately.
    on the Lucid map — Luggage under Transportation, Events & Rentals as the lone
    Unclaimed module. Add them to the map so the two stay in sync.
 5. **Domain owners.** Only Product Platform (Jared) and UltraCamp (Ali) are
-   evidenced by the map. Admin Workflows and Community are `""`.
+   evidenced by the map. Core and Community are `""`.
 6. **KR baselines and targets** — owner is picking these up. The `gaps` column is
    the worklist.
 7. **`Operational AI`** is spelled "Opperational AI" on the map; corrected here.

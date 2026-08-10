@@ -88,7 +88,7 @@ export const STAGE_MIGRATION: Record<string, Stage> = {
 
 // The delivery teams, derived from TEAMS in the JTBD map (taxonomy.ts) so
 // the roster and its order stay in lockstep. Named for the domain and scope they
-// own ("Platform — Financial Services") rather than by codename.
+// own ("Core — Financial Services") rather than by codename.
 //
 // A team is NOT a JTBD: there are 32 JTBDs and 9 teams, and a team spans several
 // JTBDs. So an item's team is stored on the item and is never derived from its

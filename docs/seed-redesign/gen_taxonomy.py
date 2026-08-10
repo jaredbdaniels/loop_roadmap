@@ -24,15 +24,27 @@ MODULE_ID_OVERRIDE = {"Luggage Services": "luggage-services"}
 # display label drop it. Owners come from the org-chart page of the same export:
 # Jared is Head of Product Platform, and Ali's block is the one nested inside the
 # UltraCamp container. The other two have no owner recorded on the map.
+#
+# The map's Admin Workflows container is the Core domain: Admin Workflows is now
+# one team inside it rather than the whole domain, sitting alongside Financial
+# Services (whose Payments JTBD moves across from Product Platform — see
+# JTBD_DOMAIN_OVERRIDE). Keys stay in the map's wording so the file remains
+# diffable against the Lucid export.
 DOMAIN_META = {
     "Product Platform":  ("product-platform", "Product Platform", "Jared"),
     "Admin Workflows (impacts mostly just the admin)":
-                         ("admin-workflows", "Admin Workflows", ""),
+                         ("core", "Core", ""),
     "Community (impacts to non-admin people)":
                          ("community", "Community", ""),
     "UltraCamp":         ("ultracamp", "UltraCamp", "Ali"),
     "Unclaimed Property": ("unclaimed", "Unclaimed Property", ""),
 }
+
+# JTBDs whose domain differs from the container they sit in on the map, by JTBD
+# id. Payments moved to Core with the Financial Services team: the money work is
+# camp-operations work, not platform substrate. Kept here rather than in
+# new-map.json so that file stays diffable against the Lucid export.
+JTBD_DOMAIN_OVERRIDE = {"payments": "core"}
 
 # Modules added beyond the map, and the JTBD they belong to.
 EXTRA_MODULES = [
@@ -69,7 +81,7 @@ jtbd_rows = []         # (id, label, domain_id)
 seen_jtbd = {}
 for jid, j in map_jtbds.items():
     dlabel = domains[j["domain_id"]].strip()
-    did = DOMAIN_META[dlabel][0]
+    did = JTBD_DOMAIN_OVERRIDE.get(slug(j["label"]), DOMAIN_META[dlabel][0])
     jtbd_rows.append((slug(j["label"]), j["label"], did))
     seen_jtbd[jid] = slug(j["label"])
 for label, dlabel in EXTRA_JTBDS:
@@ -91,12 +103,12 @@ for label, jlabel in EXTRA_MODULES:
 teams = list(csv.DictReader(open(os.path.join(HERE, "4_teams.csv"))))
 TEAM_DOMAIN_BY_NAME = {
     "Platform — Identity & Core Services": "product-platform",
-    "Platform — Financial Services": "product-platform",
     "Platform — Data & Integrations": "product-platform",
     "Platform — AI": "product-platform",
     "Platform — Migration": "product-platform",
-    "Admin Workflows": "admin-workflows",
-    "Admin Workflows — Customer Love": "admin-workflows",
+    "Core — Admin Workflows": "core",
+    "Core — Financial Services": "core",
+    "Admin Workflows — Customer Love": "core",
     "Community — Staff & Family Comms": "community",
     "Community — Engagement & Advancement": "community",
     "UltraCamp": "ultracamp",
@@ -266,8 +278,8 @@ export function moduleJtbd(
 
 // Team ids, for interfaces that need a stable ASCII token rather than a display
 // label — notably the AI capture enum, where the em dash in a label like
-// "Platform — Financial Services" is easy for a model to get wrong (hyphen, en
-// dash) and would fail schema validation.
+// "Core — Financial Services" is easy for a model to get wrong (hyphen, en dash)
+// and would fail schema validation.
 export const TEAM_IDS: string[] = TEAMS.map((t) => t.id);
 
 const TEAM_LABEL_BY_ID = new Map(TEAMS.map((t) => [t.id, t.label]));

@@ -66,10 +66,10 @@ const RETIRED_TEAM: Record<string, string> = {
   // Original codenames.
   Alpha: "Community — Engagement & Advancement",
   Apollo: "Community — Staff & Family Comms",
-  Delta: "Admin Workflows",
-  "Delta 2": "Admin Workflows",
+  Delta: "Core — Admin Workflows",
+  "Delta 2": "Core — Admin Workflows",
   Phoenix: "Community — Staff & Family Comms",
-  "Phoenix 2": "Platform — Financial Services",
+  "Phoenix 2": "Core — Financial Services",
   "Data Dev": "Platform — Data & Integrations",
   Gazebo: "",
   "Cross-cutting": "Community — Staff & Family Comms",
@@ -77,9 +77,9 @@ const RETIRED_TEAM: Record<string, string> = {
   Communication: "Community — Staff & Family Comms",
   Family: "Community — Engagement & Advancement",
   Staff: "Community — Staff & Family Comms",
-  Productivity: "Admin Workflows",
-  "Camp Operations": "Admin Workflows",
-  Financials: "Platform — Financial Services",
+  Productivity: "Core — Admin Workflows",
+  "Camp Operations": "Core — Admin Workflows",
+  Financials: "Core — Financial Services",
   "All Things UltraCamp": "UltraCamp",
   "Forms & Documents": "Platform — Data & Integrations",
   Integration: "Platform — Data & Integrations",
@@ -91,9 +91,13 @@ const RETIRED_TEAM: Record<string, string> = {
   "Rentals & Events": "",
   "Staff Payroll": "Community — Staff & Family Comms",
   // Renamed teams, whose stored label is retired the same way a retired team's
-  // is: Payments became Financial Services when the team's scope grew past
-  // taking payments.
-  "Platform — Payments": "Platform — Financial Services",
+  // is. Payments became Financial Services when the team's scope grew past
+  // taking payments; both it and Admin Workflows then took a "Core — " prefix
+  // when the Core domain was drawn around them, so a row saved under either of
+  // the two older labels lands on the current one in a single hop.
+  "Platform — Payments": "Core — Financial Services",
+  "Platform — Financial Services": "Core — Financial Services",
+  "Admin Workflows": "Core — Admin Workflows",
   // Ambiguous both as a codename and as the old Integration sub-domain; the
   // module's JTBD wins over this entry whenever the item has one.
   Platform: "Platform — Identity & Core Services",
