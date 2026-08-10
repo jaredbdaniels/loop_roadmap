@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowDownWideNarrow, Plus } from "lucide-react";
 import {
   ITEM_TYPE_INFO,
+  LIFECYCLE_STAGES,
   STAGES,
   STAGE_COLORS,
   type Stage,
@@ -34,7 +35,7 @@ import { MissionTag } from "./MissionTag";
 import { ItemLink } from "./ItemLink";
 
 export function BoardView() {
-  const { items, filterMission, showKilled, filterBet, filterOwner } =
+  const { items, filterMission, showKilled, filterBet, filterOwner, shareMode } =
     useLoop();
   const vis = visibleItems(
     items,
@@ -42,11 +43,17 @@ export function BoardView() {
     showKilled,
     filterBet,
     filterOwner,
+    shareMode,
   );
+  // Share mode drops the Intake lane rather than drawing it empty: a column
+  // headed "Intake 0" tells a stakeholder there is a pile they aren't being
+  // shown, which is worse than not raising the question. This is the whole
+  // reason LIFECYCLE_STAGES exists as its own constant.
+  const lanes = shareMode ? LIFECYCLE_STAGES : STAGES;
   return (
     <div className="board-wrap">
       <div className="board">
-        {STAGES.map((stage) => (
+        {lanes.map((stage) => (
           <Column key={stage} stage={stage} allVisible={vis} />
         ))}
       </div>

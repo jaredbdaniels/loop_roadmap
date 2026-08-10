@@ -62,3 +62,46 @@ describe("visibleItems owner filter", () => {
     expect(ids).toEqual(["a", "b"]);
   });
 });
+
+// Share mode hides the Intake lane from everyone without edit access. This
+// filter is what makes it hold across all four views rather than only the
+// board — the Timeline in particular would otherwise draw every parked idea,
+// since intake rows carry dates.
+describe("visibleItems share mode", () => {
+  const items = [
+    item({ id: "parked", stage: "Intake" }),
+    item({ id: "live", stage: "Building" }),
+  ];
+
+  it("keeps Intake for a signed-in editor", () => {
+    const ids = visibleItems(items, [], false, "all", "all", false).map(
+      (i) => i.id,
+    );
+    expect(ids).toEqual(["parked", "live"]);
+  });
+
+  it("drops Intake in share mode", () => {
+    const ids = visibleItems(items, [], false, "all", "all", true).map(
+      (i) => i.id,
+    );
+    expect(ids).toEqual(["live"]);
+  });
+
+  it("defaults to showing Intake when share mode is not passed", () => {
+    expect(visibleItems(items, [], false).map((i) => i.id)).toEqual([
+      "parked",
+      "live",
+    ]);
+  });
+
+  it("still hides Intake when killed items are being shown", () => {
+    const withKilled = [
+      item({ id: "parked", stage: "Intake" }),
+      item({ id: "dead", stage: "Building", killed: true }),
+    ];
+    const ids = visibleItems(withKilled, [], true, "all", "all", true).map(
+      (i) => i.id,
+    );
+    expect(ids).toEqual(["dead"]);
+  });
+});

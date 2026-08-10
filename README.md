@@ -53,6 +53,13 @@ Note the split between the verb and the state: you **capture** an idea, and it
 lands in **Intake**. The lane was called Capture until the two started competing
 for the same word.
 
+**Intake is never shown to anyone without edit access.** Share links drop it
+server-side in `getPublicState`, so a parked idea's problem statement and KR
+never reach the payload at all; the in-app share-mode toggle and `/preview`
+apply the same rule through `visibleItems`, across all four views. In share mode
+the board renders the four lifecycle lanes only — no empty Intake column, which
+would just advertise that something is being withheld.
+
 Two gates guard the boundary out of Solutioning, because framing and evidence
 are both solution-space work: an item cannot enter **Building** (or Releasing)
 without a real problem statement, a measurable KR, and at least one prototype or

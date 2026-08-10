@@ -273,8 +273,15 @@ this shape of responsibility (it filters `killed` and blanks `killedReason` /
 - stages — **the highest-value one.** An Intake-lane idea rendering to an exec
   as "the roadmap" is the actual failure mode: a half-formed thought read as a
   commitment. Defaulting an exec link to Building → Releasing fixes more
-  than every chrome setting combined, and excluding Intake should arguably be
-  the floor for *any* shared link.
+  than every chrome setting combined.
+
+  **The floor of this is now built, unconditionally: no share link ever shows
+  Intake.** `getPublicState` drops intake rows from the payload entirely (not
+  just from the render — a share link goes to people outside the team and the
+  JSON is readable by anyone who opens devtools), and `visibleItems` applies the
+  same rule whenever share mode is on, which covers the in-app screen-share
+  toggle and `/preview`. What remains for this tab is the *configurable* part:
+  letting a given link narrow further, e.g. to Building → Releasing only.
 - teams / missions, bets, modules or JTBDs
 - horizon or date window (e.g. current + next season only)
 
@@ -511,8 +518,8 @@ narrower than it first looks: the stage-scoping filter and the internal board, n
 ## Open questions
 
 - **Which stages should an exec link default to?** Under the Headlights names, Building →
-  Releasing is the obvious answer, and Intake should never be in it; worth confirming that
-  Discovery and Solutioning are genuinely too early to show.
+  Releasing is the obvious answer. Intake is already settled — never shown, not configurable — so
+  the live question is whether Discovery and Solutioning are genuinely too early to show.
 - **Do scoped links get bets at all?** Keeping them means recomputing investment
   and planned-share honestly on the filtered set and labelling the view as
   scoped; dropping them is simpler and loses the strategic framing that's often

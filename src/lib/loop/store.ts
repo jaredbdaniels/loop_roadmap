@@ -14,7 +14,7 @@ import {
   seedItems,
   seedMilestones,
 } from "./seed";
-import { migrateItems, normalizeBets, normalizeMilestones } from "./logic";
+import { isIntake, migrateItems, normalizeBets, normalizeMilestones } from "./logic";
 import type {
   Bet,
   Item,
@@ -181,8 +181,15 @@ export async function getPublicState(): Promise<{
   milestones: Milestone[];
 }> {
   const { items, weights, bets, milestones } = await getState();
+  // Intake is dropped here rather than hidden in the UI, because a share link is
+  // handed to people outside the team and the payload is readable by anyone who
+  // opens devtools. A parked idea's problem statement and KR must not ship to
+  // them at all — the same reason killed items and the activity log are stripped
+  // rather than merely not rendered. It is also the difference that matters
+  // most: an unpromoted idea read as "the roadmap" is a half-formed thought
+  // mistaken for a commitment (see docs/settings-tab.md).
   const publicItems = items
-    .filter((it) => !it.killed)
+    .filter((it) => !it.killed && !isIntake(it))
     .map((it) => ({ ...it, killedReason: "", activity: [] }));
   return { items: publicItems, weights, bets, milestones };
 }

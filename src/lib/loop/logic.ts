@@ -989,11 +989,16 @@ export function betEnvelope(
 
 // Progress across the bet's linked items (mirrors subProgress' shape): `done`
 // counts items that have reached customers (the Releasing band).
+//
+// Parked work is excluded from the denominator, like every other bet roll-up: an
+// idea nobody has started is not progress waiting to happen, and counting it
+// would make an internal reader and a share-link reader — who cannot see Intake
+// at all — disagree about the same bet's fraction.
 export function betProgress(
   bet: Bet,
   items: Item[],
 ): { done: number; total: number } | null {
-  const linked = betItems(bet, items);
+  const linked = betItems(bet, items).filter((i) => !isIntake(i));
   if (!linked.length) return null;
   return {
     done: linked.filter((i) => i.stage === "Releasing").length,

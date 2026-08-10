@@ -25,6 +25,7 @@ export function HorizonView() {
     showKilled,
     filterBet,
     filterOwner,
+    shareMode,
   } = useLoop();
   const vis = visibleItems(
     items,
@@ -32,6 +33,7 @@ export function HorizonView() {
     showKilled,
     filterBet,
     filterOwner,
+    shareMode,
   );
   return (
     <div className="horizon-view">

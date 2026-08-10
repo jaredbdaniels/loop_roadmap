@@ -5,6 +5,7 @@ import { Copy, RefreshCw, Trash2 } from "lucide-react";
 import { useLoop } from "./store";
 import { SuggestButton } from "./SuggestButton";
 import { useAiSuggestion } from "./useAi";
+import { isIntake } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 
 // Render an item's KR as a compact reading for the summary prompt.
@@ -36,10 +37,12 @@ export function ShareModal() {
   const summaryAi = useAiSuggestion<{ text: string }>("summary");
 
   // Build the trimmed, non-sensitive snapshot the summary prompt runs on —
-  // same spirit as getPublicState: no killed items, no activity log.
+  // same rule as getPublicState: no killed items, no activity log, and nothing
+  // still parked in Intake. This summary is written for an exec audience, so a
+  // captured-but-unpromoted idea appearing in it would be read as a plan.
   const runSummary = async () => {
     const snapshot = items
-      .filter((it) => !it.killed)
+      .filter((it) => !it.killed && !isIntake(it))
       .map((it) => ({
         title: it.title,
         mission: it.mission,

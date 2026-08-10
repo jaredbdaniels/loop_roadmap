@@ -5,7 +5,7 @@ import {
   type HorizonKey,
   type Stage,
 } from "@/lib/loop/constants";
-import { fmtRange, snapToWeek, toISODate } from "@/lib/loop/logic";
+import { fmtRange, isIntake, snapToWeek, toISODate } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 
 // Classify a stage transition for the celebration overlay: reaching Releasing
@@ -25,9 +25,19 @@ export function visibleItems(
   showKilled: boolean,
   filterBet = "all",
   filterOwner = "all",
+  // Share mode hides Intake everywhere, not just on the board. The Timeline is
+  // the reason this lives here rather than in BoardView: every seeded intake row
+  // carries dates, so hiding only the board column would leave 63 parked ideas
+  // drawn as bars on the timeline an exec is looking at.
+  //
+  // An anonymous share link is already filtered server-side (getPublicState), so
+  // this is belt-and-braces there. It is the *only* filter for the in-app
+  // "Toggle share mode" button and for /preview, which render full data.
+  shareMode = false,
 ): Item[] {
   return items.filter((i) => {
     if (!showKilled && i.killed) return false;
+    if (shareMode && isIntake(i)) return false;
     // Empty = no scope (all teams); otherwise the item's team must be one of
     // the selected teams.
     if (filterMission.length > 0 && !filterMission.includes(i.mission))

@@ -35,6 +35,7 @@ export function TeamView() {
     filterOwner,
     groupBy,
     showKilled,
+    shareMode,
     bets,
     openDetail,
   } = useLoop();
@@ -44,6 +45,7 @@ export function TeamView() {
     showKilled,
     filterBet,
     filterOwner,
+    shareMode,
   );
   const byStageOrder = (a: Item, b: Item) =>
     STAGES.indexOf(a.stage) - STAGES.indexOf(b.stage);

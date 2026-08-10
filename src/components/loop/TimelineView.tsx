@@ -125,6 +125,7 @@ export function TimelineView() {
     showKilled,
     filterBet,
     filterOwner,
+    shareMode,
   );
   const ppd = ZOOMS[zoom];
   const { start, end } = timelineRange(vis, milestones);
