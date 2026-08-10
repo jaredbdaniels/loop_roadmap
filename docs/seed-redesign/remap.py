@@ -382,17 +382,17 @@ OWNS = {
     "Data Team": (["Reporting", "Custom Fields", "Integrations", "Vendors"],
                   "Platform — Data & Integrations",
                   "Reporting, data movement and every inbound/outbound connection."),
-    "AI Platform Team": (["AI Platform"], "Platform — AI",
-                         "One module. Prefixed for consistency with the other three "
-                         "Product Platform teams."),
-    "Apollo": (["Staff", "Family Comms"], "Community — Staff & Family Comms",
-               "Both modules named directly; they are the two people-facing comms "
-               "surfaces in the Community domain."),
+    "AI Platform Team": (["AI Platform"], "Platform — AI Platform",
+                         "One module, named for it. Prefixed for consistency with the "
+                         "other Product Platform teams."),
+    "Apollo": (["Staff", "Family Comms"], "Community — Staffing",
+               "Named for the staff scope it leads with. Family Comms rides along and "
+               "is the loose end in this name."),
     "Alpha": (["Community & Media", "Camp Store", "Alumni", "Fundraising",
-               "Safety & Incidents"], "Community — Engagement & Advancement",
-              "Community & Media plus Alumni and Fundraising are engagement and "
-              "advancement. Camp Store and Safety & Incidents sit outside that name — "
-              "a scope question, not a naming one."),
+               "Safety & Incidents"], "Community — Family Engagement & Comms Service",
+              "Community & Media plus Alumni and Fundraising are family engagement and "
+              "the service around it. Camp Store and Safety & Incidents sit outside "
+              "that name — a scope question, not a naming one."),
     "Customer Love": ([], "Admin Workflows — Customer Love",
                       "Placed inside Admin Workflows on the map, so it delivers into "
                       "Core. A standing team now, not the Summer '26 tiger team. Keeps "

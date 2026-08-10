@@ -64,19 +64,19 @@ import type {
 // current team label is a key here.
 const RETIRED_TEAM: Record<string, string> = {
   // Original codenames.
-  Alpha: "Community — Engagement & Advancement",
-  Apollo: "Community — Staff & Family Comms",
+  Alpha: "Community — Family Engagement & Comms Service",
+  Apollo: "Community — Staffing",
   Delta: "Core — Admin Workflows",
   "Delta 2": "Core — Admin Workflows",
-  Phoenix: "Community — Staff & Family Comms",
+  Phoenix: "Community — Staffing",
   "Phoenix 2": "Core — Financial Services",
   "Data Dev": "Platform — Data & Integrations",
   Gazebo: "",
-  "Cross-cutting": "Community — Staff & Family Comms",
+  "Cross-cutting": "Community — Staffing",
   // Sub-domains from the previous map.
-  Communication: "Community — Staff & Family Comms",
-  Family: "Community — Engagement & Advancement",
-  Staff: "Community — Staff & Family Comms",
+  Communication: "Community — Staffing",
+  Family: "Community — Family Engagement & Comms Service",
+  Staff: "Community — Staffing",
   Productivity: "Core — Admin Workflows",
   "Camp Operations": "Core — Admin Workflows",
   Financials: "Core — Financial Services",
@@ -86,10 +86,10 @@ const RETIRED_TEAM: Record<string, string> = {
   Access: "Platform — Identity & Core Services",
   "Data & Analytics": "Platform — Data & Integrations",
   Customization: "Platform — Identity & Core Services",
-  "AI Platform & Enablement": "Platform — AI",
+  "AI Platform & Enablement": "Platform — AI Platform",
   Automation: "Platform — Identity & Core Services",
   "Rentals & Events": "",
-  "Staff Payroll": "Community — Staff & Family Comms",
+  "Staff Payroll": "Community — Staffing",
   // Renamed teams, whose stored label is retired the same way a retired team's
   // is. Payments became Financial Services when the team's scope grew past
   // taking payments; both it and Admin Workflows then took a "Core — " prefix
@@ -98,6 +98,14 @@ const RETIRED_TEAM: Record<string, string> = {
   "Platform — Payments": "Core — Financial Services",
   "Platform — Financial Services": "Core — Financial Services",
   "Admin Workflows": "Core — Admin Workflows",
+  // The two Community teams renamed for the scope each leads with, ownership
+  // unchanged: Staff & Family Comms became Staffing, and Engagement &
+  // Advancement became Family Engagement & Comms Service.
+  "Community — Staff & Family Comms": "Community — Staffing",
+  "Community — Engagement & Advancement":
+    "Community — Family Engagement & Comms Service",
+  // Platform — AI took the name of the JTBD it owns end to end.
+  "Platform — AI": "Platform — AI Platform",
   // Ambiguous both as a codename and as the old Integration sub-domain; the
   // module's JTBD wins over this entry whenever the item has one.
   Platform: "Platform — Identity & Core Services",

@@ -432,9 +432,9 @@ describe("migrateItems team remap", () => {
 
   it("remaps a retired codename to the team owning its module's JTBD", () => {
     // Alpha is retired; community-engagement sits in Community & Media, owned by
-    // Community — Engagement & Advancement.
+    // Community — Family Engagement & Comms Service.
     expect(missionOf({ mission: "Alpha", moduleId: "community-engagement" })).toBe(
-      "Community — Engagement & Advancement",
+      "Community — Family Engagement & Comms Service",
     );
   });
 
@@ -448,7 +448,7 @@ describe("migrateItems team remap", () => {
 
   it("falls back to the retirement table when no module is set", () => {
     expect(missionOf({ mission: "Phoenix", moduleId: null })).toBe(
-      "Community — Staff & Family Comms",
+      "Community — Staffing",
     );
     // Sub-domains from the previous map are retired too, not just codenames.
     expect(missionOf({ mission: "Financials", moduleId: null })).toBe(
@@ -475,6 +475,16 @@ describe("migrateItems team remap", () => {
     expect(missionOf({ mission: "Admin Workflows", moduleId: null })).toBe(
       "Core — Admin Workflows",
     );
+    // The Community pair renamed without changing what they own.
+    expect(
+      missionOf({ mission: "Community — Staff & Family Comms", moduleId: null }),
+    ).toBe("Community — Staffing");
+    expect(
+      missionOf({
+        mission: "Community — Engagement & Advancement",
+        moduleId: null,
+      }),
+    ).toBe("Community — Family Engagement & Comms Service");
   });
 
   it("is idempotent — a migrated team is left alone", () => {
@@ -482,7 +492,7 @@ describe("migrateItems team remap", () => {
       item({ mission: "Alpha", moduleId: "community-engagement" }),
     ]);
     expect(migrateItems(once)[0].mission).toBe(
-      "Community — Engagement & Advancement",
+      "Community — Family Engagement & Comms Service",
     );
   });
 

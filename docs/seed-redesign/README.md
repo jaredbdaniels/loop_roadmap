@@ -228,12 +228,14 @@ value" is meaningful immediately.
    Workflows) and UltraCamp (UltraCamp) are explicit containment on the map. The
    durable fix is to nest each team block inside its domain container so
    containment exports.
-2. **Two names carry loose ends.** Platform — Identity & Core Services also holds
-   Alerts & Automation, Branding and Navigation; Community — Engagement &
-   Advancement also holds Camp Store and Safety & Incidents. Both are scope
-   questions surfaced by naming, not naming problems.
+2. **Three names carry loose ends.** Platform — Identity & Core Services also
+   holds Alerts & Automation, Branding and Navigation; Community — Family
+   Engagement & Comms Service also holds Camp Store and Safety & Incidents; and
+   Family Comms sits with Community — Staffing rather than with the team whose
+   name says Comms Service. All scope questions surfaced by naming, not naming
+   problems.
 3. **Two people each lead two teams** (Tracie: Identity & Core Services + Financial Services;
-   Dani: Admin Workflows + Staff & Family Comms), and Identity & Core Services
+   Dani: Admin Workflows + Staffing), and Identity & Core Services
    covers 7 modules with 4 engineers against Financial Services' 1 module with 2.
 2. **Two JTBD conflicts** from consolidation, in `jtbd_conflict`: Data Movement
    (Connecting External Tools vs Navigating the Product) and UltraCamp
@@ -246,7 +248,8 @@ value" is meaningful immediately.
    on the Lucid map — Luggage under Transportation, Events & Rentals as the lone
    Unclaimed module. Add them to the map so the two stay in sync.
 5. **Domain owners.** Only Product Platform (Jared) and UltraCamp (Ali) are
-   evidenced by the map. Core and Community are `""`.
+   evidenced by the map; Core (Ellen) and Community (Anna) come from the
+   org-chart page instead. Every domain but Unclaimed Property now has one.
 6. **KR baselines and targets** — owner is picking these up. The `gaps` column is
    the worklist.
 7. **`Operational AI`** is spelled "Opperational AI" on the map; corrected here.

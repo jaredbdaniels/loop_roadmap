@@ -52,8 +52,8 @@ export const UNCLAIMED_DOMAIN_ID = "unclaimed";
 
 export const DOMAINS: Domain[] = [
   { id: "product-platform", label: "Product Platform", owner: "Jared" },
-  { id: "core", label: "Core", owner: "" },
-  { id: "community", label: "Community", owner: "" },
+  { id: "core", label: "Core", owner: "Ellen" },
+  { id: "community", label: "Community", owner: "Anna" },
   { id: "ultracamp", label: "UltraCamp", owner: "Ali" },
   { id: UNCLAIMED_DOMAIN_ID, label: "Unclaimed Property", owner: "" },
 ];
@@ -172,8 +172,8 @@ export const MODULES: Module[] = [
 // views, so it is grouped by domain.
 export const TEAMS: Team[] = [
   {
-    id: "platform-ai",
-    label: "Platform — AI",
+    id: "platform-ai-platform",
+    label: "Platform — AI Platform",
     domainId: "product-platform",
     lead: "Rob (Eng Director, Platform)",
     jtbdIds: ["ai-platform"],
@@ -221,15 +221,15 @@ export const TEAMS: Team[] = [
     jtbdIds: ["payments"],
   },
   {
-    id: "community-engagement-advancement",
-    label: "Community — Engagement & Advancement",
+    id: "community-family-engagement-comms-service",
+    label: "Community — Family Engagement & Comms Service",
     domainId: "community",
     lead: "Jeremy",
     jtbdIds: ["community-media", "camp-store", "alumni", "fundraising", "safety-incidents"],
   },
   {
-    id: "community-staff-family-comms",
-    label: "Community — Staff & Family Comms",
+    id: "community-staffing",
+    label: "Community — Staffing",
     domainId: "community",
     lead: "Dani",
     jtbdIds: ["staff", "family-comms"],

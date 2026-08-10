@@ -23,7 +23,8 @@ MODULE_ID_OVERRIDE = {"Luggage Services": "luggage-services"}
 # Domain labels on the map carry an explanatory parenthetical; the id and the
 # display label drop it. Owners come from the org-chart page of the same export:
 # Jared is Head of Product Platform, and Ali's block is the one nested inside the
-# UltraCamp container. The other two have no owner recorded on the map.
+# UltraCamp container. Core (Ellen) and Community (Anna) are not drawn on the map
+# — they are the product owners named on the org-chart page.
 #
 # The map's Admin Workflows container is the Core domain: Admin Workflows is now
 # one team inside it rather than the whole domain, sitting alongside Financial
@@ -33,9 +34,9 @@ MODULE_ID_OVERRIDE = {"Luggage Services": "luggage-services"}
 DOMAIN_META = {
     "Product Platform":  ("product-platform", "Product Platform", "Jared"),
     "Admin Workflows (impacts mostly just the admin)":
-                         ("core", "Core", ""),
+                         ("core", "Core", "Ellen"),
     "Community (impacts to non-admin people)":
-                         ("community", "Community", ""),
+                         ("community", "Community", "Anna"),
     "UltraCamp":         ("ultracamp", "UltraCamp", "Ali"),
     "Unclaimed Property": ("unclaimed", "Unclaimed Property", ""),
 }
@@ -104,13 +105,13 @@ teams = list(csv.DictReader(open(os.path.join(HERE, "4_teams.csv"))))
 TEAM_DOMAIN_BY_NAME = {
     "Platform — Identity & Core Services": "product-platform",
     "Platform — Data & Integrations": "product-platform",
-    "Platform — AI": "product-platform",
+    "Platform — AI Platform": "product-platform",
     "Platform — Migration": "product-platform",
     "Core — Admin Workflows": "core",
     "Core — Financial Services": "core",
     "Admin Workflows — Customer Love": "core",
-    "Community — Staff & Family Comms": "community",
-    "Community — Engagement & Advancement": "community",
+    "Community — Staffing": "community",
+    "Community — Family Engagement & Comms Service": "community",
     "UltraCamp": "ultracamp",
 }
 team_rows = []         # (id, label, domain_id, lead, [jtbd ids])
