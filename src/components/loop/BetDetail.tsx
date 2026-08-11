@@ -139,9 +139,9 @@ export function BetDetail({
           kill criteria should read as a bet that cannot end, not as a shorter,
           tidier paragraph. */}
       <p className="bet-lede">
-        We believe <Field v={bet.thesis} name="thesis" href={editHref} />
+        We believe <Field v={bet.thesis} name="thesis" field="thesis" href={editHref} />
         {" "}
-        <Field v={bet.whyNow} name="why now" href={editHref} />
+        <Field v={bet.whyNow} name="why now" field="whyNow" href={editHref} />
         {" "}
         We intend{" "}
         {bet.tier === "foundational" ? (
@@ -164,9 +164,9 @@ export function BetDetail({
           <span className="bet-blank">not scheduled yet</span>
         )}
         . It&rsquo;s worth <Money bet={bet} href={editHref} />. We&rsquo;ll stop
-        if <Field v={bet.killCriteria} name="kill criteria" href={editHref} />{" "}
+        if <Field v={bet.killCriteria} name="kill criteria" field="killCriteria" href={editHref} />{" "}
         We re-decide on{" "}
-        <Field v={bet.nextReview ?? ""} name="review date" href={editHref} />
+        <Field v={bet.nextReview ?? ""} name="review date" field="nextReview" href={editHref} />
       </p>
 
       {reach.quarters > funded.quarters && (
@@ -434,10 +434,15 @@ export function BetDetail({
 function Field({
   v,
   name,
+  field,
   href,
 }: {
   v: string;
   name: string;
+  // The editor field this blank should land on — see the focus effect in
+  // BetModal. Without it a reader who clicks a gap arrives at the top of a
+  // six-block form and has to find the box themselves.
+  field: string;
   href: string | null;
 }) {
   const text = v?.trim();
@@ -447,7 +452,7 @@ function Field({
       ——— <span className="bet-blank-name">{name}</span>
     </span>
   );
-  return href ? <Link href={href}>{blank}</Link> : blank;
+  return href ? <Link href={`${href}&focus=${field}`}>{blank}</Link> : blank;
 }
 
 function PlannedClause({ bet }: { bet: Bet }) {
@@ -476,7 +481,7 @@ function Money({ bet, href }: { bet: Bet; href: string | null }) {
         ——— <span className="bet-blank-name">value</span>
       </span>
     );
-    return href ? <Link href={href}>{blank}</Link> : blank;
+    return href ? <Link href={`${href}&focus=value`}>{blank}</Link> : blank;
   }
   const money =
     magnitude >= 1_000_000

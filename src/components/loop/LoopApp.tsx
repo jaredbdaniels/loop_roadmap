@@ -78,6 +78,7 @@ export function LoopApp({
   initialGroupBy,
   shareToken,
   openBetOnMount,
+  focusBetField,
 }: {
   initialItems: Item[];
   initialWeights: Weights;
@@ -95,6 +96,9 @@ export function LoopApp({
   // Opens the bet editor on mount. The bet page has no inline editor by design,
   // so its Edit button sends you here — one edit path, not two.
   openBetOnMount?: string;
+  // Which field of that editor to land on — set when the reader clicked a blank
+  // in the bet detail's lede rather than its Edit button.
+  focusBetField?: string;
 }) {
   return (
     <LoopProvider
@@ -107,7 +111,11 @@ export function LoopApp({
       initialGroupBy={initialGroupBy}
       shareToken={shareToken}
     >
-      <Shell userEmail={userEmail} openBetOnMount={openBetOnMount} />
+      <Shell
+        userEmail={userEmail}
+        openBetOnMount={openBetOnMount}
+        focusBetField={focusBetField}
+      />
     </LoopProvider>
   );
 }
@@ -115,9 +123,11 @@ export function LoopApp({
 function Shell({
   userEmail,
   openBetOnMount,
+  focusBetField,
 }: {
   userEmail: string | null;
   openBetOnMount?: string;
+  focusBetField?: string;
 }) {
   const {
     items,
@@ -164,10 +174,10 @@ function Shell({
   // Arriving from a bet page's Edit button (/?bet=<id>). Runs once: reopening
   // the modal every time `openBet` changed identity would trap a reader who
   // closed it, and the URL is a one-shot instruction rather than app state.
-  const betOnMountRef = useRef(openBetOnMount);
+  const betOnMountRef = useRef({ id: openBetOnMount, focus: focusBetField });
   useEffect(() => {
-    const id = betOnMountRef.current;
-    if (id) openBet(id);
+    const { id, focus } = betOnMountRef.current;
+    if (id) openBet(id, focus);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

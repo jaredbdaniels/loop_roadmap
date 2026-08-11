@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BET_COLORS,
   BET_GOAL_AREAS,
@@ -51,6 +51,7 @@ import { useLoop } from "./store";
 export function BetModal() {
   const {
     betEdit,
+    betFocus,
     closeBet,
     bets,
     items,
@@ -73,6 +74,7 @@ export function BetModal() {
       key={betEdit}
       existing={existing}
       isNew={isNew}
+      focusField={betFocus}
       items={items}
       bets={bets}
       onClose={closeBet}
@@ -129,6 +131,7 @@ function emptyBet(id: string): Bet {
 function BetForm({
   existing,
   isNew,
+  focusField,
   items,
   bets,
   onClose,
@@ -140,6 +143,9 @@ function BetForm({
 }: {
   existing: Bet | null;
   isNew: boolean;
+  // A field id to land on, set when the editor was opened from a blank in the
+  // bet detail's lede. Null for an ordinary open.
+  focusField: string | null;
   items: Item[];
   bets: Bet[];
   onClose: () => void;
@@ -164,6 +170,21 @@ function BetForm({
   );
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+
+  // Land on the field the reader clicked. The bet detail renders an empty
+  // declared field as a blank in the middle of a sentence, and the point of
+  // that is a one-click path from noticing the gap to typing into it — landing
+  // at the top of a six-block form and hunting for the right box is not that.
+  //
+  // Runs once per open: the modal is keyed by bet id, so switching bets
+  // remounts and re-runs it, while typing does not.
+  useEffect(() => {
+    if (!focusField) return;
+    const el = document.getElementById(`bet-field-${focusField}`);
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.querySelector<HTMLElement>("input, textarea, select")?.focus();
+  }, [focusField]);
 
   const set = <K extends keyof Bet>(key: K, v: Bet[K]) =>
     setDraft((d) => ({ ...d, [key]: v }));
@@ -322,7 +343,7 @@ function BetForm({
               onChange={(e) => set("title", e.target.value)}
             />
           </div>
-          <div className="field">
+          <div className="field" id="bet-field-thesis">
             <label>Thesis</label>
             <p className="helper" style={{ margin: "0 0 6px" }}>
               We believe X produces Y because Z — the answer to &ldquo;why are we
@@ -333,7 +354,7 @@ function BetForm({
               onChange={(e) => set("thesis", e.target.value)}
             />
           </div>
-          <div className="field">
+          <div className="field" id="bet-field-whyNow">
             <label>Why now</label>
             <textarea
               placeholder="The timing or competitive window."
@@ -463,7 +484,7 @@ function BetForm({
                 set("value", { ...draft.value, type: v as Bet["value"]["type"] })
               }
             />
-            <div className="field">
+            <div className="field" id="bet-field-value">
               <label>Magnitude ($)</label>
               <input
                 type="number"
@@ -748,7 +769,7 @@ function BetForm({
 
           {/* ---------- 6. The decision ---------- */}
           <h3 className="bet-section">The decision</h3>
-          <div className="field">
+          <div className="field" id="bet-field-killCriteria">
             <label>Kill criteria</label>
             <p className="helper" style={{ margin: "0 0 6px" }}>
               What would make us stop. Without this it&rsquo;s a plan, not a bet.
@@ -759,7 +780,7 @@ function BetForm({
             />
           </div>
           <div className="bet-grid">
-            <div className="field">
+            <div className="field" id="bet-field-nextReview">
               <label>Next review</label>
               <input
                 type="date"

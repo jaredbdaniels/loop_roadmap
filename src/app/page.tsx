@@ -10,13 +10,13 @@ export default async function Home({
 }: {
   // `?bet=<id>` opens the bet editor on arrival — how a bet page's Edit button
   // gets you back here without the page needing an editor of its own.
-  searchParams: Promise<{ bet?: string }>;
+  searchParams: Promise<{ bet?: string; focus?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
 
   const { items, weights, bets, milestones } = await getState();
-  const { bet } = await searchParams;
+  const { bet, focus } = await searchParams;
 
   return (
     <LoopApp
@@ -26,6 +26,7 @@ export default async function Home({
       initialMilestones={milestones}
       userEmail={session.user.email}
       openBetOnMount={bet && bets.some((b) => b.id === bet) ? bet : undefined}
+      focusBetField={focus}
     />
   );
 }

@@ -149,7 +149,10 @@ interface LoopContextValue {
   setShareOpen: (b: boolean) => void;
   // bet editor: null when closed, "new" to create, or an bet id
   betEdit: string | null;
-  openBet: (idOrNew: string) => void;
+  // Which field the editor should land on, when it was opened from a blank in
+  // the bet detail's lede. Null for an ordinary open.
+  betFocus: string | null;
+  openBet: (idOrNew: string, focus?: string) => void;
   closeBet: () => void;
   // Where a bet's own page lives. Share-view readers are kept inside their
   // token's namespace — a bare /bets/<id> link would bounce an anonymous reader
@@ -257,6 +260,7 @@ export function LoopProvider({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [betEdit, setBetEdit] = useState<string | null>(null);
+  const [betFocus, setBetFocus] = useState<string | null>(null);
   const [milestoneEdit, setMilestoneEdit] = useState<string | null>(null);
 
   const [scenarios, setScenarios] = useState<ScenarioMeta[]>([]);
@@ -817,11 +821,14 @@ export function LoopProvider({
 
   const openDetail = useCallback((id: string) => setDetailId(id), []);
   const closeDetail = useCallback(() => setDetailId(null), []);
-  const openBet = useCallback(
-    (idOrNew: string) => setBetEdit(idOrNew),
-    [],
-  );
-  const closeBet = useCallback(() => setBetEdit(null), []);
+  const openBet = useCallback((idOrNew: string, focus?: string) => {
+    setBetFocus(focus ?? null);
+    setBetEdit(idOrNew);
+  }, []);
+  const closeBet = useCallback(() => {
+    setBetEdit(null);
+    setBetFocus(null);
+  }, []);
   // Null where no bet page can honestly be reached. /preview renders the
   // committed seed and never touches the database, so linking it to /bets/<id>
   // — which reads the live DB — would 404 on a bet the seed has and the DB
@@ -897,6 +904,7 @@ export function LoopProvider({
     shareOpen,
     setShareOpen,
     betEdit,
+    betFocus,
     openBet,
     closeBet,
     betHref,
