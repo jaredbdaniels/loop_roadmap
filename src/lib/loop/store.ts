@@ -14,7 +14,12 @@ import {
   seedItems,
   seedMilestones,
 } from "./seed";
-import { isIntake, migrateItems, normalizeBets, normalizeMilestones } from "./logic";
+import {
+  migrateItems,
+  normalizeBets,
+  normalizeMilestones,
+  trimForShare,
+} from "./logic";
 import type {
   Bet,
   Item,
@@ -188,10 +193,8 @@ export async function getPublicState(): Promise<{
   // rather than merely not rendered. It is also the difference that matters
   // most: an unpromoted idea read as "the roadmap" is a half-formed thought
   // mistaken for a commitment (see docs/settings-tab.md).
-  const publicItems = items
-    .filter((it) => !it.killed && !isIntake(it))
-    .map((it) => ({ ...it, killedReason: "", activity: [] }));
-  return { items: publicItems, weights, bets, milestones };
+  const trimmed = trimForShare({ items, bets });
+  return { ...trimmed, weights, milestones };
 }
 
 export async function upsertItem(item: Item): Promise<void> {

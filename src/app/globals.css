@@ -4787,18 +4787,25 @@ a:has(> .bet-blank) {
   background: var(--cm-surface-muted);
   overflow: hidden;
 }
-.bet-bar-planned,
 .bet-bar-funded {
   position: absolute;
   inset-block: 0;
   left: 0;
   border-radius: var(--r-pill);
-}
-.bet-bar-planned {
-  background: var(--cm-border-strong);
-}
-.bet-bar-funded {
   background: var(--bet-color, var(--cm-purple-light));
+}
+/* The intended share, drawn as a marker rather than a second fill. Two overlaid
+   fills occlude whichever is shorter, so an overspend — the more expensive of
+   the two failure directions — would render identically to landing exactly on
+   plan. A marker keeps both readable: fill short of it is a shortfall, fill
+   past it is an overspend. */
+.bet-bar-planned {
+  position: absolute;
+  inset-block: -2px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 0;
+  background: var(--cm-fg);
 }
 .bet-bar-read {
   grid-column: 2;

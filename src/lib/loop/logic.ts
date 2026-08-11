@@ -933,6 +933,32 @@ export function normalizeBets(list: Bet[]): Bet[] {
   });
 }
 
+// What an anonymous share-link reader is allowed to receive.
+//
+// A share link is a forwardable bearer URL and the RSC payload is readable by
+// anyone who opens devtools, so this strips rather than hides: killed ideas and
+// parked Intake work disappear entirely, and the survivors lose their kill
+// reason and their activity log.
+//
+// Pure and here, rather than inline in `getPublicState`, because it is a
+// privacy boundary and privacy boundaries need tests. It has already failed
+// once: `Bet.activity` was added and the item-shaped strip below did not grow
+// to cover it, so an internal audit log shipped to anonymous readers while the
+// surrounding comment claimed it was removed. **Any new field holding internal
+// notes must be added here**, and the round-trip test is what makes that
+// failure loud instead of silent.
+export function trimForShare(state: {
+  items: Item[];
+  bets: Bet[];
+}): { items: Item[]; bets: Bet[] } {
+  return {
+    items: state.items
+      .filter((it) => !it.killed && !isIntake(it))
+      .map((it) => ({ ...it, killedReason: "", activity: [] })),
+    bets: state.bets.map((b) => ({ ...b, activity: [] })),
+  };
+}
+
 // The domain an item belongs to, resolved most-specific-first: its module (the
 // durable anchor, via module → JTBD → domain), else its team's default mapping,
 // else the catch-all "unclaimed" domain. Never returns null, so every item

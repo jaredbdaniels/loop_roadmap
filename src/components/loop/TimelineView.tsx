@@ -1452,8 +1452,10 @@ function BetBar({
   onToggle: () => void;
   // The bet's own page. Reading a bet is no longer the same act as editing one
   // (docs/bet-detail.md), so the band opens the detail and editing is a button
-  // inside it — the way items already work.
-  href: string;
+  // inside it — the way items already work. Null where no bet page can be
+  // reached honestly (the seed preview) — the arrow is then omitted rather than
+  // rendered dead.
+  href: string | null;
 }) {
   const left = daysBetween(rangeStart, range.start) * ppd;
   const width = Math.max(daysBetween(range.start, range.end) * ppd, 26);
@@ -1482,14 +1484,16 @@ function BetBar({
       {/* Shown in share mode too: reading a bet's reasoning is exactly what an
           outside reader has never been able to do, and the page it opens is
           read-only for them. */}
-      <Link
-        className="tl-init-open"
-        href={href}
-        title={"Open " + init.title}
-        onClick={(e) => e.stopPropagation()}
-      >
-        →
-      </Link>
+      {href && (
+        <Link
+          className="tl-init-open"
+          href={href}
+          title={"Open " + init.title}
+          onClick={(e) => e.stopPropagation()}
+        >
+          →
+        </Link>
+      )}
     </div>
   );
 }

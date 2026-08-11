@@ -62,21 +62,40 @@ export function BetDetail({
   editHref: string | null;
   backHref?: string;
 }) {
+  // Two item lists, and mixing them up is the way this page tells lies.
+  //
+  //   `items`   — the whole roadmap. Required by the share helpers, whose
+  //               denominator is deliberately every scheduled epic-quarter,
+  //               bet-funded or not (see logic.ts). Filtering it would invert
+  //               the headline number.
+  //   `costed`  — what this bet actually spends: alive, and out of Intake. The
+  //               same rule `costedItems()` applies inside those helpers, so
+  //               anything this page counts itself has to apply it too or the
+  //               lede and the lists below it will disagree.
+  const costed = items.filter((i) => !i.killed && !isIntake(i));
+  // Killed work is dropped everywhere on this page. It is not "parked" — it is
+  // over — and leaving it in the lists would show a dead epic with no marking.
+  const live = items.filter((i) => !i.killed);
+
   const funded = betFundedShare(bet, items);
   const reach = betReach(bet, items);
   const rtb = runTheBusinessShare(items);
-  const teams = betTeams(bet, items);
+  // Teams, dates and type mix describe the spend, so they read the costed list.
+  // Derived from every linked item they would be driven by work this same page
+  // labels "counted nowhere above" — a bet whose epics are all parked would
+  // claim five teams and a date range while funding 0%.
+  const teams = betTeams(bet, costed);
   const teamShares = betTeamShares(bet, items);
-  const env = betEnvelope(bet, items);
-  const scope = betJtbdScope(bet, items);
-  const progress = betProgress(bet, items);
-  const mix = betTypeMix(bet, items);
+  const env = betEnvelope(bet, costed);
+  const scope = betJtbdScope(bet, live);
+  const progress = betProgress(bet, costed);
+  const mix = betTypeMix(bet, costed);
   const shared = sharedPlatformItems(items).filter((i) =>
     (i.betIds || []).includes(bet.id),
   );
 
-  const fundedItems = betFundedItems(bet, items);
-  const enabledItems = betEnabledItems(bet, items);
+  const fundedItems = betFundedItems(bet, live);
+  const enabledItems = betEnabledItems(bet, live);
   // Parked work is shown but never counted — see D2 in docs/narrative-decisions.md.
   // The split is what keeps an internal reader and a share reader from
   // disagreeing about the same bet's epic count.
@@ -170,11 +189,11 @@ export function BetDetail({
                   <span className="bet-bar-label">
                     {HORIZONS.find((x) => x.key === h)?.label ?? h}
                   </span>
+                  {/* Funded is the fill; planned is a marker sitting on top of
+                      it, not a second fill. Two overlaid fills hide whichever
+                      is shorter, which loses the overspend case exactly when it
+                      matters most — a marker reads in both directions. */}
                   <div className="bet-bar-track" aria-hidden>
-                    <span
-                      className="bet-bar-planned"
-                      style={{ width: `${Math.min(100, planned)}%` }}
-                    />
                     <span
                       className="bet-bar-funded"
                       style={{
@@ -182,6 +201,12 @@ export function BetDetail({
                         ["--bet-color" as string]: bet.color,
                       }}
                     />
+                    {planned > 0 && (
+                      <span
+                        className="bet-bar-planned"
+                        style={{ left: `${Math.min(100, planned)}%` }}
+                      />
+                    )}
                   </div>
                   <span className="bet-bar-read">
                     {planned === 0 ? (

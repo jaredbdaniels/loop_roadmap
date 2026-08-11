@@ -29,6 +29,7 @@ import {
   stackMilestoneFlags,
   stageBlockReason,
   totalEpicQuarters,
+  trimForShare,
 } from "./logic";
 import { STAGES } from "./constants";
 import type { Bet, Item, LoopState, Milestone, Prototype, Weights } from "./types";
@@ -920,6 +921,47 @@ describe("normalizeBets", () => {
     expect(b.reversibility).toBe(1);
     expect(b.plannedShare.now).toBe(100);
     expect(b.plannedShare.next).toBe(0);
+  });
+});
+
+describe("trimForShare", () => {
+  it("strips the activity log from bets as well as items", () => {
+    // The regression this exists for: Bet.activity was added and the trim only
+    // covered items, so an internal audit log shipped to anonymous share-link
+    // readers while the surrounding comment claimed it was removed.
+    const out = trimForShare({
+      items: [
+        item({ id: "a", stage: "Building", activity: ["Moved to Building."] }),
+      ],
+      bets: [bet({ id: "b1", activity: ["Status Proposed → Active."] })],
+    });
+    expect(out.items[0].activity).toEqual([]);
+    expect(out.bets[0].activity).toEqual([]);
+  });
+
+  it("drops killed and parked items entirely, and clears the kill reason", () => {
+    const out = trimForShare({
+      items: [
+        item({ id: "alive", stage: "Building" }),
+        item({ id: "parked", stage: "Intake" }),
+        item({ id: "dead", stage: "Building", killed: true, killedReason: "why" }),
+      ],
+      bets: [],
+    });
+    expect(out.items.map((i) => i.id)).toEqual(["alive"]);
+    expect(out.items[0].killedReason).toBe("");
+  });
+
+  it("keeps the bet's declared claim — only the log is internal", () => {
+    // Guards the scope of the trim in the other direction: a share reader is
+    // meant to see what a bet claims. Narrowing that is a product decision, not
+    // something a later edit should do by accident.
+    const out = trimForShare({
+      items: [],
+      bets: [bet({ thesis: "We believe X", killCriteria: "WAU flat" })],
+    });
+    expect(out.bets[0].thesis).toBe("We believe X");
+    expect(out.bets[0].killCriteria).toBe("WAU flat");
   });
 });
 

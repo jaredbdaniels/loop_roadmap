@@ -154,7 +154,7 @@ interface LoopContextValue {
   // Where a bet's own page lives. Share-view readers are kept inside their
   // token's namespace — a bare /bets/<id> link would bounce an anonymous reader
   // to the login page, which is a dead end rather than a permission error.
-  betHref: (id: string) => string;
+  betHref: (id: string) => string | null;
   // milestone editor: null when closed, "new" to create, or a milestone id
   milestoneEdit: string | null;
   openMilestone: (idOrNew: string) => void;
@@ -822,9 +822,17 @@ export function LoopProvider({
     [],
   );
   const closeBet = useCallback(() => setBetEdit(null), []);
+  // Null where no bet page can honestly be reached. /preview renders the
+  // committed seed and never touches the database, so linking it to /bets/<id>
+  // — which reads the live DB — would 404 on a bet the seed has and the DB
+  // doesn't, or worse, show live content under a page that promises the seed.
+  // That is the read-only-without-a-token case, and it is only /preview.
   const betHref = useCallback(
-    (id: string) => (shareToken ? `/share/${shareToken}/bets/${id}` : `/bets/${id}`),
-    [shareToken],
+    (id: string): string | null => {
+      if (shareToken) return `/share/${shareToken}/bets/${id}`;
+      return readOnly ? null : `/bets/${id}`;
+    },
+    [shareToken, readOnly],
   );
   const openMilestone = useCallback(
     (idOrNew: string) => setMilestoneEdit(idOrNew),
