@@ -284,6 +284,16 @@ export interface Bet {
   nextReview: string | null; // ISO date
   decision: BetDecision;
   color: string; // hex; picked from BET_COLORS
+  // What happened to this bet, oldest first. Mirrors Item.activity exactly — a
+  // plain string log appended by whatever mutation caused the entry, never an
+  // event schema. Deliberately unstructured: the moment it gains fields someone
+  // will want to query it, and that is a different and much larger feature.
+  //
+  // This is what makes a bet a plot rather than a state. "Judge the decision,
+  // not the outcome" is unanswerable without a record of what was believed
+  // when, so the retrospective comparison docs/strategic-bets.md calls the one
+  // that compounds depends on this field existing.
+  activity: string[];
   createdAt: string;
   updatedAt: string;
 }

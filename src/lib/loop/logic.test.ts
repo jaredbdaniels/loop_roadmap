@@ -19,6 +19,7 @@ import {
   itemLink,
   itemQuarters,
   nextFiscalQuarterStart,
+  betChangeLog,
   normalizeBets,
   framingGaps,
   migrateItems,
@@ -115,6 +116,7 @@ function bet(over: Partial<Bet> = {}): Bet {
     nextReview: null,
     decision: { verdict: null, rationale: "", decidedAt: null },
     color: "#7A5AF8",
+    activity: [],
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...over,
@@ -870,9 +872,23 @@ describe("normalizeBets", () => {
       killCriteria: "WAU flat after two quarters",
       nextReview: "2027-01-15",
       decision: { verdict: "won", rationale: "shipped", decidedAt: "2027-02-01" },
+      activity: ["Bet created.", "Status Proposed → Active."],
     });
     const round = normalizeBets(JSON.parse(JSON.stringify([b])))[0];
     expect(round).toEqual(b);
+  });
+
+  it("defaults a missing activity log to empty and drops non-string entries", () => {
+    // activity is the newest field on Bet and therefore the likeliest to be
+    // absent from an older row or an external import.
+    const [missing] = normalizeBets([
+      { ...bet(), activity: undefined } as unknown as Bet,
+    ]);
+    expect(missing.activity).toEqual([]);
+    const [dirty] = normalizeBets([
+      { ...bet(), activity: ["ok", 3, null, "fine"] } as unknown as Bet,
+    ]);
+    expect(dirty.activity).toEqual(["ok", "fine"]);
   });
 
   it("fills a legacy initiative row without inventing credibility", () => {
@@ -904,6 +920,56 @@ describe("normalizeBets", () => {
     expect(b.reversibility).toBe(1);
     expect(b.plannedShare.now).toBe(100);
     expect(b.plannedShare.next).toBe(0);
+  });
+});
+
+describe("betChangeLog", () => {
+  it("narrates the moves a reader would want back later, and nothing else", () => {
+    const live = bet({ status: "proposed", plannedShare: { now: 0, next: 0, later: 0 } });
+    const draft = bet({
+      status: "active",
+      thesis: "We believe X",
+      killCriteria: "WAU flat",
+      nextReview: "2027-01-15",
+      plannedShare: { now: 25, next: 0, later: 0 },
+    });
+    const log = betChangeLog(live, draft, { added: 3, removed: 1 });
+    expect(log).toEqual([
+      "Status Proposed → Active.",
+      "Planned share (now) 0% → 25%.",
+      "Thesis written.",
+      "Kill criteria written.",
+      "Next review set for 2027-01-15.",
+      "3 epics linked.",
+      "1 epic unlinked.",
+    ]);
+  });
+
+  it("stays silent on a save that changed nothing worth narrating", () => {
+    // Rewording a thesis that already existed is not an event. Without this the
+    // log fills with noise and stops being readable, which is the failure mode
+    // that makes an activity feed worthless.
+    const live = bet({ thesis: "first wording", description: "a" });
+    const draft = bet({ thesis: "second wording", description: "b" });
+    expect(betChangeLog(live, draft)).toEqual([]);
+  });
+
+  it("records a verdict but not its later rationale edits", () => {
+    const live = bet({ decision: { verdict: null, rationale: "", decidedAt: null } });
+    const draft = bet({
+      decision: { verdict: "killed-early", rationale: "why", decidedAt: "2027-02-01" },
+    });
+    expect(betChangeLog(live, draft)).toEqual(["Verdict recorded: Killed early."]);
+  });
+});
+
+describe("bet activity stays out of the scenario diff", () => {
+  it("does not report a bet as changed when only its log grew", () => {
+    // activity grows on every mutation, so including it in DIFF_BET_FIELDS would
+    // mark every touched bet as changed and bury the fields that matter.
+    const live = state({ bets: [bet({ id: "b1", activity: [] })] });
+    const draft = state({ bets: [bet({ id: "b1", activity: ["Bet created."] })] });
+    expect(diffStates(live, draft).betsChanged).toEqual([]);
   });
 });
 

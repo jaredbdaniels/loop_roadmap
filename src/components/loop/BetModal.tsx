@@ -24,6 +24,7 @@ import {
   STAGE_COLORS,
 } from "@/lib/loop/constants";
 import {
+  betChangeLog,
   betEnvelope,
   betFundedShare,
   betJtbdScope,
@@ -119,6 +120,7 @@ function emptyBet(id: string): Bet {
     nextReview: null,
     decision: { verdict: null, rationale: "", decidedAt: null },
     color: BET_COLORS[0],
+    activity: [],
     createdAt: now,
     updatedAt: now,
   };
@@ -229,10 +231,26 @@ function BetForm({
       return;
     }
     const nowIso = new Date().toISOString();
+    // Link churn is counted before the reconciliation below writes it, because
+    // that loop mutates items rather than returning a delta.
+    const linkDelta = {
+      added: linkedIds.filter(
+        (id) => !(items.find((i) => i.id === id)?.betIds || []).includes(betId),
+      ).length,
+      removed: items.filter(
+        (i) => (i.betIds || []).includes(betId) && !linkedIds.includes(i.id),
+      ).length,
+    };
     const bet: Bet = {
       ...draft,
       id: betId,
       title,
+      activity: [
+        ...(draft.activity || []),
+        ...(isNew || !existing
+          ? ["Bet created."]
+          : betChangeLog(existing, draft, linkDelta)),
+      ],
       createdAt: existing?.createdAt ?? nowIso,
       updatedAt: nowIso,
     };

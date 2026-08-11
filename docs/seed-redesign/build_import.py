@@ -75,6 +75,23 @@ def module_id(new_label):
 
 STANCE_FIT = {"Must Win": 5, "Differentiator": 4, "Table Stakes": 3,
               "Optional/Deferable": 2, "Nice-to-Have": 1}
+
+# The vendored CSVs are a snapshot taken before the lanes were renamed, so
+# 3_epics.csv still says "Capture" where the app now says "Intake". Mirror the
+# app's own STAGE_MIGRATION (src/lib/loop/constants.ts) here rather than
+# rewriting the snapshot: the CSV is evidence of what the sheet said, and
+# regenerating without this quietly reverts a shipped rename across 63 rows.
+#
+# Keep in step with constants.ts. If the two disagree, constants.ts wins — it is
+# what actually migrates rows on read.
+STAGE_MIGRATION = {
+    "Capture": "Intake",
+    "Frame": "Solutioning",
+    "Validate": "Solutioning",
+    "Deliver": "Building",
+    "Learn": "Releasing",
+    "Rank & Vote": "Solutioning",
+}
 BASIS_CONFIDENCE = {"actual": 5, "planned": 4, "directional": 2}
 
 BET_PARENT = "init-parent-experience"
@@ -100,6 +117,10 @@ def bet(**kw):
         "plannedShare": {"now": 0, "next": 0, "later": 0},
         "killCriteria": "", "nextReview": None,
         "decision": {"verdict": None, "rationale": "", "decidedAt": None},
+        # Seeded empty on purpose. The activity log records what happened to a
+        # bet while someone was watching; back-filling invented history would
+        # make the retrospective comparison read as evidence.
+        "activity": [],
         "createdAt": NOW, "updatedAt": NOW,
     }
     base.update(kw)
@@ -205,7 +226,7 @@ for e in epics:
         "owner": e.get("owner", ""),
         "moduleId": module_id(module),
         "type": e["type"] or None,
-        "stage": e["stage"] or "Intake",
+        "stage": STAGE_MIGRATION.get(e["stage"], e["stage"]) or "Intake",
         "order": None,
         "horizon": e["horizon"] or None,
         "targetStart": e["target_start"] or None,

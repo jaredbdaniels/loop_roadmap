@@ -151,6 +151,10 @@ interface LoopContextValue {
   betEdit: string | null;
   openBet: (idOrNew: string) => void;
   closeBet: () => void;
+  // Where a bet's own page lives. Share-view readers are kept inside their
+  // token's namespace — a bare /bets/<id> link would bounce an anonymous reader
+  // to the login page, which is a dead end rather than a permission error.
+  betHref: (id: string) => string;
   // milestone editor: null when closed, "new" to create, or a milestone id
   milestoneEdit: string | null;
   openMilestone: (idOrNew: string) => void;
@@ -209,6 +213,7 @@ export function LoopProvider({
   readOnly = false,
   initialView = "board",
   initialGroupBy = "team",
+  shareToken,
   children,
 }: {
   initialItems: Item[];
@@ -216,6 +221,9 @@ export function LoopProvider({
   initialBets: Bet[];
   initialMilestones: Milestone[];
   readOnly?: boolean;
+  // Set only on the anonymous /share/<token> view, so links out of the app stay
+  // inside the token's namespace.
+  shareToken?: string;
   // Which view/grouping the app opens on. Defaults match the main app (Board,
   // grouped by team); the seed preview overrides these to open on the
   // owner-grouped Timeline (Timeline + Domain).
@@ -814,6 +822,10 @@ export function LoopProvider({
     [],
   );
   const closeBet = useCallback(() => setBetEdit(null), []);
+  const betHref = useCallback(
+    (id: string) => (shareToken ? `/share/${shareToken}/bets/${id}` : `/bets/${id}`),
+    [shareToken],
+  );
   const openMilestone = useCallback(
     (idOrNew: string) => setMilestoneEdit(idOrNew),
     [],
@@ -879,6 +891,7 @@ export function LoopProvider({
     betEdit,
     openBet,
     closeBet,
+    betHref,
     milestoneEdit,
     openMilestone,
     closeMilestone,

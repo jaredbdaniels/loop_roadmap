@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Columns3,
   Users,
@@ -76,6 +76,8 @@ export function LoopApp({
   readOnly = false,
   initialView,
   initialGroupBy,
+  shareToken,
+  openBetOnMount,
 }: {
   initialItems: Item[];
   initialWeights: Weights;
@@ -88,6 +90,11 @@ export function LoopApp({
   // Domain). Omitted everywhere else, falling back to the store defaults.
   initialView?: ViewKey;
   initialGroupBy?: GroupByKey;
+  // Set only on the anonymous /share/<token> view.
+  shareToken?: string;
+  // Opens the bet editor on mount. The bet page has no inline editor by design,
+  // so its Edit button sends you here — one edit path, not two.
+  openBetOnMount?: string;
 }) {
   return (
     <LoopProvider
@@ -98,13 +105,20 @@ export function LoopApp({
       readOnly={readOnly}
       initialView={initialView}
       initialGroupBy={initialGroupBy}
+      shareToken={shareToken}
     >
-      <Shell userEmail={userEmail} />
+      <Shell userEmail={userEmail} openBetOnMount={openBetOnMount} />
     </LoopProvider>
   );
 }
 
-function Shell({ userEmail }: { userEmail: string | null }) {
+function Shell({
+  userEmail,
+  openBetOnMount,
+}: {
+  userEmail: string | null;
+  openBetOnMount?: string;
+}) {
   const {
     items,
     weights,
@@ -146,6 +160,16 @@ function Shell({ userEmail }: { userEmail: string | null }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const viewRef = useRef<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Arriving from a bet page's Edit button (/?bet=<id>). Runs once: reopening
+  // the modal every time `openBet` changed identity would trap a reader who
+  // closed it, and the URL is a one-shot instruction rather than app state.
+  const betOnMountRef = useRef(openBetOnMount);
+  useEffect(() => {
+    const id = betOnMountRef.current;
+    if (id) openBet(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const exportData = () => {
     const payload = {

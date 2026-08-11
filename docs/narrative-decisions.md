@@ -1,7 +1,18 @@
 # Decisions to make before writing code
 
 **Gates:** [`bet-detail.md`](./bet-detail.md) and [`narrative-view.md`](./narrative-view.md)
-**Drafted:** 2026-08-11 · **Status: open** — every recommendation below is mine, none is confirmed.
+**Drafted:** 2026-08-11 · **Status: D1–D3 decided, D4–D12 open.**
+
+> **D1, D2 and D3 were taken on 2026-08-11, all three as recommended:** the bet read surface is a
+> **route**, it **shows Intake-linked epics** in a separate uncounted group, and **`Bet.activity`
+> ships in PR 1**. PR 1 is built against those answers — see the sections below for the reasoning,
+> which is preserved rather than rewritten.
+>
+> One thing PR 1 turned up that no decision anticipated. **The seed generator was stale:**
+> `3_epics.csv` is a snapshot taken before the lanes were renamed and still says `Capture`, so
+> regenerating `seed-data.json` silently reverted the Intake rename across 63 rows.
+> `build_import.py` now mirrors the app's own `STAGE_MIGRATION`, and the generator is idempotent
+> against the committed seed again. Worth knowing because every future PR here regenerates.
 
 Twelve decisions, each with a recommendation and the code it gates. **D1–D3 block the first line of
 PR 1**; everything else can be answered while PR 1 is in flight. Same format as

@@ -6,12 +6,15 @@ import {
   BET_COLORS,
   BET_GOAL_AREAS,
   BET_STATUSES,
+  BET_STATUS_LABELS,
   BET_TERMINAL_STATUSES,
   BET_THEMES,
   BET_TIERS,
+  BET_TIER_LABELS,
   BET_VALUE_BASES,
   BET_VALUE_TYPES,
   BET_VERDICTS,
+  BET_VERDICT_LABELS,
   DAY,
   HORIZONS,
   INTAKE_STAGE,
@@ -921,6 +924,9 @@ export function normalizeBets(list: Bet[]): Bet[] {
           typeof decision.decidedAt === "string" ? decision.decidedAt : null,
       },
       color: str(src.color) || BET_COLORS[0],
+      activity: Array.isArray(src.activity)
+        ? src.activity.filter((a): a is string => typeof a === "string")
+        : [],
       createdAt: src.createdAt,
       updatedAt: src.updatedAt,
     };
@@ -1307,6 +1313,10 @@ function itemFieldChanges(live: Item, draft: Item): FieldChange[] {
 // or a scenario compare will silently miss it — and `plannedShare` in particular
 // is the whole point of forking a scenario, so missing it would quietly break
 // the allocation trade-off.
+//
+// `activity` is the one field deliberately left off. It grows on every mutation,
+// so including it would mark every touched bet as changed and bury the fields
+// above in a diff that is technically complete and practically unreadable.
 const DIFF_BET_FIELDS: (keyof Bet)[] = [
   "title",
   "description",
@@ -1325,6 +1335,46 @@ const DIFF_BET_FIELDS: (keyof Bet)[] = [
   "nextReview",
   "color",
 ];
+
+// The activity entries a save should append, given what actually changed. Only
+// the moves a reader would want narrated later — a bet becoming active, its
+// intended share moving, a verdict landing — not every keystroke on the thesis.
+//
+// Lives here rather than in the modal so it can be tested without a form, and
+// so any future caller (an import, a scripted migration) logs the same way.
+export function betChangeLog(
+  live: Bet,
+  draft: Bet,
+  linkDelta: { added: number; removed: number } = { added: 0, removed: 0 },
+): string[] {
+  const out: string[] = [];
+  if (live.status !== draft.status)
+    out.push(
+      `Status ${BET_STATUS_LABELS[live.status]} → ${BET_STATUS_LABELS[draft.status]}.`,
+    );
+  if (live.tier !== draft.tier)
+    out.push(`Tier ${BET_TIER_LABELS[live.tier]} → ${BET_TIER_LABELS[draft.tier]}.`);
+  for (const h of PLANNED_HORIZONS) {
+    const a = live.plannedShare?.[h] ?? 0;
+    const b = draft.plannedShare?.[h] ?? 0;
+    if (a !== b) out.push(`Planned share (${h}) ${a}% → ${b}%.`);
+  }
+  if (live.decision?.verdict !== draft.decision?.verdict && draft.decision?.verdict)
+    out.push(`Verdict recorded: ${BET_VERDICT_LABELS[draft.decision.verdict]}.`);
+  // A thesis or kill criteria arriving is worth noting; its later wording is not.
+  if (!live.thesis?.trim() && draft.thesis?.trim()) out.push("Thesis written.");
+  if (!live.killCriteria?.trim() && draft.killCriteria?.trim())
+    out.push("Kill criteria written.");
+  if (!live.nextReview && draft.nextReview)
+    out.push(`Next review set for ${draft.nextReview}.`);
+  if (linkDelta.added)
+    out.push(`${linkDelta.added} epic${linkDelta.added === 1 ? "" : "s"} linked.`);
+  if (linkDelta.removed)
+    out.push(
+      `${linkDelta.removed} epic${linkDelta.removed === 1 ? "" : "s"} unlinked.`,
+    );
+  return out;
+}
 
 function betFieldChanges(live: Bet, draft: Bet): FieldChange[] {
   const out: FieldChange[] = [];

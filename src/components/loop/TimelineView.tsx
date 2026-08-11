@@ -1,6 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
+import Link from "next/link";
 import {
   DAY,
   ITEM_TYPES,
@@ -77,7 +78,7 @@ export function TimelineView() {
     showKilled,
     shareMode,
     openDetail,
-    openBet,
+    betHref,
     openMilestone,
     openCapture,
     updateItem,
@@ -915,8 +916,7 @@ export function TimelineView() {
                         }
                         focused={focusBet === init.id}
                         onToggle={() => toggleFocus(init.id)}
-                        onEdit={() => openBet(init.id)}
-                        shareMode={shareMode}
+                        href={betHref(init.id)}
                       />
                     </div>
                   ))}
@@ -1439,8 +1439,7 @@ function BetBar({
   dimmed,
   focused,
   onToggle,
-  onEdit,
-  shareMode,
+  href,
 }: {
   init: Bet;
   range: { start: Date; end: Date };
@@ -1451,8 +1450,10 @@ function BetBar({
   dimmed: boolean;
   focused: boolean;
   onToggle: () => void;
-  onEdit: () => void;
-  shareMode: boolean;
+  // The bet's own page. Reading a bet is no longer the same act as editing one
+  // (docs/bet-detail.md), so the band opens the detail and editing is a button
+  // inside it — the way items already work.
+  href: string;
 }) {
   const left = daysBetween(rangeStart, range.start) * ppd;
   const width = Math.max(daysBetween(range.start, range.end) * ppd, 26);
@@ -1471,26 +1472,24 @@ function BetBar({
         fmtRange({ targetStart: toISODate(range.start), targetEnd: toISODate(range.end) }) +
         (prog ? " · items " + prog.done + "/" + prog.total + " shipped" : "") +
         (teams.length ? "\nTeams: " + teams.join(", ") : "") +
-        "\nClick to highlight its items across teams" +
-        (shareMode ? "" : " · ✎ to edit")
+        "\nClick to highlight its items across teams · → to open the bet"
       }
       onClick={onToggle}
     >
       {focused ? "◉ " : ""}
       {init.title}
       {prog ? " · " + prog.done + "/" + prog.total : ""}
-      {!shareMode && (
-        <span
-          className="tl-init-edit edit-only"
-          title={"Edit " + init.title}
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-        >
-          ✎
-        </span>
-      )}
+      {/* Shown in share mode too: reading a bet's reasoning is exactly what an
+          outside reader has never been able to do, and the page it opens is
+          read-only for them. */}
+      <Link
+        className="tl-init-open"
+        href={href}
+        title={"Open " + init.title}
+        onClick={(e) => e.stopPropagation()}
+      >
+        →
+      </Link>
     </div>
   );
 }
