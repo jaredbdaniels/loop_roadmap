@@ -352,6 +352,53 @@ header.topbar::after {
 .link-button:hover {
   background: rgba(255, 255, 255, 0.18);
 }
+/* Freshness chip — how current the roadmap on screen is, and a click to make it
+   current now. Sits in the purple topbar, so it borrows the same white-on-glass
+   treatment as .user-chip and .link-button. */
+.sync-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+button.sync-chip:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+}
+button.sync-chip:disabled {
+  cursor: default;
+}
+.sync-chip--paused {
+  color: rgba(255, 255, 255, 0.66);
+}
+.sync-chip--failed {
+  background: rgba(255, 214, 102, 0.18);
+  border-color: rgba(255, 214, 102, 0.5);
+  color: #ffe6a3;
+}
+.sync-spin {
+  animation: sync-spin 1s linear infinite;
+}
+@keyframes sync-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Narrow headers keep the icon and drop the words — the spinner and the warning
+   triangle still carry the state, and the title attribute carries the rest. */
+@media (max-width: 900px) {
+  .sync-chip-label {
+    display: none;
+  }
+}
+
 .badge-sharemode {
   display: none;
   align-items: center;

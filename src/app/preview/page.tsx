@@ -16,7 +16,13 @@ export const dynamic = "force-dynamic";
 // regardless of what's in the live DB. Login-gated like the main app; renders
 // the same app in read-only mode, opened on the owner-grouped Timeline
 // (Timeline + Domain grouping) so it lands on the owner view by default.
-export default async function PreviewPage() {
+export default async function PreviewPage({
+  searchParams,
+}: {
+  // Same view-state params as the main app; the defaults below are what a bare
+  // /preview opens on. See view-state.ts.
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const session = await getSession();
   if (!session) redirect("/login");
 
@@ -28,8 +34,8 @@ export default async function PreviewPage() {
       initialMilestones={seedMilestones()}
       userEmail={session.user.email}
       readOnly
-      initialView="timeline"
-      initialGroupBy="domain"
+      viewDefaults={{ view: "timeline", groupBy: "domain" }}
+      viewParams={await searchParams}
     />
   );
 }

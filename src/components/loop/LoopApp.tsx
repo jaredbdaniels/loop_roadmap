@@ -23,6 +23,7 @@ import {
 import { toPng } from "html-to-image";
 import type { GroupByKey, ViewKey, ZoomKey } from "@/lib/loop/constants";
 import { OWNERS, OWNER_UNASSIGNED } from "@/lib/loop/constants";
+import type { RawParams, ViewState } from "@/lib/loop/view-state";
 import type { Bet, Item, Milestone, Weights } from "@/lib/loop/types";
 import { authClient } from "@/lib/auth-client";
 import { LoopProvider, useLoop } from "./store";
@@ -39,6 +40,7 @@ import { MilestoneModal } from "./MilestoneModal";
 import { SettingsModal } from "./SettingsModal";
 import { ShareModal } from "./ShareModal";
 import { CompareDrawer } from "./CompareDrawer";
+import { SyncStatus } from "./SyncStatus";
 import { Toasts } from "./Toasts";
 import { Celebration } from "./Celebration";
 
@@ -74,8 +76,8 @@ export function LoopApp({
   initialMilestones,
   userEmail,
   readOnly = false,
-  initialView,
-  initialGroupBy,
+  viewDefaults,
+  viewParams,
   shareToken,
   openBetOnMount,
   focusBetField,
@@ -87,10 +89,13 @@ export function LoopApp({
   // null on the anonymous /share/<token> view.
   userEmail: string | null;
   readOnly?: boolean;
-  // Optional initial view/grouping (e.g. the seed preview opens on Timeline +
-  // Domain). Omitted everywhere else, falling back to the store defaults.
-  initialView?: ViewKey;
-  initialGroupBy?: GroupByKey;
+  // Where the page opens when its URL says nothing (e.g. the seed preview opens
+  // on Timeline + Domain). Omitted everywhere else, falling back to the app
+  // defaults in view-state.ts.
+  viewDefaults?: Partial<ViewState>;
+  // The page's query string, which beats viewDefaults — this is what makes a
+  // reload land back on the view, grouping, filters and card you were on.
+  viewParams?: RawParams;
   // Set only on the anonymous /share/<token> view.
   shareToken?: string;
   // Opens the bet editor on mount. The bet page has no inline editor by design,
@@ -107,8 +112,8 @@ export function LoopApp({
       initialBets={initialBets}
       initialMilestones={initialMilestones}
       readOnly={readOnly}
-      initialView={initialView}
-      initialGroupBy={initialGroupBy}
+      viewDefaults={viewDefaults}
+      viewParams={viewParams}
       shareToken={shareToken}
     >
       <Shell
@@ -171,7 +176,7 @@ function Shell({
   const viewRef = useRef<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Arriving from a bet page's Edit button (/?bet=<id>). Runs once: reopening
+  // Arriving from a bet page's Edit button (/?edit=<id>). Runs once: reopening
   // the modal every time `openBet` changed identity would trap a reader who
   // closed it, and the URL is a one-shot instruction rather than app state.
   const betOnMountRef = useRef({ id: openBetOnMount, focus: focusBetField });
@@ -309,6 +314,7 @@ function Shell({
           <span className="badge-sharemode">
             <Eye size={13} strokeWidth={2.4} /> Read-only share
           </span>
+          <SyncStatus />
           {!readOnly && userEmail && (
             <>
               <span className="user-chip">

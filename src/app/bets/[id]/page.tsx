@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 // — the narrative view, Slack, and the timeline band — and retrofitting
 // linkability onto a modal means touching every call site twice.
 //
-// Editing stays in BetModal, reached via /?bet=<id>. There is deliberately no
+// Editing stays in BetModal, reached via /?edit=<id>. There is deliberately no
 // second edit path: if this page grew an inline editor, the two would drift.
 export default async function BetPage({
   params,
@@ -31,7 +31,7 @@ export default async function BetPage({
         bet={bet}
         bets={bets}
         items={items}
-        editHref={`/?bet=${bet.id}`}
+        editHref={`/?edit=${bet.id}`}
       />
     </main>
   );

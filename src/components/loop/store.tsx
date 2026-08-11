@@ -15,6 +15,13 @@ import {
   normalizeBets,
   normalizeMilestones,
 } from "@/lib/loop/logic";
+import {
+  parseViewState,
+  resolveViewDefaults,
+  viewStateToParams,
+  type RawParams,
+  type ViewState,
+} from "@/lib/loop/view-state";
 import { MAIN_SCENARIO } from "@/lib/loop/types";
 import type {
   Bet,
@@ -59,6 +66,16 @@ export interface Celebration {
   emoji: string;
 }
 
+// How often the app pulls fresh roadmap state while it's open and idle. Long
+// enough to be cheap, short enough that a teammate's edit lands inside the
+// conversation you're having about it.
+const POLL_MS = 20_000;
+
+// Coming back to the tab pulls immediately rather than waiting out the interval
+// — but not if we synced moments ago, so flicking between two windows doesn't
+// turn into a fetch per flick.
+const REFOCUS_MIN_AGE_MS = 5_000;
+
 const CREATURES = ["🦄", "🐉", "🚀", "🐋", "🦩", "🌈", "🦖", "🎈"];
 // Themed rosters for the non-party kinds — a downbeat for regressions and a
 // fittingly final send-off for kills.
@@ -84,12 +101,31 @@ function emojiFor(kind: CelebrationKind, seq: number): string {
   return roster[(seq - 1) % roster.length];
 }
 
+// What the header's freshness chip reads off. The app has always polled in the
+// background; the point of surfacing this is that a silent poll is
+// indistinguishable from a broken one, so nobody trusted the numbers on screen
+// without reloading — which is the very thing the poll exists to avoid.
+export interface SyncStatus {
+  // When the last successful pull landed. Null only before the first one, when
+  // the server-rendered snapshot is what's on screen.
+  lastSyncedAt: number | null;
+  // A pull is in flight.
+  syncing: boolean;
+  // The last pull failed. Not toasted: a blip on a background poll isn't news,
+  // and the chip goes to "Reconnecting" until one succeeds.
+  failed: boolean;
+  // Live updates are deliberately off — a scenario draft is in view (a pull
+  // would clobber it) or something is being edited.
+  paused: boolean;
+}
+
 interface LoopContextValue {
   items: Item[];
   weights: Weights;
   bets: Bet[];
   milestones: Milestone[];
   loading: boolean;
+  sync: SyncStatus;
   // view state
   view: ViewKey;
   setView: (v: ViewKey) => void;
@@ -214,8 +250,8 @@ export function LoopProvider({
   initialBets,
   initialMilestones,
   readOnly = false,
-  initialView = "board",
-  initialGroupBy = "team",
+  viewDefaults,
+  viewParams,
   shareToken,
   children,
 }: {
@@ -227,11 +263,14 @@ export function LoopProvider({
   // Set only on the anonymous /share/<token> view, so links out of the app stay
   // inside the token's namespace.
   shareToken?: string;
-  // Which view/grouping the app opens on. Defaults match the main app (Board,
-  // grouped by team); the seed preview overrides these to open on the
-  // owner-grouped Timeline (Timeline + Domain).
-  initialView?: ViewKey;
-  initialGroupBy?: GroupByKey;
+  // Which view/grouping/filters the page opens on when its URL says nothing.
+  // Defaults match the main app (Board, grouped by team); the seed preview
+  // overrides them to open on the owner-grouped Timeline.
+  viewDefaults?: Partial<ViewState>;
+  // The page's query string. Anything it specifies beats viewDefaults, which is
+  // how a reload lands you back where you were. Parsed here rather than on the
+  // page so the server and the first client render agree.
+  viewParams?: RawParams;
   children: ReactNode;
 }) {
   const [items, setItems] = useState<Item[]>(initialItems);
@@ -242,17 +281,29 @@ export function LoopProvider({
     useState<Milestone[]>(initialMilestones);
   const [loading, setLoading] = useState(false);
 
-  const [view, setView] = useState<ViewKey>(initialView);
-  const [zoom, setZoom] = useState<ZoomKey>("quarter");
-  const [filterMission, setFilterMission] = useState<string[]>([]);
-  const [filterOwner, setFilterOwner] = useState("all");
-  const [filterBet, setFilterBet] = useState("all");
-  const [groupBy, setGroupBy] = useState<GroupByKey>(initialGroupBy);
-  const [showKilled, setShowKilled] = useState(false);
+  // Resolved once, on the first render, from the page's defaults and its query
+  // string. `defaults` is kept because the URL writer only records what differs
+  // from it — a page sitting on its own defaults deserves a clean URL.
+  const [viewStateDefaults] = useState(() => resolveViewDefaults(viewDefaults));
+  const [initialViewState] = useState(() =>
+    parseViewState(viewParams ?? {}, viewStateDefaults),
+  );
+
+  const [view, setView] = useState<ViewKey>(initialViewState.view);
+  const [zoom, setZoom] = useState<ZoomKey>(initialViewState.zoom);
+  const [filterMission, setFilterMission] = useState<string[]>(
+    initialViewState.teams,
+  );
+  const [filterOwner, setFilterOwner] = useState(initialViewState.owner);
+  const [filterBet, setFilterBet] = useState(initialViewState.bet);
+  const [groupBy, setGroupBy] = useState<GroupByKey>(initialViewState.groupBy);
+  const [showKilled, setShowKilled] = useState(initialViewState.showKilled);
   // In read-only (share) mode share-mode is forced on and can't be toggled off.
   const [shareMode, setShareMode] = useState(readOnly);
 
-  const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(
+    initialViewState.detailId,
+  );
   const [captureOpen, setCaptureOpen] = useState(false);
   const [capturePrefill, setCapturePrefill] = useState<CapturePrefill | null>(
     null,
@@ -268,6 +319,10 @@ export function LoopProvider({
   const [scenarioName, setScenarioName] = useState<string | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const draftMode = scenarioId !== MAIN_SCENARIO;
+
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncFailed, setSyncFailed] = useState(false);
 
   const dragId = useRef<string | null>(null);
   const editingRef = useRef(false);
@@ -384,43 +439,139 @@ export function LoopProvider({
     // The share view has no session; /api/items would 401. It's an SSR
     // snapshot — viewers reload for freshness.
     if (readOnly) return;
-    const res = await fetch("/api/items", { cache: "no-store" });
-    if (!res.ok) return;
-    const data = (await res.json()) as {
-      items: Item[];
-      weights: Weights;
-      bets?: Bet[];
-      milestones?: Milestone[];
-    };
-    setItems(migrateItems(data.items));
-    setWeights(data.weights);
-    if (data.bets) setBets(normalizeBets(data.bets));
-    if (data.milestones) setMilestones(normalizeMilestones(data.milestones));
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/items", { cache: "no-store" });
+      if (!res.ok) throw new Error(`/api/items ${res.status}`);
+      const data = (await res.json()) as {
+        items: Item[];
+        weights: Weights;
+        bets?: Bet[];
+        milestones?: Milestone[];
+      };
+      setItems(migrateItems(data.items));
+      setWeights(data.weights);
+      if (data.bets) setBets(normalizeBets(data.bets));
+      if (data.milestones) setMilestones(normalizeMilestones(data.milestones));
+      setLastSyncedAt(Date.now());
+      setSyncFailed(false);
+    } catch {
+      // Deliberately quiet — see SyncStatus.failed. A dropped poll on a train
+      // is not worth a toast, and the header says so until one lands.
+      setSyncFailed(true);
+    } finally {
+      setSyncing(false);
+    }
   }, [readOnly]);
 
-  // Background poll so teammates' edits show up. Paused while editing/dragging.
+  // The server-rendered snapshot was current when the page was built, so the
+  // freshness clock starts at load rather than at the first poll.
+  useEffect(() => {
+    if (!readOnly) setLastSyncedAt(Date.now());
+  }, [readOnly]);
+
+  // Everything that should hold the poll off, mirrored into a ref: read from
+  // inside the interval instead of listed as a dependency, so opening a modal
+  // no longer tears the interval down and restarts its 20-second clock.
+  //   • a modal is open — a pull under an open editor would swap the record out
+  //     from under whoever is reading or typing in it
+  //   • a scenario draft is in view — a pull would clobber the draft state,
+  //     which lives only in memory until it's debounced to the server
+  const pollPausedRef = useRef(false);
+  pollPausedRef.current =
+    detailId !== null ||
+    captureOpen ||
+    settingsOpen ||
+    betEdit !== null ||
+    milestoneEdit !== null ||
+    draftMode;
+
+  const lastSyncedAtRef = useRef(lastSyncedAt);
+  lastSyncedAtRef.current = lastSyncedAt;
+
+  // Background poll so teammates' edits show up without anyone reloading.
   // Skipped entirely in read-only mode (no session to poll with).
   useEffect(() => {
     if (readOnly) return;
+    const idle = () =>
+      !pollPausedRef.current && !editingRef.current && !dragId.current;
+
     const interval = setInterval(() => {
-      if (editingRef.current || dragId.current) return;
-      if (detailId || captureOpen || settingsOpen || betEdit || milestoneEdit)
-        return;
-      // Never poll while editing a scenario draft — a live pull would clobber
-      // the draft state held in view.
-      if (scenarioIdRef.current !== MAIN_SCENARIO) return;
-      refresh();
-    }, 20000);
-    return () => clearInterval(interval);
+      // A hidden tab doesn't need fresh data — nobody is reading it, and
+      // browsers throttle its timers anyway, so polling it mostly produces
+      // bursts of stale-then-current on return. The visibility handler below
+      // covers the return instead.
+      if (document.hidden || !idle()) return;
+      void refresh();
+    }, POLL_MS);
+
+    // Coming back to the tab (or the window) is the moment freshness matters
+    // most: you left, something happened, and the first thing you do is read
+    // the screen. Pull straight away rather than making that read a coin flip
+    // on where in the interval you landed.
+    const onReturn = () => {
+      if (document.hidden || !idle()) return;
+      const last = lastSyncedAtRef.current;
+      if (last !== null && Date.now() - last < REFOCUS_MIN_AGE_MS) return;
+      void refresh();
+    };
+    document.addEventListener("visibilitychange", onReturn);
+    window.addEventListener("focus", onReturn);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onReturn);
+      window.removeEventListener("focus", onReturn);
+    };
+  }, [refresh, readOnly]);
+
+  // Mirror the view state into the query string, so a reload lands you back
+  // where you were and a pasted URL puts a teammate in the same place.
+  // replaceState rather than a router navigation: this isn't a new page, and
+  // pushing a history entry per filter toggle would bury the Back button under
+  // dozens of them. It also clears the one-shot ?edit= a bet page's Edit button
+  // arrives with — that param is an instruction, carried out before this runs,
+  // not state worth restoring on the next reload.
+  useEffect(() => {
+    const params = viewStateToParams(
+      {
+        view,
+        zoom,
+        groupBy,
+        teams: filterMission,
+        owner: filterOwner,
+        bet: filterBet,
+        showKilled,
+        detailId,
+      },
+      viewStateDefaults,
+    );
+    const qs = params.toString();
+    const { pathname, hash } = window.location;
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${pathname}${qs ? `?${qs}` : ""}${hash}`,
+    );
   }, [
-    refresh,
-    readOnly,
+    view,
+    zoom,
+    groupBy,
+    filterMission,
+    filterOwner,
+    filterBet,
+    showKilled,
     detailId,
-    captureOpen,
-    settingsOpen,
-    betEdit,
-    milestoneEdit,
+    viewStateDefaults,
   ]);
+
+  // If the card we have open stops existing — deleted here, deleted by a
+  // teammate and noticed on the next poll, or named by a stale ?item= someone
+  // pasted — close the detail modal. Leaving the id set would pause the poll
+  // indefinitely on a modal that renders nothing.
+  useEffect(() => {
+    if (detailId && !items.some((i) => i.id === detailId)) setDetailId(null);
+  }, [items, detailId]);
 
   const createItem = useCallback(
     async (item: Item) => {
@@ -866,6 +1017,14 @@ export function LoopProvider({
     bets,
     milestones,
     loading,
+    sync: {
+      lastSyncedAt,
+      syncing,
+      failed: syncFailed,
+      // Editing pauses the poll too, but that's a keystroke-scale pause nobody
+      // needs told about; a draft is a mode you're in until you leave it.
+      paused: draftMode,
+    },
     view,
     setView,
     zoom,

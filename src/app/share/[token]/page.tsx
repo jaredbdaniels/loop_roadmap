@@ -10,8 +10,13 @@ export const dynamic = "force-dynamic";
 // token 404s uniformly, leaking nothing about whether it ever existed.
 export default async function SharePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  // View state (view / zoom / grouping / filters), so a reader who reloads —
+  // or who was sent a link to one particular slice — lands where they expect.
+  // See view-state.ts.
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { token } = await params;
   if (!(await validateShareToken(token))) notFound();
@@ -26,6 +31,7 @@ export default async function SharePage({
       initialMilestones={milestones}
       userEmail={null}
       readOnly
+      viewParams={await searchParams}
       shareToken={token}
     />
   );

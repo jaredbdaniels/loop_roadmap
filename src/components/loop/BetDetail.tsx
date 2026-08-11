@@ -452,7 +452,7 @@ function Field({
       ——— <span className="bet-blank-name">{name}</span>
     </span>
   );
-  return href ? <Link href={`${href}&focus=${field}`}>{blank}</Link> : blank;
+  return href ? <Link href={`${href}&field=${field}`}>{blank}</Link> : blank;
 }
 
 function PlannedClause({ bet }: { bet: Bet }) {
@@ -481,7 +481,7 @@ function Money({ bet, href }: { bet: Bet; href: string | null }) {
         ——— <span className="bet-blank-name">value</span>
       </span>
     );
-    return href ? <Link href={`${href}&focus=value`}>{blank}</Link> : blank;
+    return href ? <Link href={`${href}&field=value`}>{blank}</Link> : blank;
   }
   const money =
     magnitude >= 1_000_000
