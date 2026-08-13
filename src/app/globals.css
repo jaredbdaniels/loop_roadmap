@@ -106,6 +106,8 @@
 }
 
 :root {
+  color-scheme: light;
+
   /* ---- Brand ---- */
   --cm-purple: #380f8c;
   --cm-purple-bright: #5b21b6;
@@ -113,8 +115,38 @@
   --cm-purple-deep: #27065c;
   --cm-purple-soft: #efeafd;
   --cm-purple-softer: #f7f4fe;
+  /* Shared hover fill for solid purple buttons (.cm-button, .tl-tray-card
+     .place-btn) — was pasted twice as a bare hex; one token keeps both
+     hover states in lockstep and gives dark mode one place to answer
+     "what does hovering a purple button look like?" */
+  --cm-purple-hover: #431aa0;
 
-  /* ---- Neutrals (stone) ---- */
+  /* The topbar and login-hero gradients, kept as their OWN tokens rather than
+     deriving from --cm-purple/--cm-purple-deep. Those two lighten in dark
+     mode for text/accent legibility, which would wash the gradient out — so
+     the "always vivid brand background" job gets a token that themes on its
+     own schedule (deepens in dark) instead of inheriting purple's (lightens
+     in dark). -from/-mid are shared by both gradients; -to differs per
+     surface since the two were never the same third stop. Light-mode values
+     are pixel-identical to the original var(--cm-purple-deep)/var(--cm-purple)
+     resolution — only dark mode deepens them. */
+  --cm-brand-gradient-from: #27065c;
+  --cm-brand-gradient-mid: #380f8c;
+  --cm-brand-gradient-to-topbar: #45169e;
+  --cm-brand-gradient-to-hero: #4a1aa4;
+
+  /* ---- Neutrals (stone) ----
+     --cm-white is the ELEVATED-SURFACE token: every card/modal/stat/panel
+     paints its background from it, so it deliberately DOES darken in dark
+     mode. Anything that means "literal white regardless of theme" — text or
+     a ring sitting on the permanent purple topbar, or on a saturated
+     stage/bet-bar color — uses --cm-on-brand instead.
+
+     --cm-fg is primary ink and DOES invert (light text on a dark canvas in
+     dark mode). A few rules used --cm-fg as a fixed "always dark" anchor for
+     an inverted tooltip/halo chip; those now use --cm-inverse-surface /
+     --cm-inverse-fg, which swap in the *opposite* direction of --cm-fg so
+     the chip keeps popping against whichever canvas is under it. */
   --cm-white: #ffffff;
   --cm-canvas: #f6f5f9;
   --cm-fg: #1c1917;
@@ -123,17 +155,81 @@
   --cm-faint-fg: #a8a29e;
   --cm-border: #e7e5e4;
   --cm-border-strong: #d6d3d1;
+  /* Scrollbar-thumb hover — b8b4b0 sits between --cm-border-strong and
+     --cm-muted-fg, it isn't equal to anything already declared. */
+  --cm-border-hover: #b8b4b0;
   --cm-surface-muted: #f5f5f4;
+  /* The season lane's own fine month/quarter gridlines — close to but not
+     equal to --cm-border or --cm-surface-muted, so it needed its own slot. */
+  --cm-gridline-soft: #eeecea;
+  /* A second "raised panel" surface for floating dropdowns (team filter,
+     dependency search) and a couple of stray inputs that fell back to
+     var(--cm-white) or a bare #fff inconsistently. Same appearance as
+     --cm-white today; themed on its own so it can diverge later without
+     touching every card. */
+  --cm-surface: var(--cm-white);
+  /* Fixed white — never themes. Pair this with anything that is itself
+     always vivid and never themes: the topbar/login-hero gradient, or a
+     component-owned stage/bet-bar color (chosen for contrast against a
+     literal white card). Pair a themed background (--cm-purple, --cm-red…)
+     with --cm-white instead, so the two invert together. */
+  --cm-on-brand: #ffffff;
+  /* A dedicated "pops against whatever's under it" pair for the season hover
+     tooltip and the definition ring drawn around a highlighted bar/swatch —
+     both want a dark chip on a light canvas, but a LIGHT chip once the
+     canvas itself goes dark. */
+  --cm-inverse-surface: #1c1917;
+  --cm-inverse-fg: #ffffff;
+  /* Translucent wash that lifts a board column a touch off the canvas
+     without giving it a hard surface color — was a bare
+     rgba(255,255,255,…) that would render as a bright bar over a dark
+     canvas. */
+  --cm-column-wash: rgba(255, 255, 255, 0.55);
+  /* Modal scrim — dims whatever is behind an open modal. */
+  --cm-scrim: rgba(28, 20, 46, 0.42);
 
   /* ---- Semantic (kept close to original stage palette) ---- */
   --cm-green: #059669;
   --cm-green-surface: #ecfdf5;
+  /* Darker-than-body ink used only where AA text contrast matters more than
+     icon/badge legibility — the detail gate strip's "on track" reading. */
+  --cm-green-strong: #14663c;
   --cm-orange: #ea580c;
   --cm-orange-surface: #fff4ed;
+  --cm-orange-strong: #8a5200;
   --cm-red: #dc2626;
   --cm-red-surface: #fef2f2;
+  /* Same job as --cm-green-strong, plus the danger button's hover fill and
+     the killed-pill/login-error ink that shared a bare #b91c1c in three
+     places. */
+  --cm-red-strong: #b91c1c;
+  /* Darkest red, used only by the detail gate strip's "blocked" reading. */
+  --cm-red-deep: #98243a;
+  /* Border tint shared by .modal-close:hover, .login-error and
+     .detail-gate--bad — one #fca5a5 pasted three times. */
+  --cm-red-line: #fca5a5;
   --cm-blue: #0284c7;
   --cm-blue-surface: #eff6ff;
+  --cm-blue-strong: #1d4ed8;
+  /* Amber family for the blocked/needs-outcome and mismatch pills, which
+     want a warmer, more legible ink than --cm-orange's own text uses. */
+  --cm-amber: #b45309;
+  --cm-amber-surface: #fffbeb;
+  --cm-amber-strong: #a16207;
+  /* Fixed dark chip for a toast — deliberately not the theme's card surface,
+     so a notification always reads as its own floating layer rather than
+     sinking into the canvas once the canvas itself goes dark. */
+  --cm-toast-bg: #26232f;
+  --cm-toast-fg: #ffffff;
+
+  /* ---- Aliases ----
+     An audit found each of these referenced with a fallback (or no fallback
+     at all) but never declared — the fallback was silently THE color, and
+     dark mode could never reach it. Declared as aliases so the one real
+     token drives both. */
+  --cm-danger: var(--cm-red);
+  --cm-warn: var(--cm-orange);
+  --cm-accent: var(--cm-green);
 
   /* ---- Type ---- */
   --cm-font: "General Sans", ui-sans-serif, system-ui, -apple-system,
@@ -160,6 +256,239 @@
 
   /* ---- Focus ---- */
   --ring: 0 0 0 3px rgba(56, 15, 140, 0.22);
+
+  /* ---- Select chevron (baked-in SVG stroke can't inherit currentColor) ---- */
+  --cm-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* =========================================================================
+   Dark theme — token overrides.
+
+   Three states: an explicit <html data-theme="dark"|"light"> wins outright;
+   with no attribute at all ("System"), the OS preference decides. A single
+   selector can't express both "system prefers dark and nothing overrode it"
+   and "user explicitly chose dark", so the dark values are declared TWICE
+   below. The two blocks are a MATCHED PAIR — same tokens, same values, every
+   time one changes the other must too.
+   ========================================================================= */
+@media (prefers-color-scheme: dark) {
+  /* :not([data-theme="light"]) is what lets an explicit Light choice beat a
+     dark OS — without it this block would win on specificity alone. */
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    /* Purple has to lighten to stay legible as text/accent/button-fill on a
+       near-black canvas, so it trades places with the "soft wash" tokens,
+       which go from near-white lavender to a low-opacity dark purple tint.
+       Everywhere a solid purple fill pairs with --cm-white text (buttons,
+       doc-links), the pairing keeps working: the fill lightens, --cm-white
+       darkens into readable ink, and the button ends up as a light-purple
+       chip with dark text instead of a deep-purple chip with white text. */
+    --cm-purple: #a78bfa;
+    --cm-purple-bright: #c4b5fd;
+    --cm-purple-light: #b9a2f0;
+    /* -deep keeps its job (strong-contrast ink on top of a soft wash) — that
+       job now means "lightest of the purples", not darkest. */
+    --cm-purple-deep: #d8cdfa;
+    --cm-purple-soft: #2b1d42;
+    --cm-purple-softer: #211a30;
+    --cm-purple-hover: #c1acf5;
+    /* Deepened, not lightened — this is the one brand token that goes the
+       OPPOSITE direction of --cm-purple in dark mode, on purpose. */
+    --cm-brand-gradient-from: #1a0440;
+    --cm-brand-gradient-mid: #26095e;
+    --cm-brand-gradient-to-topbar: #2e0d6e;
+    --cm-brand-gradient-to-hero: #35116e;
+
+    /* Warm near-black, matching the stone cast of the light palette rather
+       than going blue-gray. Never pure #000. */
+    --cm-white: #1f1c19;
+    --cm-canvas: #14120f;
+    --cm-fg: #f2ede6;
+    --cm-fg-secondary: #cbc3ba;
+    --cm-muted-fg: #a89f94;
+    --cm-faint-fg: #8c8377;
+    --cm-border: #332e2a;
+    --cm-border-strong: #46403a;
+    --cm-border-hover: #5c5349;
+    --cm-surface-muted: #1a1714;
+    --cm-gridline-soft: rgba(255, 255, 255, 0.06);
+    /* Swap in the opposite direction of --cm-fg/--cm-white: the tooltip and
+       halo ring now read as a LIGHT chip, so they keep popping against the
+       now-dark canvas instead of disappearing into it. */
+    --cm-inverse-surface: #f2ede6;
+    --cm-inverse-fg: #1c1917;
+    --cm-column-wash: rgba(255, 255, 255, 0.04);
+    --cm-scrim: rgba(8, 4, 18, 0.68);
+
+    /* Lightened for contrast; surfaces become dark tints instead of
+       near-white ones. */
+    --cm-green: #34d399;
+    --cm-green-surface: #123a2c;
+    --cm-green-strong: #6ee7b7;
+    --cm-orange: #fb923c;
+    --cm-orange-surface: #3a2313;
+    --cm-orange-strong: #fbbf78;
+    --cm-red: #f87171;
+    --cm-red-surface: #3a1414;
+    --cm-red-strong: #fca5a5;
+    --cm-red-deep: #fda4af;
+    --cm-red-line: #7a2f2f;
+    --cm-blue: #38bdf8;
+    --cm-blue-surface: #12283a;
+    --cm-blue-strong: #93c5fd;
+    --cm-amber: #e8a33d;
+    --cm-amber-surface: #332a10;
+    --cm-amber-strong: #f2c14e;
+    --cm-toast-bg: #3a3540;
+
+    /* Black-based, not purple-tinted — a purple-tinted shadow this faint
+       just disappears into a dark canvas. Elevated surfaces keep their
+       1px border for real separation; the shadow does less work here than
+       it does in light mode, by design. */
+    --sh-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+    --sh-md: 0 2px 4px -2px rgba(0, 0, 0, 0.5),
+      0 6px 16px -4px rgba(0, 0, 0, 0.6);
+    --sh-lg: 0 4px 8px -4px rgba(0, 0, 0, 0.55),
+      0 16px 40px -12px rgba(0, 0, 0, 0.7);
+    --sh-card-hover: 0 2px 6px -2px rgba(0, 0, 0, 0.5),
+      0 12px 28px -8px rgba(167, 139, 250, 0.3);
+    --ring: 0 0 0 3px rgba(167, 139, 250, 0.45);
+
+    --cm-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  /* A light card at 60% opacity fades gracefully onto a light canvas; the
+     same 60% over a dark canvas muddies the border/shadow that's carrying
+     all the separation now that the shadow itself is barely visible. */
+  :root:not([data-theme="light"]) .card.killed {
+    opacity: 0.7;
+  }
+  /* Tuned quiet-by-default for a light canvas — 16%/18% purple read against
+     a dark one is barely there. */
+  :root:not([data-theme="light"]) .tl-create-ghost {
+    background: color-mix(in srgb, var(--cm-purple) 24%, transparent);
+  }
+  :root:not([data-theme="light"]) .tl-milestone-line {
+    opacity: 0.28;
+  }
+  /* The toast's own background is a lifted-but-still-dark chip (see
+     --cm-toast-bg), so a hairline border earns back the edge definition a
+     pure background-color shift can't provide against a dark canvas. */
+  :root:not([data-theme="light"]) .toast {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  /* Modernization-type chips read their dark half of ITEM_TYPE_INFO's inline
+     pair instead of the light half. */
+  :root:not([data-theme="light"]) .pill-type,
+  :root:not([data-theme="light"]) .detail-chip--type {
+    color: var(--type-fg-dark);
+    background: var(--type-bg-dark);
+  }
+  :root:not([data-theme="light"]) .tl-legend .swatch.swatch-type,
+  :root:not([data-theme="light"]) .tl-bar .tl-type-dot {
+    background: var(--type-fg-dark);
+  }
+  /* Releasing (#27065C) is a near-black identity purple — unreadable as text
+     on a dark ground at any reasonable mix. Blending the hue toward the
+     theme's own ink keeps every stage recognizable while guaranteeing
+     contrast; --stage-color itself (used elsewhere for bars/columns) is
+     untouched, only this chip's rendered text is computed differently. */
+  :root:not([data-theme="light"]) .pill-stage {
+    background: color-mix(in srgb, var(--stage-color) 30%, transparent);
+    color: color-mix(in srgb, var(--stage-color) 45%, var(--cm-fg));
+  }
+}
+
+/* MATCHED PAIR — see the @media block above. Same tokens, same values; an
+   explicit Dark choice needs to win over a light OS, which the media query
+   alone can't do. Keep every change here in lockstep with the block above. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --cm-purple: #a78bfa;
+  --cm-purple-bright: #c4b5fd;
+  --cm-purple-light: #b9a2f0;
+  --cm-purple-deep: #d8cdfa;
+  --cm-purple-soft: #2b1d42;
+  --cm-purple-softer: #211a30;
+  --cm-purple-hover: #c1acf5;
+  --cm-brand-gradient-from: #1a0440;
+  --cm-brand-gradient-mid: #26095e;
+  --cm-brand-gradient-to-topbar: #2e0d6e;
+  --cm-brand-gradient-to-hero: #35116e;
+
+  --cm-white: #1f1c19;
+  --cm-canvas: #14120f;
+  --cm-fg: #f2ede6;
+  --cm-fg-secondary: #cbc3ba;
+  --cm-muted-fg: #a89f94;
+  --cm-faint-fg: #8c8377;
+  --cm-border: #332e2a;
+  --cm-border-strong: #46403a;
+  --cm-border-hover: #5c5349;
+  --cm-surface-muted: #1a1714;
+  --cm-gridline-soft: rgba(255, 255, 255, 0.06);
+  --cm-inverse-surface: #f2ede6;
+  --cm-inverse-fg: #1c1917;
+  --cm-column-wash: rgba(255, 255, 255, 0.04);
+  --cm-scrim: rgba(8, 4, 18, 0.68);
+
+  --cm-green: #34d399;
+  --cm-green-surface: #123a2c;
+  --cm-green-strong: #6ee7b7;
+  --cm-orange: #fb923c;
+  --cm-orange-surface: #3a2313;
+  --cm-orange-strong: #fbbf78;
+  --cm-red: #f87171;
+  --cm-red-surface: #3a1414;
+  --cm-red-strong: #fca5a5;
+  --cm-red-deep: #fda4af;
+  --cm-red-line: #7a2f2f;
+  --cm-blue: #38bdf8;
+  --cm-blue-surface: #12283a;
+  --cm-blue-strong: #93c5fd;
+  --cm-amber: #e8a33d;
+  --cm-amber-surface: #332a10;
+  --cm-amber-strong: #f2c14e;
+  --cm-toast-bg: #3a3540;
+
+  --sh-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --sh-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+  --sh-md: 0 2px 4px -2px rgba(0, 0, 0, 0.5), 0 6px 16px -4px rgba(0, 0, 0, 0.6);
+  --sh-lg: 0 4px 8px -4px rgba(0, 0, 0, 0.55),
+    0 16px 40px -12px rgba(0, 0, 0, 0.7);
+  --sh-card-hover: 0 2px 6px -2px rgba(0, 0, 0, 0.5),
+    0 12px 28px -8px rgba(167, 139, 250, 0.3);
+  --ring: 0 0 0 3px rgba(167, 139, 250, 0.45);
+
+  --cm-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root[data-theme="dark"] .card.killed {
+  opacity: 0.7;
+}
+:root[data-theme="dark"] .tl-create-ghost {
+  background: color-mix(in srgb, var(--cm-purple) 24%, transparent);
+}
+:root[data-theme="dark"] .tl-milestone-line {
+  opacity: 0.28;
+}
+:root[data-theme="dark"] .toast {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+:root[data-theme="dark"] .pill-type,
+:root[data-theme="dark"] .detail-chip--type {
+  color: var(--type-fg-dark);
+  background: var(--type-bg-dark);
+}
+:root[data-theme="dark"] .tl-legend .swatch.swatch-type,
+:root[data-theme="dark"] .tl-bar .tl-type-dot {
+  background: var(--type-fg-dark);
+}
+:root[data-theme="dark"] .pill-stage {
+  background: color-mix(in srgb, var(--stage-color) 30%, transparent);
+  color: color-mix(in srgb, var(--stage-color) 45%, var(--cm-fg));
 }
 
 *,
@@ -213,13 +542,13 @@ textarea {
   width: 12px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
+  background: var(--cm-border-strong);
   border: 3px solid transparent;
   background-clip: content-box;
   border-radius: var(--r-pill);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #b8b4b0;
+  background: var(--cm-border-hover);
   border: 3px solid transparent;
   background-clip: content-box;
 }
@@ -229,13 +558,21 @@ textarea {
    ========================================================================= */
 header.topbar {
   position: relative;
+  /* Deliberately its own token family, not --cm-purple/-deep: those two
+     lighten in dark mode for text/accent legibility, which would wash a
+     "brand background" out. --cm-brand-gradient-* resolves to the original
+     #27065c/#380f8c/#45169e in light mode (pixel-identical to before this
+     pass) and deepens on its own schedule in dark mode. */
   background: linear-gradient(
     104deg,
-    var(--cm-purple-deep) 0%,
-    var(--cm-purple) 58%,
-    #45169e 100%
+    var(--cm-brand-gradient-from) 0%,
+    var(--cm-brand-gradient-mid) 58%,
+    var(--cm-brand-gradient-to-topbar) 100%
   );
-  color: var(--cm-white);
+  /* Fixed white — this text sits on the brand-gradient tokens above, which
+     don't invert with the theme the way --cm-white does, so it pairs with
+     --cm-on-brand instead. */
+  color: var(--cm-on-brand);
   padding: 15px 28px;
   display: flex;
   align-items: center;
@@ -383,6 +720,15 @@ button.sync-chip:disabled {
   border-color: rgba(255, 214, 102, 0.5);
   color: #ffe6a3;
 }
+/* Icon-only theme cycle button (light/dark/system) — same glass treatment as
+   the chip it's a modifier on, but square instead of a text pill: the
+   horizontal text padding drops to match the icon's own footprint, sized to
+   land near .user-chip/.link-button's height so the topbar row reads even.
+   Always the white-on-glass topbar treatment — no dark-mode variant, because
+   the topbar itself never themes. */
+.theme-toggle {
+  padding: 9px;
+}
 .sync-spin {
   animation: sync-spin 1s linear infinite;
 }
@@ -404,7 +750,12 @@ button.sync-chip:disabled {
   align-items: center;
   gap: 6px;
   background: #fff;
-  color: var(--cm-purple-deep);
+  /* Pinned, not var(--cm-purple-deep): this badge's background is the fixed
+     white above (never themes, part of the topbar cluster), and
+     --cm-purple-deep now lightens in dark mode for its other job — text on
+     top of a purple-soft wash. That lightened value would be illegible on
+     this always-white pill, so it keeps the light-mode hex directly. */
+  color: #27065c;
   font-weight: 700;
   font-size: 0.66rem;
   letter-spacing: 0.05em;
@@ -510,7 +861,7 @@ select.cm-select {
   font-weight: 500;
   background-color: var(--cm-white);
   color: var(--cm-fg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: var(--cm-select-arrow);
   background-repeat: no-repeat;
   background-position: right 10px center;
   box-shadow: var(--sh-xs);
@@ -553,11 +904,11 @@ button.team-filter-btn.active {
   min-width: 220px;
   max-height: 320px;
   overflow-y: auto;
-  background: var(--cm-surface, var(--cm-white));
+  background: var(--cm-surface);
   border: 1px solid var(--cm-border-strong);
   border-radius: var(--r-md);
   padding: 6px;
-  box-shadow: var(--sh-md, var(--sh-xs));
+  box-shadow: var(--sh-md);
 }
 .team-filter-option {
   display: flex;
@@ -685,7 +1036,7 @@ button.team-filter-btn.active {
     border-color 0.15s, color 0.15s;
 }
 .cm-button:hover {
-  background: #431aa0;
+  background: var(--cm-purple-hover);
   text-decoration: none;
 }
 .cm-button:active {
@@ -726,7 +1077,7 @@ button.team-filter-btn.active {
   border-color: var(--cm-red);
 }
 .cm-button--danger:hover {
-  background: #b91c1c;
+  background: var(--cm-red-strong);
 }
 .cm-button[disabled] {
   opacity: 0.45;
@@ -737,13 +1088,13 @@ button.team-filter-btn.active {
 }
 /* A muted destructive outlined button — turns red on hover. */
 .settings-danger:not([disabled]) {
-  color: var(--cm-danger, #d64545);
-  border-color: color-mix(in srgb, var(--cm-danger, #d64545) 32%, transparent);
+  color: var(--cm-danger);
+  border-color: color-mix(in srgb, var(--cm-danger) 32%, transparent);
 }
 .settings-danger:not([disabled]):hover {
-  background: color-mix(in srgb, var(--cm-danger, #d64545) 10%, transparent);
-  border-color: var(--cm-danger, #d64545);
-  color: var(--cm-danger, #d64545);
+  background: color-mix(in srgb, var(--cm-danger) 10%, transparent);
+  border-color: var(--cm-danger);
+  color: var(--cm-danger);
 }
 /* Hairline separating the weights sliders from the dependencies reset. */
 .settings-divider {
@@ -904,7 +1255,7 @@ body.exporting .tl-pin-slot {
   flex: 1 1 288px;
   min-width: 288px;
   max-width: 520px;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--cm-column-wash);
   border: 1px solid var(--cm-border);
   border-radius: var(--r-lg);
   padding: 12px 11px 14px;
@@ -1151,26 +1502,39 @@ body.exporting .tl-pin-slot {
 }
 /* Modernization-type chip (Modernize / New value / Both). Colors are set inline
    per type from ITEM_TYPE_INFO so the swatch matches the owner-grouped roadmap
-   view; this rule just carries the shared pill shape. */
+   view; this rule just carries the shared pill shape. ITEM_TYPE_INFO supplies
+   both a light pair (--type-fg/--type-bg) and a dark pair (--type-fg-dark/
+   --type-bg-dark) as inline custom properties — the theme decides which pair
+   this rule reads, the component doesn't have to know which theme is active. */
 .pill-type {
   border: 1px solid transparent;
+  color: var(--type-fg);
+  background: var(--type-bg);
+}
+/* Horizon view's stage chip (HorizonView.tsx). --stage-color is an identity
+   color (STAGE_COLORS) and must NOT vary by theme — only the tint mixed
+   around it does. 12% reproduces the old `stageColor + "1f"` hex-alpha hack
+   exactly, so light mode is pixel-identical to before. */
+.pill-stage {
+  background: color-mix(in srgb, var(--stage-color) 12%, transparent);
+  color: var(--stage-color);
 }
 .pill-blocked,
 .pill-needsoutcome {
   background: var(--cm-orange-surface);
-  color: #b45309;
+  color: var(--cm-amber);
 }
 .pill-killed {
   background: var(--cm-red-surface);
-  color: #b91c1c;
+  color: var(--cm-red-strong);
 }
 .pill-waiting {
   background: var(--cm-blue-surface);
-  color: #1d4ed8;
+  color: var(--cm-blue-strong);
 }
 .pill-mismatch {
-  background: #fffbeb;
-  color: #a16207;
+  background: var(--cm-amber-surface);
+  color: var(--cm-amber-strong);
 }
 .pill-progress {
   background: var(--cm-green-surface);
@@ -1362,7 +1726,10 @@ body.exporting .tl-pin-slot {
   min-width: 3px;
 }
 .stage-dist-seg + .stage-dist-seg {
-  border-left: 1px solid var(--cm-white);
+  /* A crisp gap between two component-owned segment colors, not a card
+     surface — fixed white regardless of theme, like the dependency-link
+     dot's border below. */
+  border-left: 1px solid var(--cm-on-brand);
 }
 .team-stats {
   display: flex;
@@ -1442,7 +1809,7 @@ body.exporting .tl-pin-slot {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(28, 20, 46, 0.42);
+  background: var(--cm-scrim);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-start;
@@ -1517,7 +1884,7 @@ body.exporting .tl-pin-slot {
 .modal-close:hover {
   background: var(--cm-red-surface);
   color: var(--cm-red);
-  border-color: #fca5a5;
+  border-color: var(--cm-red-line);
 }
 .modal-body {
   flex: 1;
@@ -1573,7 +1940,7 @@ body.exporting .tl-pin-slot {
 }
 .field select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: var(--cm-select-arrow);
   background-repeat: no-repeat;
   background-position: right 11px center;
   padding-right: 34px;
@@ -1922,6 +2289,10 @@ body.exporting .tl-pin-slot {
      hover card hangs well below the row it belongs to. */
   clip-path: inset(0 0 -320px 0);
   box-shadow: 0 6px 14px -10px rgba(0, 0, 0, 0.4);
+  /* The shadow above is this stack's only separation from the scrolling
+     content beneath it — on a dark canvas a black shadow at low opacity is
+     close to invisible, so a real border backs it up in both themes. */
+  border-bottom: 1px solid var(--cm-border);
 }
 /* The horizontal half of the sync. --pin-x is the pane's scrollLeft: the track
    slides under the window by that much... */
@@ -2010,7 +2381,7 @@ body.exporting .tl-pin-slot {
   top: 0;
   bottom: 0;
   width: 1px;
-  background: #f5f5f4;
+  background: var(--cm-surface-muted);
 }
 .tl-gridline.q {
   background: var(--cm-border);
@@ -2176,7 +2547,10 @@ body.share-mode .tl-milestone-flag {
   height: 26px;
   border-radius: var(--r-sm);
   background: var(--bar-color, var(--cm-purple));
-  color: var(--cm-white);
+  /* Fixed white: --bar-color is a component-owned STAGE_COLORS value, chosen
+     for contrast against a literal white and unchanged between themes, so
+     the text on top of it has to stay fixed too. */
+  color: var(--cm-on-brand);
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 26px;
@@ -2224,7 +2598,12 @@ body.share-mode .tl-milestone-flag {
   background: rgba(255, 255, 255, 0.35);
 }
 /* Small solid dot at the start of a bar's label marking the item's
-   modernization type; color is set inline from ITEM_TYPE_INFO. */
+   modernization type; ITEM_TYPE_INFO supplies the fg/fg-dark pair as inline
+   custom properties. This sits on a component-owned, non-themed bar color,
+   same as .tl-link-dot's ring — so the separator ring is --cm-on-brand
+   (still literally the same rgba(255,255,255,0.7) value, just tied to the
+   token now for consistency with the rest of that migration) rather than a
+   bare rgba literal. */
 .tl-bar .tl-type-dot {
   display: inline-block;
   width: 7px;
@@ -2232,7 +2611,8 @@ body.share-mode .tl-milestone-flag {
   border-radius: 50%;
   margin-right: 5px;
   vertical-align: middle;
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.7);
+  background: var(--type-fg);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--cm-on-brand) 70%, transparent);
 }
 body.share-mode .tl-bar {
   cursor: pointer;
@@ -2275,7 +2655,9 @@ body.share-mode .tl-bar .tl-handle {
 }
 .tl-bar.sub.done {
   background: var(--bar-color, var(--cm-purple));
-  color: var(--cm-white);
+  /* Same reasoning as .tl-bar above: filled with the component-owned bar
+     color, so the text stays fixed white rather than following the theme. */
+  color: var(--cm-on-brand);
   opacity: 0.7;
 }
 .tl-bar.sub.done .sub-label {
@@ -2425,7 +2807,10 @@ body.share-mode .tl-bar .tl-handle {
   z-index: 2;
 }
 .tl-season-rows.strips .tl-season-gridlines line {
-  stroke: var(--cm-white);
+  /* Divides a strip's own fixed LANE_INK fill, not a card surface — fixed
+     white so it still shows once the fill's hue is the only themed thing
+     nearby. */
+  stroke: var(--cm-on-brand);
   opacity: 0.5;
 }
 .tl-season-rows.strips .tl-season-gridlines line.q {
@@ -2448,7 +2833,7 @@ body.share-mode .tl-bar .tl-handle {
   pointer-events: none;
 }
 .tl-season-gridlines line {
-  stroke: #eeecea;
+  stroke: var(--cm-gridline-soft);
   stroke-width: 1;
 }
 .tl-season-gridlines line.q {
@@ -2505,8 +2890,11 @@ body.share-mode .tl-bar .tl-handle {
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
   /* Nearly opaque, and bordered: the fill is densest exactly here at the
      baseline, and a name that fights the curve behind it is a name nobody
-     reads. */
-  background: color-mix(in srgb, var(--cm-white) 95%, transparent);
+     reads. Mixed toward --cm-on-brand (fixed white), not --cm-white — the
+     curve's fill is a fixed LANE_INK color in both themes, so the label
+     backing it has to stay fixed too or the "nearly opaque" backing goes
+     translucent-over-dark instead of translucent-over-white. */
+  background: color-mix(in srgb, var(--cm-on-brand) 95%, transparent);
   border: 1px solid var(--cm-border);
   border-left: 0;
   font-size: 0.6rem;
@@ -2532,7 +2920,10 @@ body.share-mode .tl-bar .tl-handle {
   top: 0;
   bottom: 0;
   width: 1px;
-  background: var(--cm-fg);
+  /* This is the stem leading up to .tl-season-tip below, so it takes the
+     tooltip's own inverse-surface color rather than the (now-inverting)
+     body ink — it should always match the chip it points at. */
+  background: var(--cm-inverse-surface);
   opacity: 0.35;
   pointer-events: none;
 }
@@ -2547,8 +2938,13 @@ body.share-mode .tl-bar .tl-handle {
   padding: 7px 10px;
   transform: translateX(10px);
   border-radius: var(--r-sm);
-  background: var(--cm-fg);
-  color: var(--cm-white);
+  /* A dark chip in light mode, meant to pop against whatever it's floating
+     over — var(--cm-fg) used to stand in for "always dark", which broke once
+     --cm-fg started inverting with the theme. --cm-inverse-surface/-fg swap
+     the OTHER way, so this stays a chip that contrasts with the canvas
+     rather than blending into it once the canvas itself goes dark. */
+  background: var(--cm-inverse-surface);
+  color: var(--cm-inverse-fg);
   font-size: 0.66rem;
   line-height: 1.45;
   box-shadow: var(--sh-sm);
@@ -2573,7 +2969,14 @@ body.share-mode .tl-bar .tl-handle {
    Collapsible like the season lanes; see TimelineView.tsx. */
 .tl-bet-band {
   position: relative;
-  background: var(--cm-surface, rgba(122, 90, 248, 0.04));
+  /* Not --cm-surface: that fallback was really "an undeclared token that
+     happened to always read as this faint purple wash" — the intent here is
+     a translucent purple tint over the canvas, not an opaque panel, so it
+     gets its own color-mix rather than borrowing the raised-surface token.
+     --cm-purple already lightens in dark mode, so the tint stays visible
+     instead of a fixed rgba washing out (or disappearing) against a canvas
+     that's also changed. */
+  background: color-mix(in srgb, var(--cm-purple) 4%, transparent);
   border-bottom: 2px solid var(--cm-border);
 }
 .tl-bet-band.open {
@@ -2658,8 +3061,11 @@ body.share-mode .tl-bar .tl-handle {
 }
 .tl-bar.hl {
   z-index: 5;
-  box-shadow: 0 0 0 2px var(--cm-white), 0 0 0 4px var(--bar-color, var(--cm-purple)),
-    var(--sh-md);
+  /* The inner ring is a fixed-white separator stroke between the bar's own
+     component-owned color and the outer ring, same job as .tl-link-dot's
+     border below — fixed white so the gap stays a gap in both themes. */
+  box-shadow: 0 0 0 2px var(--cm-on-brand),
+    0 0 0 4px var(--bar-color, var(--cm-purple)), var(--sh-md);
 }
 
 /* BetModal: color swatches + team segment rows. */
@@ -2677,8 +3083,14 @@ body.share-mode .tl-bar .tl-handle {
   box-shadow: var(--sh-xs);
 }
 .init-swatch.active {
-  border-color: var(--cm-fg);
-  box-shadow: 0 0 0 2px var(--cm-white), 0 0 0 4px var(--cm-fg);
+  /* The swatch's own fill is an arbitrary bet color, so the "selected" ring
+     needs to read as a dark outline against the modal's card surface in
+     light mode — and as a light one once that surface goes dark.
+     --cm-inverse-surface swaps for exactly that; --cm-fg used to stand in
+     for it but breaks once --cm-fg itself inverts. The inner 2px stays fixed
+     white — a stroke separating the swatch's own color from the ring. */
+  border-color: var(--cm-inverse-surface);
+  box-shadow: 0 0 0 2px var(--cm-on-brand), 0 0 0 4px var(--cm-inverse-surface);
 }
 .init-seg-row {
   display: flex;
@@ -2780,7 +3192,9 @@ body.share-mode .tl-bar .tl-handle {
   height: 10px;
   border-radius: 50%;
   background: var(--bar-color, var(--cm-purple));
-  border: 2px solid var(--cm-white);
+  /* Fixed white stroke separating the dot's component-owned bar color from
+     the row behind it, same reasoning as .tl-bar.hl's inner ring. */
+  border: 2px solid var(--cm-on-brand);
   box-shadow: var(--sh-xs);
   transition: transform 0.1s;
 }
@@ -2840,6 +3254,11 @@ body.share-mode .tl-link-handle {
   border-radius: 3px;
   margin-right: 5px;
   vertical-align: -1px;
+}
+/* Modernization-type sample in the legend — same ITEM_TYPE_INFO pair as
+   .pill-type/.tl-type-dot, just the fg half (no background chip here). */
+.tl-legend .swatch.swatch-type {
+  background: var(--type-fg);
 }
 /* Sample swatches that mirror the on-timeline bet bars: a striped
    rollup envelope and an outlined-pill team slice, both in a sample
@@ -2923,7 +3342,7 @@ body.share-mode .tl-link-handle {
   padding: 3px 10px;
 }
 .tl-tray-card .place-btn:hover {
-  background: #431aa0;
+  background: var(--cm-purple-hover);
 }
 
 /* =========================================================================
@@ -3214,7 +3633,9 @@ body.share-mode .sub-row--read:hover {
   box-shadow: var(--sh-xs);
 }
 .proto-row--exploring {
-  border-left-color: var(--cm-orange, #ffa61e);
+  /* --cm-orange is a real token — the #ffa61e fallback was dead code with a
+     value that didn't even match it. */
+  border-left-color: var(--cm-orange);
 }
 .proto-row--chosen {
   border-left-color: var(--cm-green);
@@ -3239,7 +3660,7 @@ body.share-mode .sub-row--read:hover {
   font-size: 0.79rem;
   width: 100%;
   box-shadow: var(--sh-xs);
-  background: var(--cm-surface, #fff);
+  background: var(--cm-surface);
 }
 .proto-row input:focus,
 .proto-row select:focus {
@@ -3323,20 +3744,20 @@ body.share-mode .sub-row--read:hover {
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--cm-fg-muted);
+  color: var(--cm-muted-fg);
   font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
 }
 .dep-chip-remove:hover {
-  background: color-mix(in srgb, var(--cm-danger, #e5484d) 16%, transparent);
-  color: var(--cm-danger, #e5484d);
+  background: color-mix(in srgb, var(--cm-danger) 16%, transparent);
+  color: var(--cm-danger);
 }
 
 .dep-empty {
   font-size: 0.79rem;
-  color: var(--cm-fg-muted);
+  color: var(--cm-muted-fg);
   margin-bottom: 8px;
 }
 
@@ -3355,11 +3776,11 @@ body.share-mode .sub-row--read:hover {
   z-index: 20;
   max-height: 220px;
   overflow-y: auto;
-  background: var(--cm-surface, var(--cm-white));
+  background: var(--cm-surface);
   border: 1px solid var(--cm-border-strong);
   border-radius: var(--r-md);
   padding: 4px;
-  box-shadow: var(--sh-md, var(--sh-xs));
+  box-shadow: var(--sh-md);
 }
 .dep-search-option {
   display: flex;
@@ -3385,7 +3806,7 @@ body.share-mode .sub-row--read:hover {
 }
 .dep-search-empty {
   font-size: 0.76rem;
-  color: var(--cm-fg-muted);
+  color: var(--cm-muted-fg);
   padding: 8px;
 }
 
@@ -3405,8 +3826,14 @@ body.share-mode .sub-row--read:hover {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  background: #26232f;
-  color: #fff;
+  /* Deliberately a dark chip even in light mode — it's a floating system
+     notification, not a card. --cm-toast-bg lifts a step in dark mode
+     (lighter than the elevated-surface token) with a hairline border, so it
+     still reads as its own layer instead of sinking into a canvas that's
+     now dark too. */
+  background: var(--cm-toast-bg);
+  color: var(--cm-toast-fg);
+  border: 1px solid transparent;
   padding: 13px 16px 13px 14px;
   border-radius: var(--r-md);
   font-size: 0.82rem;
@@ -3425,14 +3852,14 @@ body.share-mode .sub-row--read:hover {
   margin-top: 6px;
   border-radius: 50%;
   background: var(--cm-green);
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.28);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cm-green) 28%, transparent);
 }
 .toast.warn {
   border-left-color: var(--cm-orange);
 }
 .toast.warn::before {
   background: var(--cm-orange);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.28);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cm-orange) 28%, transparent);
 }
 @keyframes toast-in {
   from {
@@ -3746,14 +4173,19 @@ body.share-mode .sub-row--read:hover {
   display: flex;
   align-items: center;
   padding: 56px 6vw;
-  color: var(--cm-white);
+  /* Fixed white, same reasoning as header.topbar: this text sits on the
+     brand-gradient tokens below, not on --cm-white (which themes). */
+  color: var(--cm-on-brand);
+  /* Same --cm-brand-gradient-* tokens as header.topbar — light mode resolves
+     to the original #27065c/#380f8c/#4a1aa4, dark mode deepens. -to-hero is
+     its own token since this gradient's third stop was never the topbar's. */
   background: linear-gradient(
       135deg,
-      var(--cm-purple-deep) 0%,
-      var(--cm-purple) 55%,
-      #4a1aa4 100%
+      var(--cm-brand-gradient-from) 0%,
+      var(--cm-brand-gradient-mid) 55%,
+      var(--cm-brand-gradient-to-hero) 100%
     ),
-    var(--cm-purple-deep);
+    var(--cm-brand-gradient-from);
 }
 .login-hero::before {
   content: "";
@@ -3966,8 +4398,8 @@ body.share-mode .sub-row--read:hover {
   align-items: center;
   gap: 8px;
   background: var(--cm-red-surface);
-  border: 1px solid #fca5a5;
-  color: #b91c1c;
+  border: 1px solid var(--cm-red-line);
+  color: var(--cm-red-strong);
   font-size: 0.8rem;
   font-weight: 500;
   padding: 11px 13px;
@@ -4215,7 +4647,7 @@ select.cm-select--draft {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--cm-muted);
+  color: var(--cm-muted-fg);
 }
 .bet-section:first-child {
   margin-top: 0;
@@ -4234,7 +4666,7 @@ select.cm-select--draft {
 /* A warning that explains rather than blocks — the posture used everywhere else
    in Loop for horizon mismatches and dependency conflicts. */
 .bet-warn {
-  color: var(--cm-warn, #b26a00);
+  color: var(--cm-warn);
 }
 
 /* The declared-JTBD picker: 32 toggles, so they wrap and stay compact. */
@@ -4253,7 +4685,7 @@ select.cm-select--draft {
   border: 1px solid var(--cm-border);
   border-radius: 999px;
   background: transparent;
-  color: var(--cm-muted);
+  color: var(--cm-muted-fg);
   font-size: 12px;
   cursor: pointer;
 }
@@ -4264,7 +4696,11 @@ select.cm-select--draft {
 .bet-jtbd.active {
   background: var(--cm-fg);
   border-color: var(--cm-fg);
-  color: var(--cm-bg);
+  /* --cm-fg inverts with the theme, so the fill above is dark-on-light or
+     light-on-dark depending on mode — --cm-white pairs correctly either way
+     (it darkens right along with the rest of the surface system), which a
+     literal "--cm-bg" (never declared) could not. */
+  color: var(--cm-white);
 }
 
 /* Linked epics. Each row carries the funder toggle, so the funded/enabled
@@ -4294,7 +4730,7 @@ select.cm-select--draft {
   grid-column: 1;
   grid-row: 2;
   font-size: 11px;
-  color: var(--cm-muted);
+  color: var(--cm-muted-fg);
 }
 .bet-fund {
   grid-row: 1 / span 2;
@@ -4302,15 +4738,15 @@ select.cm-select--draft {
   border: 1px solid var(--cm-border);
   border-radius: 999px;
   background: transparent;
-  color: var(--cm-muted);
+  color: var(--cm-muted-fg);
   font-size: 11px;
   white-space: nowrap;
   cursor: pointer;
 }
 .bet-fund.active {
-  background: var(--cm-accent, #12b76a);
-  border-color: var(--cm-accent, #12b76a);
-  color: #fff;
+  background: var(--cm-accent);
+  border-color: var(--cm-accent);
+  color: var(--cm-white);
 }
 .bet-link .dep-chip-remove {
   grid-row: 1 / span 2;
@@ -4327,14 +4763,16 @@ select.cm-select--draft {
   border: 1px solid var(--cm-border);
   border-radius: 6px;
   background: transparent;
-  color: var(--cm-muted);
+  color: var(--cm-muted-fg);
   font-size: 12px;
   cursor: pointer;
 }
 .bet-score-dot.on {
   background: var(--cm-fg);
   border-color: var(--cm-fg);
-  color: var(--cm-bg);
+  /* Same reasoning as .bet-jtbd.active above — pairs with the inverting
+     --cm-fg via --cm-white, not an undeclared "--cm-bg". */
+  color: var(--cm-white);
 }
 
 /* =========================================================================
@@ -4424,6 +4862,14 @@ select.cm-select--draft {
   border-radius: 50%;
   background: var(--stage-color, var(--cm-purple));
 }
+/* Modernization-type chip in the detail summary — same ITEM_TYPE_INFO pair
+   as .pill-type on the board card. The component sets borderColor:
+   transparent inline (overriding the shared .detail-chip border), so this
+   rule only owns the fill. */
+.detail-chip--type {
+  color: var(--type-fg);
+  background: var(--type-bg);
+}
 
 /* The gate strip: the single most important sentence on the page. */
 .detail-gate {
@@ -4442,20 +4888,23 @@ select.cm-select--draft {
   flex-shrink: 0;
   margin-top: 2px;
 }
+/* All three variants share one shape — an ink token for AA text contrast,
+   plus a background/border mixed toward the surface token so they darken
+   along with every other card instead of staying pinned toward white. */
 .detail-gate--good {
-  color: #14663c;
+  color: var(--cm-green-strong);
   background: color-mix(in srgb, var(--cm-green) 8%, var(--cm-white));
   border-color: color-mix(in srgb, var(--cm-green) 28%, var(--cm-white));
 }
 .detail-gate--warn {
-  color: #8a5200;
-  background: #fff7e8;
-  border-color: #fcd9a1;
+  color: var(--cm-orange-strong);
+  background: color-mix(in srgb, var(--cm-orange) 10%, var(--cm-white));
+  border-color: color-mix(in srgb, var(--cm-orange) 32%, var(--cm-white));
 }
 .detail-gate--bad {
-  color: #98243a;
-  background: var(--cm-red-surface);
-  border-color: #fca5a5;
+  color: var(--cm-red-deep);
+  background: color-mix(in srgb, var(--cm-red) 8%, var(--cm-white));
+  border-color: color-mix(in srgb, var(--cm-red) 28%, var(--cm-white));
 }
 .detail-gate-text {
   font-weight: 600;
@@ -4480,7 +4929,10 @@ select.cm-select--draft {
   transition: background 0.14s;
 }
 .detail-gate-jump:hover {
-  background: rgba(255, 255, 255, 0.7);
+  /* currentColor, not a fixed white wash: the jump inherits its gate
+     variant's ink color, so a tint of that same color reads as "pressed" in
+     both themes instead of a 70% white overlay blowing out on dark. */
+  background: color-mix(in srgb, currentColor 16%, transparent);
 }
 .detail-gate-jump.is-static {
   cursor: default;

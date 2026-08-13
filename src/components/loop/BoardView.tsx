@@ -298,8 +298,10 @@ function BoardCard({
           <span
             className="pill pill-type"
             style={{
-              color: ITEM_TYPE_INFO[item.type].fg,
-              background: ITEM_TYPE_INFO[item.type].bg,
+              ["--type-fg" as string]: ITEM_TYPE_INFO[item.type].fg,
+              ["--type-bg" as string]: ITEM_TYPE_INFO[item.type].bg,
+              ["--type-fg-dark" as string]: ITEM_TYPE_INFO[item.type].fgDark,
+              ["--type-bg-dark" as string]: ITEM_TYPE_INFO[item.type].bgDark,
             }}
           >
             {ITEM_TYPE_INFO[item.type].label}

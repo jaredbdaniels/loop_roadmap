@@ -144,8 +144,8 @@ function HorizonCard({ item }: { item: Item }) {
       <div>
         <MissionTag mission={item.mission} className="pill pill-mission" />
         <span
-          className="pill"
-          style={{ background: stageColor + "1f", color: stageColor }}
+          className="pill pill-stage"
+          style={{ ["--stage-color" as string]: stageColor }}
         >
           {item.stage}
         </span>

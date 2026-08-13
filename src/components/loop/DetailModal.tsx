@@ -1896,10 +1896,12 @@ function DetailSummary({
         {horizon && <span className="detail-chip">{horizon}</span>}
         {typeInfo && (
           <span
-            className="detail-chip"
+            className="detail-chip detail-chip--type"
             style={{
-              background: typeInfo.bg,
-              color: typeInfo.fg,
+              ["--type-fg" as string]: typeInfo.fg,
+              ["--type-bg" as string]: typeInfo.bg,
+              ["--type-fg-dark" as string]: typeInfo.fgDark,
+              ["--type-bg-dark" as string]: typeInfo.bgDark,
               borderColor: "transparent",
             }}
           >

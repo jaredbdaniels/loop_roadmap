@@ -66,13 +66,38 @@ export type ItemType = (typeof ITEM_TYPES)[number];
 // Label + colors per type, matching the owner-grouped roadmap HTML: navy for
 // modernization, green for new value, purple for both. `fg` is the accent used
 // for text and the chip's left border; `bg` is the chip fill.
+//
+// `fgDark`/`bgDark` are the same three hues re-lit for a dark surface: the
+// light-mode `fg` navy/green/purple would be near-invisible on a dark
+// background, and the pastel `bg` values would read as a stray white box, so
+// dark mode gets a light tint for the text and a deep, low-key tint for the
+// fill instead. Each pair keeps its hue identity — still recognizably
+// navy/green/purple — so a chip means the same thing in either theme.
 export const ITEM_TYPE_INFO: Record<
   ItemType,
-  { label: string; fg: string; bg: string }
+  { label: string; fg: string; bg: string; fgDark: string; bgDark: string }
 > = {
-  modernize: { label: "Modernize", fg: "#1F2A5A", bg: "#E4EAF6" },
-  "new-value": { label: "New value", fg: "#1E7A63", bg: "#DEF1EB" },
-  both: { label: "Both", fg: "#6A3FA0", bg: "#EDE6F7" },
+  modernize: {
+    label: "Modernize",
+    fg: "#1F2A5A",
+    bg: "#E4EAF6",
+    fgDark: "#AEC0F5",
+    bgDark: "#1E2A4D",
+  },
+  "new-value": {
+    label: "New value",
+    fg: "#1E7A63",
+    bg: "#DEF1EB",
+    fgDark: "#7FE0C0",
+    bgDark: "#163D33",
+  },
+  both: {
+    label: "Both",
+    fg: "#6A3FA0",
+    bg: "#EDE6F7",
+    fgDark: "#CBA8F0",
+    bgDark: "#2E1E4D",
+  },
 };
 
 // Grey for the inbox — it reads as "not yet real", which is exactly what Intake

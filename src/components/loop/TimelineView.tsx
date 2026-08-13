@@ -1121,8 +1121,11 @@ export function TimelineView() {
           {ITEM_TYPES.map((t) => (
             <span key={t} className="tl-legend-item">
               <span
-                className="swatch"
-                style={{ background: ITEM_TYPE_INFO[t].fg }}
+                className="swatch swatch-type"
+                style={{
+                  ["--type-fg" as string]: ITEM_TYPE_INFO[t].fg,
+                  ["--type-fg-dark" as string]: ITEM_TYPE_INFO[t].fgDark,
+                }}
               />
               {ITEM_TYPE_INFO[t].label}
             </span>
@@ -1309,7 +1312,10 @@ function Bar({
       {item.type && (
         <span
           className="tl-type-dot"
-          style={{ background: ITEM_TYPE_INFO[item.type].fg }}
+          style={{
+            ["--type-fg" as string]: ITEM_TYPE_INFO[item.type].fg,
+            ["--type-fg-dark" as string]: ITEM_TYPE_INFO[item.type].fgDark,
+          }}
           aria-hidden
         />
       )}

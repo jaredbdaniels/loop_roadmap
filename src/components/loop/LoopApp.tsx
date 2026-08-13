@@ -41,6 +41,7 @@ import { SettingsModal } from "./SettingsModal";
 import { ShareModal } from "./ShareModal";
 import { CompareDrawer } from "./CompareDrawer";
 import { SyncStatus } from "./SyncStatus";
+import { ThemeToggle } from "./ThemeToggle";
 import { Toasts } from "./Toasts";
 import { Celebration } from "./Celebration";
 
@@ -211,7 +212,20 @@ function Shell({
     const el = viewRef.current;
     if (!el) return;
     const filename = `loop-${view}-${new Date().toISOString().slice(0, 10)}.png`;
-    // main is transparent — the canvas background lives on <body>.
+    // Exports land in decks and Slack, so they render light no matter which
+    // theme the viewer is using. `null` (rather than "light" or "dark") is a
+    // real third state here — it means System, i.e. no attribute at all — so
+    // it has to be captured explicitly to restore it precisely afterwards.
+    const root = document.documentElement;
+    const priorTheme = root.getAttribute("data-theme");
+    root.setAttribute("data-theme", "light");
+    // Forces layout/style to recompute before the read below, so `bg` isn't
+    // a stale value carried over from whatever theme was active a moment
+    // ago.
+    void root.offsetHeight;
+    // main is transparent — the canvas background lives on <body>. Must be
+    // read after forcing light, or the canvas fill would pick up the dark
+    // background color.
     const bg = getComputedStyle(document.body).backgroundColor;
     document.body.classList.add("exporting");
     try {
@@ -242,6 +256,8 @@ function Shell({
       toast("Could not export the view: " + (e as Error).message, true);
     } finally {
       document.body.classList.remove("exporting");
+      if (priorTheme === null) root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", priorTheme);
     }
   };
 
@@ -315,6 +331,7 @@ function Shell({
             <Eye size={13} strokeWidth={2.4} /> Read-only share
           </span>
           <SyncStatus />
+          <ThemeToggle />
           {!readOnly && userEmail && (
             <>
               <span className="user-chip">
