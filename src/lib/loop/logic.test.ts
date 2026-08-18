@@ -30,8 +30,9 @@ import {
   stageBlockReason,
   totalEpicQuarters,
   trimForShare,
+  horizonMismatch,
 } from "./logic";
-import { STAGES } from "./constants";
+import { PLANNED_HORIZONS, STAGES } from "./constants";
 import type { Bet, Item, LoopState, Milestone, Prototype, Weights } from "./types";
 
 const WEIGHTS: Weights = { votes: 1, reach: 3, confidence: 2, strategicFit: 3 };
@@ -1220,5 +1221,34 @@ describe("stackMilestoneFlags", () => {
     expect(
       stackMilestoneFlags([flag("a", 0), flag("b", 100 + FLAG_GAP)]).get("b"),
     ).toBe(0);
+  });
+});
+
+describe("non-bet horizon", () => {
+  // A "non-bet" is a decision, so nothing may quietly re-plan it: it does not
+  // carry capacity, and it does not get nagged about dates it may still hold
+  // from before the call was made.
+  it("never counts as planned capacity", () => {
+    expect(PLANNED_HORIZONS).not.toContain("non-bet");
+  });
+
+  it("suppresses the horizon mismatch nag even with dates that imply Now", () => {
+    const declined = item({
+      horizon: "non-bet",
+      targetStart: "2026-10-05",
+      targetEnd: "2026-11-27",
+    });
+    expect(horizonMismatch(declined)).toBeNull();
+  });
+
+  it("still nags a normal horizon whose dates disagree", () => {
+    const mismatched = item({
+      horizon: "later",
+      targetStart: "2026-10-05",
+      targetEnd: "2026-11-27",
+    });
+    // Guards the test above: proves the null came from the non-bet exemption
+    // and not from suggestedHorizon returning nothing for these dates.
+    expect(horizonMismatch(mismatched)).not.toBeNull();
   });
 });

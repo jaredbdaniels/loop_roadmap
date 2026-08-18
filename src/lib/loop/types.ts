@@ -227,9 +227,13 @@ export type BetStatus =
   | "concluded"
   | "killed";
 
-// The horizons a planned share can be expressed for. `HorizonKey` includes
-// "unassigned", for which an intended share of capacity has no meaning.
-export type PlannedHorizon = Exclude<HorizonKey, "unassigned">;
+// The horizons a bet can allocate planned capacity across. Excludes the two
+// horizons that represent an *absence* of planned investment: "unassigned" (no
+// call made yet) and "non-bet" (the call was no). Keep this in sync with
+// PLANNED_HORIZONS in constants.ts — the exclusion list is spelled out rather
+// than derived so adding a horizon key forces a deliberate choice about
+// whether it carries capacity.
+export type PlannedHorizon = Exclude<HorizonKey, "unassigned" | "non-bet">;
 
 // A strategic bet: a claim about where we will win, with declared capacity
 // behind it and a date when we re-decide. Replaces the old `Bet`, which

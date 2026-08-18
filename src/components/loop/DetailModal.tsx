@@ -15,6 +15,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import {
+  HORIZONS,
   ITEM_TYPES,
   ITEM_TYPE_INFO,
   MISSIONS,
@@ -950,6 +951,7 @@ export function DetailModal() {
               <option value="now">Now</option>
               <option value="next">Next</option>
               <option value="later">Later</option>
+              <option value="non-bet">Non-Bet</option>
             </select>
             {mm && (
               <div className="helper">
@@ -1859,8 +1861,11 @@ function DetailSummary({
   }
 
   const typeInfo = form.type ? ITEM_TYPE_INFO[form.type] : null;
+  // Label comes from HORIZONS rather than capitalising the key, so multi-word
+  // keys ("non-bet") render as "Non-Bet" instead of "Non-bet".
   const horizon = form.horizon
-    ? form.horizon.charAt(0).toUpperCase() + form.horizon.slice(1)
+    ? (HORIZONS.find((h) => h.key === form.horizon)?.label ??
+      form.horizon.charAt(0).toUpperCase() + form.horizon.slice(1))
     : null;
   const krText = form.kr.statement.trim() || form.kr.metric.trim();
 

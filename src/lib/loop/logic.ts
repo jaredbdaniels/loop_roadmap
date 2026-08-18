@@ -755,8 +755,12 @@ export function suggestedHorizon(item: Item): HorizonKey | null {
 
 export function horizonMismatch(item: Item): HorizonKey | null {
   // Manual horizon with dates that clearly disagree.
+  // "non-bet" is exempt: it is a deliberate override of whatever the dates
+  // imply, so nagging that old dates "suggest Now" would be arguing with a
+  // decision the user just made.
   const sug = suggestedHorizon(item);
-  if (!sug || !item.horizon || item.killed) return null;
+  if (!sug || !item.horizon || item.killed || item.horizon === "non-bet")
+    return null;
   if (sug !== item.horizon) return sug;
   return null;
 }

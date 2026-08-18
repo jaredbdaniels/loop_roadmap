@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   DAY,
+  HORIZONS,
   ITEM_TYPES,
   ITEM_TYPE_INFO,
   MISSIONS,
@@ -201,7 +202,11 @@ export function TimelineView() {
     }
   }
 
-  const scheduled = vis.filter(isScheduled);
+  // A declined bet leaves the timeline entirely, even if it still carries the
+  // dates it had before the call was made — otherwise "we are not doing this"
+  // would still render as a committed bar in a team band.
+  const isNonBet = (i: Item) => i.horizon === "non-bet";
+  const scheduled = vis.filter((i) => isScheduled(i) && !isNonBet(i));
   const byStart = (a: Item, b: Item) =>
     +parseDate(a.targetStart!) - +parseDate(b.targetStart!);
 
@@ -294,7 +299,10 @@ export function TimelineView() {
   const todayLeft =
     today >= start && today <= end ? daysBetween(start, today) * ppd : null;
 
-  const unscheduled = vis.filter((i) => !isScheduled(i) && !i.killed);
+  const unscheduled = vis.filter(
+    (i) => !isScheduled(i) && !i.killed && !isNonBet(i),
+  );
+  const nonBet = vis.filter((i) => isNonBet(i) && !i.killed);
 
   // ----- pinning the ruler and the seasonality lanes -----
   // The page scrolls, not the pane: the stats and the filters are meant to go
@@ -1186,6 +1194,28 @@ export function TimelineView() {
                 >
                   Place on timeline
                 </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {nonBet.length > 0 && (
+        <div className="tl-tray">
+          <h4>Non-Bet ({nonBet.length})</h4>
+          <div className="tl-tray-items">
+            {nonBet.map((item) => (
+              <div
+                key={item.id}
+                className="tl-tray-card"
+                style={{
+                  ["--bar-color" as string]:
+                    HORIZONS.find((h) => h.key === "non-bet")?.color ??
+                    "#8A8F98",
+                }}
+                onClick={() => openDetail(item.id)}
+              >
+                <span>{item.title}</span>
               </div>
             ))}
           </div>

@@ -216,7 +216,7 @@ export const BET_COLORS = [
   "#12B76A", // green
 ] as const;
 
-export type HorizonKey = "now" | "next" | "later" | "unassigned";
+export type HorizonKey = "now" | "next" | "later" | "unassigned" | "non-bet";
 
 export const HORIZONS: {
   key: HorizonKey;
@@ -247,6 +247,18 @@ export const HORIZONS: {
     label: "Unassigned",
     color: "#A0A0A0",
     desc: "No horizon call made yet.",
+  },
+  // Deliberately declined, not merely unsequenced. "Unassigned" means nobody
+  // has made the call and "Later" means the call was yes-but-not-yet; this one
+  // means the call was no for the 18-month window. Kept out of
+  // PLANNED_HORIZONS so it never counts as planned capacity, and filtered off
+  // the timeline entirely (see TimelineView) so a declined bet cannot occupy a
+  // band even if it still carries old dates.
+  {
+    key: "non-bet",
+    label: "Non-Bet",
+    color: "#8A8F98",
+    desc: "Looked at and declined for the next 18 months. Not a queue.",
   },
 ];
 
