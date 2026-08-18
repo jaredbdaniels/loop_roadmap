@@ -186,6 +186,13 @@ export const TEAMS: Team[] = [
     jtbdIds: ["reporting", "custom-fields", "integrations", "vendors"],
   },
   {
+    id: "platform-devops",
+    label: "Platform — DevOps",
+    domainId: "product-platform",
+    lead: "",
+    jtbdIds: [],
+  },
+  {
     id: "platform-identity-core-services",
     label: "Platform — Identity & Core Services",
     domainId: "product-platform",

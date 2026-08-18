@@ -107,6 +107,7 @@ TEAM_DOMAIN_BY_NAME = {
     "Platform — Data & Integrations": "product-platform",
     "Platform — AI Platform": "product-platform",
     "Platform — Migration": "product-platform",
+    "Platform — DevOps": "product-platform",
     "Core — Admin Workflows": "core",
     "Core — Financial Services": "core",
     "Core — Customer Love": "core",

@@ -146,7 +146,7 @@ export const STAGE_MIGRATION: Record<string, Stage> = {
 // the roster and its order stay in lockstep. Named for the domain and scope they
 // own ("Core — Financial Services") rather than by codename.
 //
-// A team is NOT a JTBD: there are 32 JTBDs and 9 teams, and a team spans several
+// A team is NOT a JTBD: there are 33 JTBDs and 11 teams, and a team spans several
 // JTBDs. So an item's team is stored on the item and is never derived from its
 // module — only migrated from a retired team name (see migrateItems).
 export const MISSIONS: string[] = TEAMS.map((t) => t.label);

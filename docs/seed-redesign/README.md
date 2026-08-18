@@ -46,7 +46,7 @@ anchor"); what has to decouple is the derivation in `constants.ts` /
 | `1_jtbds.csv` | 34 | The customer-value roll-up. 13 span more than one team. |
 | `2_capabilities.csv` | 71 | The spine, keyed on the new map. `folds_in_old_capabilities` records the consolidation from the previous 92. |
 | `3_epics.csv` | 136 | One row per epic. 92 from the sheet, 22 carried from the app seed, 8 drafted, 12 added at the 2026-07-31 roadmap review. |
-| `4_teams.csv` | 10 | The delivery teams, eng counts and leads. Named `<Domain> — <Scope>`, qualified only where a domain holds more than one team. |
+| `4_teams.csv` | 11 | The delivery teams, eng counts and leads. Named `<Domain> — <Scope>`, qualified only where a domain holds more than one team. |
 | `5_subitems.csv` | 40 | The breakdown layer — one row per child, keyed to its parent `epic_id`. Added at the 2026-07-31 roadmap review; every epic carried an empty `subItems` before it. |
 | `parse_lucid.py` | — | Lucid export → `new-map.json`. |
 | `gen_taxonomy.py` | — | `new-map.json` + teams → `src/lib/loop/taxonomy.ts`. |
