@@ -5380,3 +5380,13 @@ a:has(> .bet-blank) {
     grid-column: 1;
   }
 }
+
+/* Non-bet tray cards carry their decision record inline: the reason is the
+   reason the tray exists, so it should be readable without opening the item. */
+.tl-tray-note {
+  display: block;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--cm-text-dim);
+  margin-top: 2px;
+}

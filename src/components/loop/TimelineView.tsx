@@ -19,6 +19,7 @@ import {
   depConflicts,
   fiscalQuarterLabel,
   fiscalSeasonLabel,
+  fmtDate,
   fmtRange,
   getItem,
   betEnvelope,
@@ -1216,6 +1217,16 @@ export function TimelineView() {
                 onClick={() => openDetail(item.id)}
               >
                 <span>{item.title}</span>
+                {/* The reason is the point of the tray: it is what stops the
+                    decision being relitigated from scratch six months on. */}
+                {item.nonBetReason && (
+                  <span className="tl-tray-note">{item.nonBetReason}</span>
+                )}
+                {item.nonBetRevisitAt && (
+                  <span className="tl-tray-note">
+                    Revisit {fmtDate(item.nonBetRevisitAt)}
+                  </span>
+                )}
               </div>
             ))}
           </div>

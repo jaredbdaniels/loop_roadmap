@@ -129,6 +129,8 @@ export function CaptureModal() {
       killed: false,
       killedAt: null,
       killedReason: "",
+      nonBetReason: "",
+      nonBetRevisitAt: null,
       committedAt: null,
       shippedAt: null,
       createdAt: nowIso,

@@ -29,6 +29,7 @@ import {
 import {
   computeRank,
   createsDepCycle,
+  fmtDate,
   fmtRange,
   framingGaps,
   genId,
@@ -460,6 +461,30 @@ export function DetailModal() {
               ? `→ ${targetStage}`
               : `Back to ${targetStage}`;
         celebrate({ kind, label });
+      }
+    }
+
+    // Log the decline and the reversal. migrateItems clears the reason when the
+    // horizon moves off "non-bet", so without this the rationale would vanish
+    // the moment someone put the item back on Later — and the record of *why*
+    // it was declined is the whole reason the field exists.
+    if (form.horizon !== item.horizon) {
+      if (form.horizon === "non-bet") {
+        const why = form.nonBetReason.trim();
+        const revisit = form.nonBetRevisitAt
+          ? ` Revisit ${fmtDate(form.nonBetRevisitAt)}.`
+          : "";
+        next.activity = [
+          ...(next.activity || []),
+          `Not betting on this${why ? `: ${why}` : "."}${revisit}`,
+        ];
+      } else if (item.horizon === "non-bet") {
+        next.activity = [
+          ...(next.activity || []),
+          `Back in play, moved to ${
+            HORIZONS.find((h) => h.key === form.horizon)?.label ?? "no horizon"
+          }.`,
+        ];
       }
     }
 
@@ -961,6 +986,34 @@ export function DetailModal() {
             )}
           </div>
         </div>
+        {/* The decision record. Only meaningful while the item is a non-bet, so
+            it appears with the choice and is cleared by migrateItems when the
+            horizon moves off it. Neither field is required: a decline with no
+            reason is still a decline, and blocking the save would just push
+            people back to leaving the item on Later. */}
+        {form.horizon === "non-bet" && (
+          <div className="field-row">
+            <div className="field">
+              <label>Why not, in one line</label>
+              <input
+                type="text"
+                value={form.nonBetReason}
+                placeholder="e.g. No capacity before UPR lands"
+                onChange={(e) => set("nonBetReason", e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Revisit by</label>
+              <input
+                type="date"
+                value={form.nonBetRevisitAt || ""}
+                onChange={(e) =>
+                  set("nonBetRevisitAt", e.target.value || null)
+                }
+              />
+            </div>
+          </div>
+        )}
         {/* Spans the row rather than living inside the Target-end column, where
             it wrapped to four ragged lines. */}
         <div className="helper" style={{ marginTop: -8, marginBottom: 16 }}>

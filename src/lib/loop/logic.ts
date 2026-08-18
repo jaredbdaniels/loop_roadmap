@@ -186,6 +186,16 @@ export function migrateItems(items: Item[]): Item[] {
     //    run-the-business meanwhile, which is honest rather than broken.
     if (i.fundedBetId === null && i.betIds.length === 1)
       i.fundedBetId = i.betIds[0];
+    // Backfill the non-bet decision record, and enforce its invariant: the
+    // reason and revisit date only mean anything while the item is actually a
+    // non-bet. Clearing them on any other horizon stops a months-old rationale
+    // silently re-attaching itself if the item is declined again later.
+    if (typeof i.nonBetReason !== "string") i.nonBetReason = "";
+    if (typeof i.nonBetRevisitAt !== "string") i.nonBetRevisitAt = null;
+    if (i.horizon !== "non-bet") {
+      i.nonBetReason = "";
+      i.nonBetRevisitAt = null;
+    }
     if (!Array.isArray(i.subItems)) i.subItems = [];
     // Backfill the ADO link fields on older sub-items so they can carry a
     // work-item reference and a synced status like their parent item does.
@@ -559,6 +569,17 @@ export function snapToWeek(d: Date): Date {
 
 export function isScheduled(item: Item): boolean {
   return !!(item.targetStart && item.targetEnd);
+}
+
+// A single date in the same short style as fmtRange's endpoints, for places
+// that show one date rather than a span (the non-bet revisit date).
+export function fmtDate(iso: string): string {
+  const d = parseDate(iso);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export function fmtRange(item: {

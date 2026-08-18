@@ -58,6 +58,8 @@ function item(over: Partial<Item> = {}): Item {
     killed: false,
     killedAt: null,
     killedReason: "",
+    nonBetReason: "",
+    nonBetRevisitAt: null,
     committedAt: null,
     shippedAt: null,
     createdAt: "2026-01-01T00:00:00Z",

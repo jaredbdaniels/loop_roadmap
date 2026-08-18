@@ -78,6 +78,8 @@ function item(over: Partial<Item> = {}): Item {
     killed: false,
     killedAt: null,
     killedReason: "",
+    nonBetReason: "",
+    nonBetRevisitAt: null,
     committedAt: null,
     shippedAt: null,
     createdAt: "2026-01-01T00:00:00.000Z",
@@ -1239,6 +1241,32 @@ describe("non-bet horizon", () => {
       targetEnd: "2026-11-27",
     });
     expect(horizonMismatch(declined)).toBeNull();
+  });
+
+  it("keeps the reason and revisit date while the item is a non-bet", () => {
+    const out = migrateItems([
+      item({
+        horizon: "non-bet",
+        nonBetReason: "No capacity before UPR lands",
+        nonBetRevisitAt: "2027-06-01",
+      }),
+    ]);
+    expect(out[0].nonBetReason).toBe("No capacity before UPR lands");
+    expect(out[0].nonBetRevisitAt).toBe("2027-06-01");
+  });
+
+  it("clears the reason when the item is put back in play", () => {
+    // Otherwise a months-old rationale silently re-attaches itself the next
+    // time the item is declined, and reads as a fresh decision.
+    const out = migrateItems([
+      item({
+        horizon: "later",
+        nonBetReason: "No capacity before UPR lands",
+        nonBetRevisitAt: "2027-06-01",
+      }),
+    ]);
+    expect(out[0].nonBetReason).toBe("");
+    expect(out[0].nonBetRevisitAt).toBeNull();
   });
 
   it("still nags a normal horizon whose dates disagree", () => {

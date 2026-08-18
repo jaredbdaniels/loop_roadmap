@@ -146,6 +146,17 @@ export interface Item {
   killed: boolean;
   killedAt: string | null;
   killedReason: string;
+  // The decision record behind horizon === "non-bet". A horizon value alone
+  // stores the what and throws away the why, which makes a decline impossible
+  // to evaluate later — you cannot tell a good call that aged badly from a bad
+  // call, so the argument just gets relitigated from scratch. `nonBetReason` is
+  // the one-line rationale; `nonBetRevisitAt` is when it gets re-decided, which
+  // is what separates a non-bet from a kill: a no with no expiry is a kill with
+  // better manners. Both are cleared when the horizon moves off "non-bet", so a
+  // stale rationale can never reappear on a later decline — the wording is
+  // preserved in `activity` instead.
+  nonBetReason: string;
+  nonBetRevisitAt: string | null;
   committedAt: string | null;
   shippedAt: string | null;
   createdAt: string;
