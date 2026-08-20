@@ -117,6 +117,12 @@ const RETIRED_TEAM: Record<string, string> = {
   // prefix followed. It owns no JTBD, so the retirement table is the only route
   // a stored row has back to it.
   "Admin Workflows — Customer Love": "Core — Customer Love",
+  // DevOps became Developer Platform, dropping the domain prefix: the team is
+  // named for the platform it builds, not the domain it delivers into. It owns
+  // no JTBD, so — as with Customer Love — this entry is the only route a stored
+  // row has back to it, and a row that also carries a module resolves through
+  // that module's JTBD first.
+  "Platform — DevOps": "Developer Platform",
   // Ambiguous both as a codename and as the old Integration sub-domain; the
   // module's JTBD wins over this entry whenever the item has one.
   Platform: "Platform — Identity & Core Services",

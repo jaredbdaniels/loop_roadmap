@@ -172,6 +172,13 @@ export const MODULES: Module[] = [
 // views, so it is grouped by domain.
 export const TEAMS: Team[] = [
   {
+    id: "developer-platform",
+    label: "Developer Platform",
+    domainId: "product-platform",
+    lead: "",
+    jtbdIds: [],
+  },
+  {
     id: "platform-ai-platform",
     label: "Platform — AI Platform",
     domainId: "product-platform",
@@ -184,13 +191,6 @@ export const TEAMS: Team[] = [
     domainId: "product-platform",
     lead: "David",
     jtbdIds: ["reporting", "custom-fields", "integrations", "vendors"],
-  },
-  {
-    id: "platform-devops",
-    label: "Platform — DevOps",
-    domainId: "product-platform",
-    lead: "",
-    jtbdIds: [],
   },
   {
     id: "platform-identity-core-services",
