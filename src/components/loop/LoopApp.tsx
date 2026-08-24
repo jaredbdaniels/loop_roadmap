@@ -19,6 +19,7 @@ import {
   Share2,
   GitBranch,
   GitCompare,
+  Lock,
   Trash2,
 } from "lucide-react";
 import { toPng } from "html-to-image";
@@ -314,6 +315,11 @@ function Shell({
     setScenario(value);
   };
 
+  const activeScenario = scenarios.find((s) => s.id === scenarioId);
+  const scenarioLocked = activeScenario?.locked ?? false;
+  const whatifScenarios = scenarios.filter((s) => s.kind !== "headlights-archive");
+  const archiveScenarios = scenarios.filter((s) => s.kind === "headlights-archive");
+
   const confirmDiscard = () => {
     if (
       window.confirm(
@@ -363,10 +369,17 @@ function Shell({
       {draftMode && (
         <div className="draft-banner">
           <span className="draft-banner-label">
-            <GitBranch size={14} strokeWidth={2.4} />
-            Draft: <strong>{scenarioName}</strong>
+            {scenarioLocked ? (
+              <Lock size={14} strokeWidth={2.4} />
+            ) : (
+              <GitBranch size={14} strokeWidth={2.4} />
+            )}
+            {scenarioLocked ? "Headlights archive: " : "Draft: "}
+            <strong>{scenarioName}</strong>
             <span className="draft-banner-note">
-              changes here don’t affect the live roadmap
+              {scenarioLocked
+                ? "locked — can’t be edited or discarded"
+                : "changes here don’t affect the live roadmap"}
             </span>
           </span>
           <div className="draft-banner-actions">
@@ -377,10 +390,12 @@ function Shell({
               <GitCompare size={15} strokeWidth={2.2} />
               Compare to live
             </button>
-            <button className="link-button" onClick={confirmDiscard}>
-              <Trash2 size={14} strokeWidth={2.2} />
-              Discard
-            </button>
+            {!scenarioLocked && (
+              <button className="link-button" onClick={confirmDiscard}>
+                <Trash2 size={14} strokeWidth={2.2} />
+                Discard
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -397,11 +412,20 @@ function Shell({
             title="Switch between the live roadmap and your what-if drafts"
           >
             <option value={MAIN_SCENARIO}>Live roadmap</option>
-            {scenarios.length > 0 && (
+            {whatifScenarios.length > 0 && (
               <optgroup label="My drafts">
-                {scenarios.map((s) => (
+                {whatifScenarios.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {archiveScenarios.length > 0 && (
+              <optgroup label="Headlights archives">
+                {archiveScenarios.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    🔒 {s.name}
                   </option>
                 ))}
               </optgroup>

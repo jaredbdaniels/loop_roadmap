@@ -19,6 +19,8 @@ export async function GET(
 }
 
 // PUT /api/scenarios/:id — replace the scenario's working state (owner only).
+// Rejects with 409 on a locked Headlights archive — see ScenarioKind in
+// types.ts.
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -30,12 +32,20 @@ export async function PUT(
   if (!body?.state || !Array.isArray(body.state.items)) {
     return NextResponse.json({ error: "state.items required" }, { status: 400 });
   }
-  const ok = await saveScenario(id, sess.user.email, body.state);
-  if (!ok) return NextResponse.json({ error: "not found" }, { status: 404 });
+  const result = await saveScenario(id, sess.user.email, body.state);
+  if (!result.ok) {
+    return result.reason === "locked"
+      ? NextResponse.json(
+          { error: "This is a locked Headlights archive and can't be edited." },
+          { status: 409 },
+        )
+      : NextResponse.json({ error: "not found" }, { status: 404 });
+  }
   return NextResponse.json({ ok: true });
 }
 
-// DELETE /api/scenarios/:id — discard the scenario (owner only).
+// DELETE /api/scenarios/:id — discard the scenario (owner only). Rejects with
+// 409 on a locked Headlights archive.
 export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -43,6 +53,14 @@ export async function DELETE(
   const sess = await getSession();
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
-  await deleteScenario(id, sess.user.email);
+  const result = await deleteScenario(id, sess.user.email);
+  if (!result.ok) {
+    return result.reason === "locked"
+      ? NextResponse.json(
+          { error: "This is a locked Headlights archive and can't be discarded." },
+          { status: 409 },
+        )
+      : NextResponse.json({ error: "not found" }, { status: 404 });
+  }
   return NextResponse.json({ ok: true });
 }

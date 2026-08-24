@@ -426,6 +426,9 @@ function rowToScenario(row: typeof scenariosTable.$inferSelect): Scenario {
       // `?? []` covers scenarios forked before outlooks existed.
       outlooks: normalizeOutlooks(st.outlooks ?? []),
     },
+    // `?? "whatif"` covers scenarios created before kind/locked existed.
+    kind: row.kind ?? "whatif",
+    locked: row.locked ?? false,
     forkedAt: row.forkedAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -440,6 +443,8 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
         id: scenariosTable.id,
         name: scenariosTable.name,
         createdBy: scenariosTable.createdBy,
+        kind: scenariosTable.kind,
+        locked: scenariosTable.locked,
         forkedAt: scenariosTable.forkedAt,
         createdAt: scenariosTable.createdAt,
         updatedAt: scenariosTable.updatedAt,
@@ -451,6 +456,8 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
       id: r.id,
       name: r.name,
       createdBy: r.createdBy,
+      kind: r.kind ?? "whatif",
+      locked: r.locked ?? false,
       forkedAt: r.forkedAt.toISOString(),
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
@@ -467,9 +474,15 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
 }
 
 // Fork the live roadmap into a new named scenario owned by `createdBy`.
+// `kind` defaults to "whatif"; passing "headlights-archive" locks the row at
+// creation (see ScenarioKind in types.ts) — there is no separate "lock this
+// scenario" step, because a whatif that gets locked after the fact would still
+// carry whatever half-finished edits were in it when someone remembered to
+// lock it.
 export async function createScenario(
   name: string,
   createdBy: string,
+  kind: Scenario["kind"] = "whatif",
 ): Promise<Scenario> {
   const live = await getState();
   const now = new Date();
@@ -481,11 +494,14 @@ export async function createScenario(
     milestones: live.milestones,
     outlooks: live.outlooks,
   };
+  const locked = kind === "headlights-archive";
   await db.insert(scenariosTable).values({
     id,
     name,
     createdBy,
     state,
+    kind,
+    locked,
     forkedAt: now,
     createdAt: now,
     updatedAt: now,
@@ -495,6 +511,8 @@ export async function createScenario(
     name,
     createdBy,
     state,
+    kind,
+    locked,
     forkedAt: now.toISOString(),
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
@@ -522,31 +540,58 @@ export async function getScenario(
   }
 }
 
-// Save the whole working state of a scenario. Returns false if the scenario
-// doesn't exist or isn't owned by `createdBy` (nothing updated).
+export type ScenarioWriteResult =
+  | { ok: true }
+  | { ok: false; reason: "not_found" | "locked" };
+
+// Save the whole working state of a scenario. Refuses (rather than silently
+// no-op'ing) when the scenario is locked — a locked archive answers "what did
+// we believe in <month>", and letting an in-flight edit overwrite that would
+// make the archive lie. Checked with its own read rather than folded into the
+// UPDATE's WHERE clause so the caller can tell "doesn't exist" apart from
+// "exists but is locked" instead of getting the same false either way.
 export async function saveScenario(
   id: string,
   createdBy: string,
   state: LoopState,
-): Promise<boolean> {
-  const updated = await db
+): Promise<ScenarioWriteResult> {
+  const rows = await db
+    .select({ locked: scenariosTable.locked })
+    .from(scenariosTable)
+    .where(
+      and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
+    )
+    .limit(1);
+  if (!rows[0]) return { ok: false, reason: "not_found" };
+  if (rows[0].locked) return { ok: false, reason: "locked" };
+  await db
     .update(scenariosTable)
     .set({ state, updatedAt: new Date() })
     .where(
       and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
-    )
-    .returning({ id: scenariosTable.id });
-  return updated.length > 0;
+    );
+  return { ok: true };
 }
 
-// Discard a scenario, scoped to its owner.
+// Discard a scenario, scoped to its owner. Refuses on a locked archive for the
+// same reason saveScenario does — see ScenarioKind in types.ts.
 export async function deleteScenario(
   id: string,
   createdBy: string,
-): Promise<void> {
+): Promise<ScenarioWriteResult> {
+  const rows = await db
+    .select({ locked: scenariosTable.locked })
+    .from(scenariosTable)
+    .where(
+      and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
+    )
+    .limit(1);
+  if (!rows[0]) return { ok: false, reason: "not_found" };
+  if (rows[0].locked) return { ok: false, reason: "locked" };
   await db
     .delete(scenariosTable)
     .where(
       and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
     );
+  return { ok: true };
 }

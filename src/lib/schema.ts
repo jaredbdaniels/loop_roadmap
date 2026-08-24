@@ -93,6 +93,13 @@ export const scenarios = pgTable("scenarios", {
   name: text("name").notNull(),
   createdBy: text("created_by").notNull(),
   state: jsonb("state").$type<LoopState>().notNull(),
+  // "whatif" (default, editable/discardable) or "headlights-archive" (locked
+  // at fork time by "Submit for Headlights" — see ScenarioKind in types.ts).
+  kind: text("kind").$type<"whatif" | "headlights-archive">().default("whatif").notNull(),
+  // Enforced in saveScenario/deleteScenario, not just read here — a locked row
+  // can never be saved over or deleted, which is the entire point of an
+  // archive being able to answer "what did we believe in <month>" honestly.
+  locked: boolean("locked").default(false).notNull(),
   forkedAt: timestamp("forked_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()

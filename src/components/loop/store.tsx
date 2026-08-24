@@ -31,6 +31,7 @@ import type {
   LoopState,
   Milestone,
   Scenario,
+  ScenarioKind,
   ScenarioMeta,
   Weights,
 } from "@/lib/loop/types";
@@ -168,7 +169,7 @@ interface LoopContextValue {
   scenarioName: string | null;
   draftMode: boolean;
   setScenario: (id: string) => Promise<void>;
-  forkScenario: (name: string) => Promise<void>;
+  forkScenario: (name: string, kind?: ScenarioKind) => Promise<void>;
   discardScenario: (id: string) => Promise<void>;
   compareOpen: boolean;
   setCompareOpen: (b: boolean) => void;
@@ -939,9 +940,12 @@ export function LoopProvider({
     [readOnly, refresh, flushDraftSave, toast],
   );
 
-  // Fork the live roadmap into a new named draft and switch into it.
+  // Fork the live roadmap into a new named scenario and switch into it.
+  // `kind` defaults to "whatif" (an editable draft); "headlights-archive"
+  // locks the fork at creation — see ScenarioKind in types.ts and
+  // HeadlightsView's "Submit for Headlights" action.
   const forkScenario = useCallback(
-    async (name: string) => {
+    async (name: string, kind: ScenarioKind = "whatif") => {
       if (readOnly) return;
       const trimmed = name.trim();
       if (!trimmed) return;
@@ -950,7 +954,7 @@ export function LoopProvider({
         const res = await fetch("/api/scenarios", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ name: trimmed }),
+          body: JSON.stringify({ name: trimmed, kind }),
         });
         if (!res.ok) throw new Error();
         const { scenario } = (await res.json()) as { scenario: Scenario };
@@ -959,6 +963,8 @@ export function LoopProvider({
             id: scenario.id,
             name: scenario.name,
             createdBy: scenario.createdBy,
+            kind: scenario.kind,
+            locked: scenario.locked,
             forkedAt: scenario.forkedAt,
             createdAt: scenario.createdAt,
             updatedAt: scenario.updatedAt,
@@ -973,7 +979,9 @@ export function LoopProvider({
         setScenarioId(scenario.id);
         setScenarioName(scenario.name);
         toast(
-          `Draft "${trimmed}" created — changes here won't affect the live roadmap.`,
+          kind === "headlights-archive"
+            ? `"${trimmed}" archived and locked — changes here won't affect the live roadmap.`
+            : `Draft "${trimmed}" created — changes here won't affect the live roadmap.`,
         );
       } catch {
         toast("Could not create the scenario.", true);
@@ -992,7 +1000,10 @@ export function LoopProvider({
       }
       try {
         const res = await fetch(`/api/scenarios/${id}`, { method: "DELETE" });
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || "Could not discard the scenario.");
+        }
         setScenarios((prev) => prev.filter((s) => s.id !== id));
         if (scenarioIdRef.current === id) {
           setScenarioId(MAIN_SCENARIO);
@@ -1000,8 +1011,8 @@ export function LoopProvider({
           await refresh();
         }
         toast("Draft discarded.");
-      } catch {
-        toast("Could not discard the scenario.", true);
+      } catch (e) {
+        toast((e as Error).message || "Could not discard the scenario.", true);
       }
     },
     [readOnly, refresh, toast],

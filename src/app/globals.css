@@ -1833,6 +1833,11 @@ body.exporting .tl-pin-slot {
   margin: 0;
   max-width: 56ch;
 }
+.hl-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .hl-board-scroll {
   overflow-x: auto;

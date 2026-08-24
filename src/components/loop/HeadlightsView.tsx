@@ -31,11 +31,34 @@ const STAGE_BLURB: Record<LifecycleStage, string> = {
 };
 
 export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
-  const { items, outlooks, filterMission, openDetail, readOnly } = useLoop();
+  const {
+    items,
+    outlooks,
+    filterMission,
+    openDetail,
+    readOnly,
+    draftMode,
+    forkScenario,
+  } = useLoop();
   const [selectedTeam, setSelectedTeam] = useState(
     filterMission[0] ?? MISSIONS[0],
   );
   const months = rollingMonths(3);
+
+  // Snapshots the *entire* live roadmap (every team, not just this one) into a
+  // locked archive scenario — the same fork mechanism every scenario already
+  // uses, just named for this team's cycle and never editable afterward. See
+  // ScenarioKind in types.ts and docs/launchpad-pivot.md Phase 3.
+  const submitForHeadlights = () => {
+    const today = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    forkScenario(
+      `${selectedTeam} — Headlights ${monthLabel(months[0])} (submitted ${today})`,
+      "headlights-archive",
+    );
+  };
 
   const teamItems = items.filter(
     (i) => !i.killed && i.mission === selectedTeam,
@@ -60,18 +83,35 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
             from item stage and target dates, not re-entered by hand.
           </p>
         </div>
-        <select
-          className="cm-select"
-          aria-label="Team"
-          value={selectedTeam}
-          onChange={(e) => setSelectedTeam(e.target.value)}
-        >
-          {MISSIONS.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
+        <div className="hl-toolbar-actions">
+          <select
+            className="cm-select"
+            aria-label="Team"
+            value={selectedTeam}
+            onChange={(e) => setSelectedTeam(e.target.value)}
+          >
+            {MISSIONS.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+          {!readOnly && (
+            <button
+              type="button"
+              className="cm-button--outlined cm-button"
+              disabled={draftMode}
+              title={
+                draftMode
+                  ? "Switch to the live roadmap to submit a Headlights archive."
+                  : "Archives a locked snapshot of the entire roadmap, named for this team's cycle."
+              }
+              onClick={submitForHeadlights}
+            >
+              Submit for Headlights
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="hl-board-scroll">

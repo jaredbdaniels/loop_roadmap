@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/require-session";
 import { createScenario, listScenarios } from "@/lib/loop/store";
+import type { ScenarioKind } from "@/lib/loop/types";
 
 export const dynamic = "force-dynamic";
 
@@ -13,14 +14,27 @@ export async function GET() {
 }
 
 // POST /api/scenarios — fork the live roadmap into a new named scenario.
+// `kind` defaults to "whatif"; "headlights-archive" forks a locked snapshot
+// (see ScenarioKind in types.ts).
 export async function POST(req: Request) {
   const sess = await getSession();
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const { name } = (await req.json()) as { name?: string };
+  const { name, kind: kindRaw } = (await req.json()) as {
+    name?: string;
+    kind?: string;
+  };
   const trimmed = (name ?? "").trim();
   if (!trimmed) {
     return NextResponse.json({ error: "name required" }, { status: 400 });
   }
-  const scenario = await createScenario(trimmed, sess.user.email);
+  if (
+    kindRaw !== undefined &&
+    kindRaw !== "whatif" &&
+    kindRaw !== "headlights-archive"
+  ) {
+    return NextResponse.json({ error: "invalid kind" }, { status: 400 });
+  }
+  const kind = kindRaw as ScenarioKind | undefined;
+  const scenario = await createScenario(trimmed, sess.user.email, kind);
   return NextResponse.json({ scenario });
 }

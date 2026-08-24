@@ -363,15 +363,30 @@ export interface LoopState {
   outlooks: DeliveryOutlook[];
 }
 
-// A personal "what-if" copy of the whole roadmap. `state` is a full LoopState
-// the owner edits freely without touching the live roadmap; the live roadmap is
-// the implicit scenario referred to by the sentinel id `"main"` (which never has
-// a row). See src/lib/schema.ts `scenarios`.
+// "whatif" is a personal, editable, discardable draft — the original scenario
+// concept. "headlights-archive" is a locked snapshot forked on "Submit for
+// Headlights" (see HeadlightsView): once created it can never be saved over or
+// discarded, because its entire point is to answer "what did we believe in
+// <month>" later, and an editable archive would answer that question
+// dishonestly. See docs/launchpad-pivot.md Phase 3.
+export type ScenarioKind = "whatif" | "headlights-archive";
+
+// A personal "what-if" copy of the whole roadmap, or a locked Headlights
+// archive. `state` is a full LoopState the owner edits freely (whatif) or that
+// is frozen at fork time (archive) without touching the live roadmap; the live
+// roadmap is the implicit scenario referred to by the sentinel id `"main"`
+// (which never has a row). See src/lib/schema.ts `scenarios`.
 export interface Scenario {
   id: string;
   name: string;
   createdBy: string;
   state: LoopState;
+  kind: ScenarioKind;
+  // Derived from `kind` at creation (`kind === "headlights-archive"`), but
+  // stored as its own column rather than re-derived on every check — the
+  // server enforces it in `saveScenario`/`deleteScenario`, and re-deriving
+  // there would mean trusting the same `kind` value a bug could also get wrong.
+  locked: boolean;
   forkedAt: string;
   createdAt: string;
   updatedAt: string;
