@@ -168,6 +168,13 @@ interface LoopContextValue {
   scenarioId: string;
   scenarioName: string | null;
   draftMode: boolean;
+  // Whether the scenario currently in view is a locked Headlights archive
+  // (see ScenarioKind in types.ts). Every mutation checks this — not just the
+  // UI — because a locked archive exists specifically to answer "what did we
+  // believe in <month>," and an edit that silently failed to persist while
+  // still showing in the UI would leave that question answered wrong until
+  // the next reload.
+  scenarioLocked: boolean;
   setScenario: (id: string) => Promise<void>;
   forkScenario: (name: string, kind?: ScenarioKind) => Promise<void>;
   discardScenario: (id: string) => Promise<void>;
@@ -327,6 +334,7 @@ export function LoopProvider({
   const [scenarios, setScenarios] = useState<ScenarioMeta[]>([]);
   const [scenarioId, setScenarioId] = useState<string>(MAIN_SCENARIO);
   const [scenarioName, setScenarioName] = useState<string | null>(null);
+  const [scenarioLocked, setScenarioLocked] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const draftMode = scenarioId !== MAIN_SCENARIO;
 
@@ -346,6 +354,8 @@ export function LoopProvider({
   // render — cheap and always current.
   const scenarioIdRef = useRef(scenarioId);
   scenarioIdRef.current = scenarioId;
+  const scenarioLockedRef = useRef(scenarioLocked);
+  scenarioLockedRef.current = scenarioLocked;
   const stateRef = useRef<LoopState>({
     items,
     weights,
@@ -363,6 +373,25 @@ export function LoopProvider({
     setToasts((t) => [...t, { id, msg, warn }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4200);
   }, []);
+
+  // Every mutation calls this before touching local state — not just before
+  // hitting the network. A locked Headlights archive exists to answer "what
+  // did we believe in <month>," and the server already refuses to persist an
+  // edit to one (see saveScenario/deleteScenario); the reason this guard also
+  // exists on the client is that every mutation below applies its change to
+  // local state optimistically, before it knows whether the save will
+  // succeed. Without this, an edit to a locked archive would render as
+  // applied immediately and only quietly fail to persist ~800ms later on the
+  // debounced draft save, leaving the screen showing a change nothing ever
+  // actually kept — see docs/launchpad-pivot.md Phase 3.
+  const guardLocked = useCallback((): boolean => {
+    if (!scenarioLockedRef.current) return false;
+    toast(
+      "This is a locked Headlights archive — switch to the live roadmap to make changes.",
+      true,
+    );
+    return true;
+  }, [toast]);
 
   // Persist the active scenario's whole working state. No-op on the live
   // roadmap (which uses the granular per-entity endpoints instead).
@@ -593,7 +622,7 @@ export function LoopProvider({
 
   const createItem = useCallback(
     async (item: Item) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setItems((prev) => [...prev, item]);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -606,12 +635,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the new item.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const updateItem = useCallback(
     async (item: Item) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -624,12 +653,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save changes.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const removeItem = useCallback(
     async (id: string) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       // Deleting an item can leave other items pointing at it via
       // `dependsOn` — prune those references locally too, or a later edit
       // to one of them would resend the dangling id and undo the server-side
@@ -650,11 +679,11 @@ export function LoopProvider({
       const res = await fetch(`/api/items/${id}`, { method: "DELETE" });
       if (!res.ok) toast("Could not delete the item.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const clearAllDependencies = useCallback(async () => {
-    if (readOnly) return;
+    if (readOnly || guardLocked()) return;
     const affected = items.filter((i) => (i.dependsOn || []).length > 0);
     if (affected.length === 0) {
       toast("No dependencies to clear.");
@@ -690,11 +719,11 @@ export function LoopProvider({
     if (failed)
       toast(`Could not clear dependencies on ${failed} item(s).`, true);
     else toast(`Cleared dependencies on ${cleared.length} item(s).`);
-  }, [readOnly, items, toast, scheduleDraftSave]);
+  }, [readOnly, guardLocked, items, toast, scheduleDraftSave]);
 
   const createBet = useCallback(
     async (init: Bet) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setBets((prev) => [...prev, init]);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -707,12 +736,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the bet.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const updateBet = useCallback(
     async (init: Bet) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setBets((prev) =>
         prev.map((i) => (i.id === init.id ? init : i)),
       );
@@ -727,12 +756,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save changes.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const removeBet = useCallback(
     async (id: string) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setBets((prev) => prev.filter((i) => i.id !== id));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -741,12 +770,12 @@ export function LoopProvider({
       const res = await fetch(`/api/initiatives/${id}`, { method: "DELETE" });
       if (!res.ok) toast("Could not delete the bet.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const createMilestone = useCallback(
     async (m: Milestone) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setMilestones((prev) => [...prev, m]);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -759,12 +788,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the milestone.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const updateMilestone = useCallback(
     async (m: Milestone) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setMilestones((prev) => prev.map((x) => (x.id === m.id ? m : x)));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -777,12 +806,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save changes.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const removeMilestone = useCallback(
     async (id: string) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setMilestones((prev) => prev.filter((m) => m.id !== id));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -791,12 +820,12 @@ export function LoopProvider({
       const res = await fetch(`/api/milestones/${id}`, { method: "DELETE" });
       if (!res.ok) toast("Could not delete the milestone.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const saveOutlook = useCallback(
     async (outlook: DeliveryOutlook) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setOutlooks((prev) => {
         const exists = prev.some((o) => o.id === outlook.id);
         return exists
@@ -814,12 +843,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the outlook.", true);
     },
-    [readOnly, toast, scheduleDraftSave],
+    [readOnly, guardLocked, toast, scheduleDraftSave],
   );
 
   const updateWeights = useCallback(
     async (w: Weights) => {
-      if (readOnly) return;
+      if (readOnly || guardLocked()) return;
       setWeights(w);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -831,7 +860,7 @@ export function LoopProvider({
         body: JSON.stringify({ weights: w }),
       });
     },
-    [readOnly, scheduleDraftSave],
+    [readOnly, guardLocked, scheduleDraftSave],
   );
 
   const importData = useCallback(
@@ -919,6 +948,7 @@ export function LoopProvider({
       if (id === MAIN_SCENARIO) {
         setScenarioId(MAIN_SCENARIO);
         setScenarioName(null);
+        setScenarioLocked(false);
         await refresh();
         return;
       }
@@ -933,6 +963,7 @@ export function LoopProvider({
         setOutlooks(normalizeOutlooks(scenario.state.outlooks));
         setScenarioId(scenario.id);
         setScenarioName(scenario.name);
+        setScenarioLocked(scenario.locked);
       } catch {
         toast("Could not open that scenario.", true);
       }
@@ -978,6 +1009,7 @@ export function LoopProvider({
         setOutlooks(normalizeOutlooks(scenario.state.outlooks));
         setScenarioId(scenario.id);
         setScenarioName(scenario.name);
+        setScenarioLocked(scenario.locked);
         toast(
           kind === "headlights-archive"
             ? `"${trimmed}" archived and locked — changes here won't affect the live roadmap.`
@@ -1008,6 +1040,7 @@ export function LoopProvider({
         if (scenarioIdRef.current === id) {
           setScenarioId(MAIN_SCENARIO);
           setScenarioName(null);
+          setScenarioLocked(false);
           await refresh();
         }
         toast("Draft discarded.");
@@ -1100,6 +1133,7 @@ export function LoopProvider({
     scenarioId,
     scenarioName,
     draftMode,
+    scenarioLocked,
     setScenario,
     forkScenario,
     discardScenario,

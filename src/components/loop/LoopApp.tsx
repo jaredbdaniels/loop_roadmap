@@ -172,6 +172,7 @@ function Shell({
     scenarioId,
     scenarioName,
     draftMode,
+    scenarioLocked,
     setScenario,
     forkScenario,
     discardScenario,
@@ -315,8 +316,6 @@ function Shell({
     setScenario(value);
   };
 
-  const activeScenario = scenarios.find((s) => s.id === scenarioId);
-  const scenarioLocked = activeScenario?.locked ?? false;
   const whatifScenarios = scenarios.filter((s) => s.kind !== "headlights-archive");
   const archiveScenarios = scenarios.filter((s) => s.kind === "headlights-archive");
 
