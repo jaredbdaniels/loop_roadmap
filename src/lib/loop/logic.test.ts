@@ -33,7 +33,15 @@ import {
   horizonMismatch,
 } from "./logic";
 import { PLANNED_HORIZONS, STAGES } from "./constants";
-import type { Bet, Item, LoopState, Milestone, Prototype, Weights } from "./types";
+import type {
+  Bet,
+  DeliveryOutlook,
+  Item,
+  LoopState,
+  Milestone,
+  Prototype,
+  Weights,
+} from "./types";
 
 const WEIGHTS: Weights = { votes: 1, reach: 3, confidence: 2, strategicFit: 3 };
 
@@ -337,6 +345,32 @@ describe("diffStates", () => {
       after: "Registration v2",
     });
     expect(d.milestonesRemoved.map((m) => m.id)).toEqual(["m1"]);
+  });
+
+  it("reports a changed delivery outlook", () => {
+    const outlook = (over: Partial<DeliveryOutlook> = {}): DeliveryOutlook => ({
+      id: "Core:2026-09",
+      mission: "Core",
+      month: "2026-09",
+      level: "medium",
+      reasoning: "",
+      whatWouldRaiseIt: "",
+      risks: [],
+      asks: [],
+      updatedBy: "pm@campminder.com",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+      ...over,
+    });
+    const live = state({ outlooks: [outlook({ level: "medium" })] });
+    const draft = state({ outlooks: [outlook({ level: "low", risks: ["Vendor slip"] })] });
+    const d = diffStates(live, draft);
+    expect(d.outlooksChanged).toHaveLength(1);
+    expect(d.outlooksChanged[0].changes).toContainEqual({
+      field: "level",
+      before: "medium",
+      after: "low",
+    });
+    expect(d.outlooksChanged[0].changes.some((c) => c.field === "risks")).toBe(true);
   });
 });
 
@@ -938,6 +972,7 @@ describe("trimForShare", () => {
         item({ id: "a", stage: "Building", activity: ["Moved to Building."] }),
       ],
       bets: [bet({ id: "b1", activity: ["Status Proposed → Active."] })],
+      outlooks: [],
     });
     expect(out.items[0].activity).toEqual([]);
     expect(out.bets[0].activity).toEqual([]);
@@ -951,6 +986,7 @@ describe("trimForShare", () => {
         item({ id: "dead", stage: "Building", killed: true, killedReason: "why" }),
       ],
       bets: [],
+      outlooks: [],
     });
     expect(out.items.map((i) => i.id)).toEqual(["alive"]);
     expect(out.items[0].killedReason).toBe("");
@@ -963,9 +999,37 @@ describe("trimForShare", () => {
     const out = trimForShare({
       items: [],
       bets: [bet({ thesis: "We believe X", killCriteria: "WAU flat" })],
+      outlooks: [],
     });
     expect(out.bets[0].thesis).toBe("We believe X");
     expect(out.bets[0].killCriteria).toBe("WAU flat");
+  });
+
+  it("strips a delivery outlook's internal notes but keeps its level", () => {
+    const out = trimForShare({
+      items: [],
+      bets: [],
+      outlooks: [
+        {
+          id: "Core:2026-09",
+          mission: "Core",
+          month: "2026-09",
+          level: "low",
+          reasoning: "We're slipping because of vendor delays.",
+          whatWouldRaiseIt: "A confirmed ship date from the vendor.",
+          risks: ["Vendor slip"],
+          asks: ["Exec help escalating with the vendor"],
+          updatedBy: "pm@campminder.com",
+          updatedAt: "2026-08-01T00:00:00.000Z",
+        },
+      ],
+    });
+    expect(out.outlooks[0].level).toBe("low");
+    expect(out.outlooks[0].reasoning).toBe("");
+    expect(out.outlooks[0].whatWouldRaiseIt).toBe("");
+    expect(out.outlooks[0].risks).toEqual([]);
+    expect(out.outlooks[0].asks).toEqual([]);
+    expect(out.outlooks[0].updatedBy).toBe("");
   });
 });
 

@@ -413,8 +413,8 @@ export interface EntityChange {
 
 // A structured diff between the live roadmap and a scenario draft. Additions are
 // items present in the draft but not live; removals are the reverse; changes are
-// per-field before→after on items that exist in both. Same shape for bets and
-// milestones. `weights` lists changed ranking weights.
+// per-field before→after on items that exist in both. Same shape for bets,
+// milestones, and outlooks. `weights` lists changed ranking weights.
 export interface StateDiff {
   itemsAdded: Item[];
   itemsRemoved: Item[];
@@ -425,5 +425,8 @@ export interface StateDiff {
   milestonesAdded: Milestone[];
   milestonesRemoved: Milestone[];
   milestonesChanged: EntityChange[];
+  outlooksAdded: DeliveryOutlook[];
+  outlooksRemoved: DeliveryOutlook[];
+  outlooksChanged: EntityChange[];
   weights: FieldChange[];
 }

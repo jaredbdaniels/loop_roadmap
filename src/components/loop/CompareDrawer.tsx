@@ -30,6 +30,11 @@ const FIELD_LABELS: Record<string, string> = {
   color: "Color",
   description: "Description",
   date: "Date",
+  level: "Confidence",
+  reasoning: "Reasoning",
+  whatWouldRaiseIt: "What would raise it",
+  risks: "Risks",
+  asks: "Asks",
 };
 
 function label(field: string): string {
@@ -215,6 +220,33 @@ export function CompareDrawer() {
                     </div>
                   ))}
                   {diff.milestonesChanged.map((c) => (
+                    <div key={c.id} className="cmp-row">
+                      <strong>{c.title}</strong>
+                      <span className="cmp-sub">
+                        {c.changes.map((ch) => label(ch.field)).join(", ")} changed
+                      </span>
+                    </div>
+                  ))}
+                </Section>
+              )}
+
+              {(diff.outlooksAdded.length > 0 ||
+                diff.outlooksRemoved.length > 0 ||
+                diff.outlooksChanged.length > 0) && (
+                <Section title="Delivery outlooks">
+                  {diff.outlooksAdded.map((o) => (
+                    <div key={o.id} className="cmp-row">
+                      <span className="cmp-tag cmp-tag--add">added</span>
+                      <strong>{o.mission}</strong>
+                    </div>
+                  ))}
+                  {diff.outlooksRemoved.map((o) => (
+                    <div key={o.id} className="cmp-row">
+                      <span className="cmp-tag cmp-tag--rm">removed</span>
+                      <strong>{o.mission}</strong>
+                    </div>
+                  ))}
+                  {diff.outlooksChanged.map((c) => (
                     <div key={c.id} className="cmp-row">
                       <strong>{c.title}</strong>
                       <span className="cmp-sub">

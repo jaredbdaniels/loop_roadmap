@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "../db";
 import {
   bets as betsTable,
@@ -156,49 +156,46 @@ export async function getAllItems(): Promise<Item[]> {
   return migrateItems(rows.map((r) => r.data));
 }
 
-export async function getAllBets(): Promise<Bet[]> {
+// Shared by every newer table (bets, milestones, outlooks): each is one JSON
+// blob per row, so reading it all back is "select, unwrap `.data`, normalize"
+// plus the same missing-relation fallback. `query` stays a thunk (rather than
+// taking the table itself) so this has no drizzle table typing to get right —
+// it just needs whatever the caller's `db.select().from(...)` returns.
+async function getAllRows<T>(
+  query: () => Promise<{ data: T }[]>,
+  normalize: (rows: T[]) => T[],
+  label: string,
+): Promise<T[]> {
   try {
-    const rows = await db.select().from(betsTable);
-    return normalizeBets(rows.map((r) => r.data));
+    const rows = await query();
+    return normalize(rows.map((r) => r.data));
   } catch (err) {
     if (isMissingRelation(err)) {
-      console.warn(
-        "bets table not found — run `npm run db:push`. Returning [].",
-      );
+      console.warn(`${label} table not found — run \`npm run db:push\`. Returning [].`);
       return [];
     }
     throw err;
   }
+}
+
+export async function getAllBets(): Promise<Bet[]> {
+  return getAllRows(() => db.select().from(betsTable), normalizeBets, "bets");
 }
 
 export async function getAllMilestones(): Promise<Milestone[]> {
-  try {
-    const rows = await db.select().from(milestonesTable);
-    return normalizeMilestones(rows.map((r) => r.data));
-  } catch (err) {
-    if (isMissingRelation(err)) {
-      console.warn(
-        "milestones table not found — run `npm run db:push`. Returning [].",
-      );
-      return [];
-    }
-    throw err;
-  }
+  return getAllRows(
+    () => db.select().from(milestonesTable),
+    normalizeMilestones,
+    "milestones",
+  );
 }
 
 export async function getAllOutlooks(): Promise<DeliveryOutlook[]> {
-  try {
-    const rows = await db.select().from(outlooksTable);
-    return normalizeOutlooks(rows.map((r) => r.data));
-  } catch (err) {
-    if (isMissingRelation(err)) {
-      console.warn(
-        "outlooks table not found — run `npm run db:push`. Returning [].",
-      );
-      return [];
-    }
-    throw err;
-  }
+  return getAllRows(
+    () => db.select().from(outlooksTable),
+    normalizeOutlooks,
+    "outlooks",
+  );
 }
 
 export async function getState(): Promise<{
@@ -240,10 +237,8 @@ export async function getPublicState(): Promise<{
   // rather than merely not rendered. It is also the difference that matters
   // most: an unpromoted idea read as "the roadmap" is a half-formed thought
   // mistaken for a commitment (see docs/settings-tab.md).
-  const trimmed = trimForShare({ items, bets });
-  // Outlooks pass through untrimmed for now — scoping share links to a
-  // leadership-rollup view is docs/launchpad-pivot.md Phase 4, not this pass.
-  return { ...trimmed, weights, milestones, outlooks };
+  const trimmed = trimForShare({ items, bets, outlooks });
+  return { ...trimmed, weights, milestones };
 }
 
 export async function upsertItem(item: Item): Promise<void> {
@@ -408,9 +403,15 @@ export async function replaceAll(
 // Personal "what-if" drafts. Each is one whole-LoopState blob in the `scenarios`
 // table — the live roadmap tables and their per-entity write path are untouched.
 // Reads normalize the blob (migrateItems / normalize*) so a scenario forked
-// before a model change still renders like live does. Every function is scoped
-// by `createdBy` so scenarios are private to their owner. Like the other newer
-// tables, a missing relation (schema not yet pushed) degrades gracefully.
+// before a model change still renders like live does. Writes (save/delete) are
+// always scoped by `createdBy` so a draft can only be edited or discarded by
+// its owner. Reads (list/get) admit one exception: "headlights-archive"
+// scenarios are locked, read-only snapshots meant for leadership/other teams
+// to open, so listScenarios/getScenario also return them regardless of who
+// forked them — a plain "whatif" draft stays visible only to its creator. Like
+// the other newer tables, a missing relation (schema not yet pushed) degrades
+// gracefully.
+const readableByAnyone = eq(scenariosTable.kind, "headlights-archive");
 
 function rowToScenario(row: typeof scenariosTable.$inferSelect): Scenario {
   const st = row.state;
@@ -450,7 +451,7 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
         updatedAt: scenariosTable.updatedAt,
       })
       .from(scenariosTable)
-      .where(eq(scenariosTable.createdBy, createdBy))
+      .where(or(eq(scenariosTable.createdBy, createdBy), readableByAnyone))
       .orderBy(desc(scenariosTable.updatedAt));
     return rows.map((r) => ({
       id: r.id,
@@ -519,8 +520,9 @@ export async function createScenario(
   };
 }
 
-// Read one scenario (with its state), scoped to its owner. Null if not found or
-// not owned by `createdBy`.
+// Read one scenario (with its state). Null if not found, or if it's a private
+// "whatif" draft not owned by `createdBy` — a "headlights-archive" is
+// returned regardless of owner (see the module comment above).
 export async function getScenario(
   id: string,
   createdBy: string,
@@ -530,7 +532,10 @@ export async function getScenario(
       .select()
       .from(scenariosTable)
       .where(
-        and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
+        and(
+          eq(scenariosTable.id, id),
+          or(eq(scenariosTable.createdBy, createdBy), readableByAnyone),
+        ),
       )
       .limit(1);
     return rows[0] ? rowToScenario(rows[0]) : null;
@@ -573,8 +578,11 @@ export async function saveScenario(
   return { ok: true };
 }
 
-// Discard a scenario, scoped to its owner. Refuses on a locked archive for the
-// same reason saveScenario does — see ScenarioKind in types.ts.
+// Discard a scenario, scoped to its owner. Idempotent on an already-gone
+// scenario (a retried request, or a double-clicked discard, should not error
+// just because a previous call already deleted it) — but still refuses on a
+// locked archive for the same reason saveScenario does; see ScenarioKind in
+// types.ts.
 export async function deleteScenario(
   id: string,
   createdBy: string,
@@ -586,7 +594,7 @@ export async function deleteScenario(
       and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
     )
     .limit(1);
-  if (!rows[0]) return { ok: false, reason: "not_found" };
+  if (!rows[0]) return { ok: true };
   if (rows[0].locked) return { ok: false, reason: "locked" };
   await db
     .delete(scenariosTable)

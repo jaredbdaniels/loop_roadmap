@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   LIFECYCLE_STAGES,
   MISSIONS,
@@ -46,7 +46,9 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
   const [selectedTeam, setSelectedTeam] = useState(
     filterMission[0] ?? MISSIONS[0],
   );
-  const months = rollingMonths(3);
+  // Only depends on "today", not on any prop/state — recomputed once per
+  // mount rather than on every render; a day boundary is caught by remounting.
+  const months = useMemo(() => rollingMonths(3), []);
 
   const goToTeamBoard = (mission: string) => {
     setSelectedTeam(mission);
@@ -68,14 +70,40 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
     );
   };
 
-  const teamItems = items.filter(
-    (i) => !i.killed && i.mission === selectedTeam,
+  const teamItems = useMemo(
+    () => items.filter((i) => !i.killed && i.mission === selectedTeam),
+    [items, selectedTeam],
   );
-  const undated = teamItems.filter(
-    (i) =>
-      (LIFECYCLE_STAGES as readonly string[]).includes(i.stage) &&
-      !i.targetStart &&
-      !i.targetEnd,
+  const undated = useMemo(
+    () =>
+      teamItems.filter(
+        (i) =>
+          (LIFECYCLE_STAGES as readonly string[]).includes(i.stage) &&
+          !i.targetStart &&
+          !i.targetEnd,
+      ),
+    [teamItems],
+  );
+  // One bucket per stage/month cell, filled in a single pass over teamItems
+  // instead of re-filtering the team's items for every one of the board's
+  // (stages × months) cells on every render.
+  const cellsByStageMonth = useMemo(() => {
+    const map = new Map<string, Item[]>();
+    for (const i of teamItems) {
+      if (!(LIFECYCLE_STAGES as readonly string[]).includes(i.stage)) continue;
+      for (const m of months) {
+        if (!itemInMonth(i, m)) continue;
+        const key = `${i.stage}|${m}`;
+        const bucket = map.get(key);
+        if (bucket) bucket.push(i);
+        else map.set(key, [i]);
+      }
+    }
+    return map;
+  }, [teamItems, months]);
+  const outlooksById = useMemo(
+    () => new Map(outlooks.map((o) => [o.id, o])),
+    [outlooks],
   );
 
   return (
@@ -175,9 +203,8 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
                     <span className="hl-band-blurb">{STAGE_BLURB[stage]}</span>
                   </div>
                   {months.map((m) => {
-                    const cellItems = teamItems.filter(
-                      (i) => i.stage === stage && itemInMonth(i, m),
-                    );
+                    const cellItems =
+                      cellsByStageMonth.get(`${stage}|${m}`) ?? [];
                     return (
                       <div className="hl-cell" key={m}>
                         {cellItems.map((item) => (
@@ -220,9 +247,7 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
                 key={`${selectedTeam}-${m}`}
                 mission={selectedTeam}
                 month={m}
-                existing={outlooks.find(
-                  (o) => o.id === outlookId(selectedTeam, m),
-                )}
+                existing={outlooksById.get(outlookId(selectedTeam, m))}
                 readOnly={readOnly}
                 userEmail={userEmail}
               />
@@ -245,6 +270,22 @@ function LeadershipRollup({
   month: string;
   onSelectTeam: (mission: string) => void;
 }) {
+  const outlooksById = useMemo(
+    () => new Map(outlooks.map((o) => [o.id, o])),
+    [outlooks],
+  );
+  // One pass over every team's items instead of re-scanning the full,
+  // all-teams items array once per mission in the render loop below.
+  const activeCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const i of items) {
+      if (i.killed) continue;
+      if (!(LIFECYCLE_STAGES as readonly string[]).includes(i.stage)) continue;
+      counts.set(i.mission, (counts.get(i.mission) ?? 0) + 1);
+    }
+    return counts;
+  }, [items]);
+
   return (
     <div className="hl-rollup-wrap">
       <table className="hl-rollup">
@@ -257,15 +298,8 @@ function LeadershipRollup({
         </thead>
         <tbody>
           {MISSIONS.map((mission) => {
-            const outlook = outlooks.find(
-              (o) => o.id === outlookId(mission, month),
-            );
-            const activeCount = items.filter(
-              (i) =>
-                !i.killed &&
-                i.mission === mission &&
-                (LIFECYCLE_STAGES as readonly string[]).includes(i.stage),
-            ).length;
+            const outlook = outlooksById.get(outlookId(mission, month));
+            const activeCount = activeCounts.get(mission) ?? 0;
             return (
               <tr
                 key={mission}

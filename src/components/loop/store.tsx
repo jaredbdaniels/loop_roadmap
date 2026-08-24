@@ -375,23 +375,26 @@ export function LoopProvider({
   }, []);
 
   // Every mutation calls this before touching local state — not just before
-  // hitting the network. A locked Headlights archive exists to answer "what
-  // did we believe in <month>," and the server already refuses to persist an
-  // edit to one (see saveScenario/deleteScenario); the reason this guard also
-  // exists on the client is that every mutation below applies its change to
-  // local state optimistically, before it knows whether the save will
-  // succeed. Without this, an edit to a locked archive would render as
-  // applied immediately and only quietly fail to persist ~800ms later on the
-  // debounced draft save, leaving the screen showing a change nothing ever
-  // actually kept — see docs/launchpad-pivot.md Phase 3.
-  const guardLocked = useCallback((): boolean => {
+  // hitting the network. It covers both reasons a mutation must not proceed:
+  // `readOnly` (a share-link viewer) and a locked Headlights archive, which
+  // exists to answer "what did we believe in <month>" and which the server
+  // already refuses to persist an edit to (see saveScenario/deleteScenario).
+  // The reason this guard also exists on the client is that every mutation
+  // below applies its change to local state optimistically, before it knows
+  // whether the save will succeed. Without this, an edit to a read-only or
+  // locked view would render as applied immediately and only quietly fail to
+  // persist ~800ms later on the debounced draft save, leaving the screen
+  // showing a change nothing ever actually kept — see
+  // docs/launchpad-pivot.md Phase 3.
+  const blocked = useCallback((): boolean => {
+    if (readOnly) return true;
     if (!scenarioLockedRef.current) return false;
     toast(
       "This is a locked Headlights archive — switch to the live roadmap to make changes.",
       true,
     );
     return true;
-  }, [toast]);
+  }, [readOnly, toast]);
 
   // Persist the active scenario's whole working state. No-op on the live
   // roadmap (which uses the granular per-entity endpoints instead).
@@ -622,7 +625,7 @@ export function LoopProvider({
 
   const createItem = useCallback(
     async (item: Item) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setItems((prev) => [...prev, item]);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -635,12 +638,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the new item.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const updateItem = useCallback(
     async (item: Item) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -653,12 +656,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save changes.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const removeItem = useCallback(
     async (id: string) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       // Deleting an item can leave other items pointing at it via
       // `dependsOn` — prune those references locally too, or a later edit
       // to one of them would resend the dangling id and undo the server-side
@@ -679,11 +682,11 @@ export function LoopProvider({
       const res = await fetch(`/api/items/${id}`, { method: "DELETE" });
       if (!res.ok) toast("Could not delete the item.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const clearAllDependencies = useCallback(async () => {
-    if (readOnly || guardLocked()) return;
+    if (blocked()) return;
     const affected = items.filter((i) => (i.dependsOn || []).length > 0);
     if (affected.length === 0) {
       toast("No dependencies to clear.");
@@ -719,11 +722,11 @@ export function LoopProvider({
     if (failed)
       toast(`Could not clear dependencies on ${failed} item(s).`, true);
     else toast(`Cleared dependencies on ${cleared.length} item(s).`);
-  }, [readOnly, guardLocked, items, toast, scheduleDraftSave]);
+  }, [blocked, items, toast, scheduleDraftSave]);
 
   const createBet = useCallback(
     async (init: Bet) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setBets((prev) => [...prev, init]);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -736,12 +739,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the bet.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const updateBet = useCallback(
     async (init: Bet) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setBets((prev) =>
         prev.map((i) => (i.id === init.id ? init : i)),
       );
@@ -756,12 +759,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save changes.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const removeBet = useCallback(
     async (id: string) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setBets((prev) => prev.filter((i) => i.id !== id));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -770,12 +773,12 @@ export function LoopProvider({
       const res = await fetch(`/api/initiatives/${id}`, { method: "DELETE" });
       if (!res.ok) toast("Could not delete the bet.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const createMilestone = useCallback(
     async (m: Milestone) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setMilestones((prev) => [...prev, m]);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -788,12 +791,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the milestone.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const updateMilestone = useCallback(
     async (m: Milestone) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setMilestones((prev) => prev.map((x) => (x.id === m.id ? m : x)));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -806,12 +809,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save changes.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const removeMilestone = useCallback(
     async (id: string) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setMilestones((prev) => prev.filter((m) => m.id !== id));
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -820,12 +823,12 @@ export function LoopProvider({
       const res = await fetch(`/api/milestones/${id}`, { method: "DELETE" });
       if (!res.ok) toast("Could not delete the milestone.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const saveOutlook = useCallback(
     async (outlook: DeliveryOutlook) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setOutlooks((prev) => {
         const exists = prev.some((o) => o.id === outlook.id);
         return exists
@@ -843,12 +846,12 @@ export function LoopProvider({
       });
       if (!res.ok) toast("Could not save the outlook.", true);
     },
-    [readOnly, guardLocked, toast, scheduleDraftSave],
+    [blocked, toast, scheduleDraftSave],
   );
 
   const updateWeights = useCallback(
     async (w: Weights) => {
-      if (readOnly || guardLocked()) return;
+      if (blocked()) return;
       setWeights(w);
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
@@ -860,7 +863,7 @@ export function LoopProvider({
         body: JSON.stringify({ weights: w }),
       });
     },
-    [readOnly, guardLocked, scheduleDraftSave],
+    [blocked, scheduleDraftSave],
   );
 
   const importData = useCallback(

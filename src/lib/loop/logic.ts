@@ -980,16 +980,28 @@ export function normalizeBets(list: Bet[]): Bet[] {
 // to cover it, so an internal audit log shipped to anonymous readers while the
 // surrounding comment claimed it was removed. **Any new field holding internal
 // notes must be added here**, and the round-trip test is what makes that
-// failure loud instead of silent.
+// failure loud instead of silent. `DeliveryOutlook.reasoning`/`risks`/`asks`
+// are exactly that kind of note — frank, internal confidence commentary — so
+// they're cleared the same way `Bet.activity` is; `level` stays, matching how
+// scores and timelines stay visible elsewhere in this trim.
 export function trimForShare(state: {
   items: Item[];
   bets: Bet[];
-}): { items: Item[]; bets: Bet[] } {
+  outlooks: DeliveryOutlook[];
+}): { items: Item[]; bets: Bet[]; outlooks: DeliveryOutlook[] } {
   return {
     items: state.items
       .filter((it) => !it.killed && !isIntake(it))
       .map((it) => ({ ...it, killedReason: "", activity: [] })),
     bets: state.bets.map((b) => ({ ...b, activity: [] })),
+    outlooks: state.outlooks.map((o) => ({
+      ...o,
+      reasoning: "",
+      whatWouldRaiseIt: "",
+      risks: [],
+      asks: [],
+      updatedBy: "",
+    })),
   };
 }
 
@@ -1594,6 +1606,25 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
       milestonesChanged.push({ id: d.id, title: d.title, changes });
   }
 
+  const liveOutlooks = new Map(live.outlooks.map((o) => [o.id, o]));
+  const draftOutlooks = new Map(draft.outlooks.map((o) => [o.id, o]));
+  const outlooksChanged: EntityChange[] = [];
+  for (const d of draft.outlooks) {
+    const l = liveOutlooks.get(d.id);
+    if (!l) continue;
+    const changes = (
+      ["level", "reasoning", "whatWouldRaiseIt", "risks", "asks"] as const
+    )
+      .filter((f) => JSON.stringify(l[f]) !== JSON.stringify(d[f]))
+      .map((f) => ({ field: f, before: l[f], after: d[f] }));
+    if (changes.length)
+      outlooksChanged.push({
+        id: d.id,
+        title: `${d.mission} — ${monthLabel(d.month)}`,
+        changes,
+      });
+  }
+
   const weights = (["reach", "confidence", "strategicFit"] as const)
     .filter((k) => live.weights[k] !== draft.weights[k])
     .map((k) => ({ field: k, before: live.weights[k], after: draft.weights[k] }));
@@ -1608,6 +1639,9 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
     milestonesAdded: draft.milestones.filter((m) => !liveMs.has(m.id)),
     milestonesRemoved: live.milestones.filter((m) => !draftMs.has(m.id)),
     milestonesChanged,
+    outlooksAdded: draft.outlooks.filter((o) => !liveOutlooks.has(o.id)),
+    outlooksRemoved: live.outlooks.filter((o) => !draftOutlooks.has(o.id)),
+    outlooksChanged,
     weights,
   };
 }
@@ -1624,6 +1658,9 @@ export function diffCount(d: StateDiff): number {
     d.milestonesAdded.length +
     d.milestonesRemoved.length +
     d.milestonesChanged.length +
+    d.outlooksAdded.length +
+    d.outlooksRemoved.length +
+    d.outlooksChanged.length +
     d.weights.length
   );
 }
