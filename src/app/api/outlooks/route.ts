@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/require-session";
+import { outlookId } from "@/lib/loop/logic";
 import { getAllOutlooks, upsertOutlook } from "@/lib/loop/store";
 import type { DeliveryOutlook } from "@/lib/loop/types";
 
@@ -22,6 +23,12 @@ export async function POST(req: Request) {
   if (!outlook?.id || !outlook?.mission || !outlook?.month) {
     return NextResponse.json(
       { error: "id, mission and month required" },
+      { status: 400 },
+    );
+  }
+  if (outlook.id !== outlookId(outlook.mission, outlook.month)) {
+    return NextResponse.json(
+      { error: "id must be `${mission}:${month}`" },
       { status: 400 },
     );
   }

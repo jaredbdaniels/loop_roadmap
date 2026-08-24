@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/require-session";
+import { outlookId } from "@/lib/loop/logic";
 import { upsertOutlook } from "@/lib/loop/store";
 import type { DeliveryOutlook } from "@/lib/loop/types";
 
@@ -18,6 +19,18 @@ export async function PATCH(
   const outlook = (await req.json()) as DeliveryOutlook;
   if (outlook.id !== id) {
     return NextResponse.json({ error: "id mismatch" }, { status: 400 });
+  }
+  if (!outlook.mission || !outlook.month) {
+    return NextResponse.json(
+      { error: "mission and month required" },
+      { status: 400 },
+    );
+  }
+  if (outlook.id !== outlookId(outlook.mission, outlook.month)) {
+    return NextResponse.json(
+      { error: "id must be `${mission}:${month}`" },
+      { status: 400 },
+    );
   }
   await upsertOutlook(outlook);
   return NextResponse.json({ ok: true, outlook });

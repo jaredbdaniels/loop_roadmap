@@ -27,6 +27,16 @@ describe("taxonomy integrity", () => {
     expect(new Set(TEAMS.map((t) => t.label)).size).toBe(TEAMS.length);
   });
 
+  it("keeps team labels free of ':' — outlookId joins mission and month on it", () => {
+    // DeliveryOutlook.id is `${mission}:${month}` (see outlookId in logic.ts).
+    // month is always "YYYY-MM", so a colon can only ever come from a team
+    // label; two teams that differ only in where the colon falls (e.g. "R&D"
+    // renamed to "R&D: Core") would collide on the same outlook id and
+    // silently overwrite each other's delivery outlook.
+    for (const team of TEAMS)
+      expect(team.label, `team "${team.id}"`).not.toContain(":");
+  });
+
   it("points every JTBD at a real domain", () => {
     for (const jtbd of JTBDS)
       expect(domainIds, `jtbd "${jtbd.id}"`).toContain(jtbd.domainId);
