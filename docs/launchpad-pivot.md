@@ -116,7 +116,10 @@ reviewer has to notice by eye).
 
 ### 1. Team Headlights board (new `ViewKey`)
 
-Add `"cycle"` to `ViewKey` in `constants.ts`. Layout, per team:
+Add `"headlights"` to `ViewKey` in `constants.ts` — named for the view, not
+a generic lifecycle word, so the tab in the app reads "Headlights" next to
+Board / Timeline / Horizon / Team rather than something a viewer has to
+translate. Layout, per team:
 
 - Columns: current month + next 2 (rolling, same as Notion today)
 - Rows: the four `LIFECYCLE_STAGES`, populated by derived item placement
@@ -173,7 +176,7 @@ a scoped share link sent to leadership.
 | --- | --- | --- | --- |
 | **0 — Identity** | Rename Loop → Launchpad: README, nav header, page titles, doc cross-references. No schema/behavior change. | Nothing | S |
 | **1 — `DeliveryOutlook` data layer** | New type, add to `LoopState`, schema column, `GET/PATCH /api/outlook`, `StateDiff.outlooksChanged`, a minimal editor (can be a modal before it has a home view) | Nothing | M |
-| **2 — Team Headlights board view** | New `"cycle"` `ViewKey`, month-bucketed board reusing `TimelineView`'s placement math, `DeliveryOutlook` panel wired to Phase 1 | Phase 1 | M/L |
+| **2 — Team Headlights board view** | New `"headlights"` `ViewKey`, month-bucketed board reusing `TimelineView`'s placement math, `DeliveryOutlook` panel wired to Phase 1 | Phase 1 | M/L |
 | **3 — Archive** | `Scenario.kind`/`locked`, "Submit for Headlights" action, archive filter in scenario switcher | Phase 1 (needs `outlooks` in `LoopState` to fork) | S/M |
 | **4 — Leadership rollup** | Outlook-rollup mode on the scoped share-link work | Phase 2 (aggregation shape), the exec-share-link work in `settings-tab.md` | M |
 | **5 — Governance & cutover** | See below | Phases 1–4 shipped | — |
