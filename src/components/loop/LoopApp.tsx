@@ -7,6 +7,7 @@ import {
   GanttChartSquare,
   Layers,
   Flag,
+  Flashlight,
   Plus,
   MoreHorizontal,
   Download,
@@ -24,7 +25,13 @@ import { toPng } from "html-to-image";
 import type { GroupByKey, ViewKey, ZoomKey } from "@/lib/loop/constants";
 import { OWNERS, OWNER_UNASSIGNED } from "@/lib/loop/constants";
 import type { RawParams, ViewState } from "@/lib/loop/view-state";
-import type { Bet, Item, Milestone, Weights } from "@/lib/loop/types";
+import type {
+  Bet,
+  DeliveryOutlook,
+  Item,
+  Milestone,
+  Weights,
+} from "@/lib/loop/types";
 import { authClient } from "@/lib/auth-client";
 import { LoopProvider, useLoop } from "./store";
 import { StatsBar } from "./StatsBar";
@@ -33,6 +40,7 @@ import { BoardView } from "./BoardView";
 import { TeamView } from "./TeamView";
 import { TimelineView } from "./TimelineView";
 import { HorizonView } from "./HorizonView";
+import { HeadlightsView } from "./HeadlightsView";
 import { DetailModal } from "./DetailModal";
 import { CaptureModal } from "./CaptureModal";
 import { BetModal } from "./BetModal";
@@ -53,6 +61,7 @@ const VIEWS: { key: ViewKey; label: string; icon: typeof Columns3 }[] = [
   { key: "timeline", label: "Timeline", icon: GanttChartSquare },
   { key: "horizon", label: "Horizon", icon: Layers },
   { key: "mission", label: "Team", icon: Users },
+  { key: "headlights", label: "Headlights", icon: Flashlight },
 ];
 
 // Display labels only — the ZoomKey union is persisted state, so "quarter"
@@ -75,6 +84,7 @@ export function LoopApp({
   initialWeights,
   initialBets,
   initialMilestones,
+  initialOutlooks,
   userEmail,
   readOnly = false,
   viewDefaults,
@@ -87,6 +97,7 @@ export function LoopApp({
   initialWeights: Weights;
   initialBets: Bet[];
   initialMilestones: Milestone[];
+  initialOutlooks: DeliveryOutlook[];
   // null on the anonymous /share/<token> view.
   userEmail: string | null;
   readOnly?: boolean;
@@ -112,6 +123,7 @@ export function LoopApp({
       initialWeights={initialWeights}
       initialBets={initialBets}
       initialMilestones={initialMilestones}
+      initialOutlooks={initialOutlooks}
       readOnly={readOnly}
       viewDefaults={viewDefaults}
       viewParams={viewParams}
@@ -608,6 +620,7 @@ function Shell({
         {view === "mission" && <TeamView />}
         {view === "timeline" && <TimelineView />}
         {view === "horizon" && <HorizonView />}
+        {view === "headlights" && <HeadlightsView userEmail={userEmail} />}
       </main>
 
       <DetailModal />

@@ -1804,6 +1804,194 @@ body.exporting .tl-pin-slot {
 }
 
 /* =========================================================================
+   Headlights view
+   ========================================================================= */
+.headlights-view {
+  padding: 8px 28px 64px;
+}
+.hl-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.hl-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+.hl-purpose {
+  font-size: 0.78rem;
+  color: var(--cm-muted-fg);
+  margin: 0 0 4px;
+}
+.hl-sub {
+  font-size: 0.8rem;
+  color: var(--cm-muted-fg);
+  margin: 0;
+  max-width: 56ch;
+}
+
+.hl-board-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--cm-border);
+  border-radius: var(--r-lg);
+  background: var(--cm-white);
+  box-shadow: var(--sh-sm);
+}
+.hl-board {
+  min-width: 760px;
+  display: grid;
+  grid-template-columns: 168px repeat(3, 1fr);
+}
+.hl-corner,
+.hl-month-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cm-border);
+  background: var(--cm-surface-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cm-muted-fg);
+}
+.hl-month-head {
+  border-left: 1px solid var(--cm-border);
+  font-family: inherit;
+}
+.hl-band-row {
+  display: contents;
+}
+.hl-band-label {
+  padding: 12px 16px;
+  border-top: 1px solid var(--cm-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+.hl-band-name {
+  font-weight: 700;
+  font-size: 0.84rem;
+  color: var(--band-color, var(--cm-purple));
+}
+.hl-band-blurb {
+  font-size: 0.7rem;
+  color: var(--cm-muted-fg);
+  line-height: 1.3;
+}
+.hl-cell {
+  padding: 8px;
+  border-top: 1px solid var(--cm-border);
+  border-left: 1px dashed var(--cm-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 56px;
+}
+.hl-item-chip {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 7px 9px;
+  border-radius: var(--r-md);
+  border: 1px solid color-mix(in srgb, var(--chip-color, var(--cm-purple)) 35%, transparent);
+  background: color-mix(in srgb, var(--chip-color, var(--cm-purple)) 10%, var(--cm-white));
+  color: var(--cm-fg);
+  font: inherit;
+  font-size: 0.79rem;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.hl-item-chip:hover {
+  border-color: var(--chip-color, var(--cm-purple));
+}
+
+.hl-note {
+  margin: 12px 2px 0;
+  font-size: 0.78rem;
+  color: var(--cm-muted-fg);
+  line-height: 1.5;
+}
+
+.hl-outlook-heading {
+  margin: 28px 0 12px;
+}
+.hl-outlook-heading h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+}
+.hl-outlook-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.hl-outlook-card {
+  background: var(--cm-white);
+  border: 1px solid var(--cm-border);
+  border-top: 3px solid var(--level-color, var(--cm-border-strong));
+  border-radius: var(--r-lg);
+  padding: 14px 16px 16px;
+  box-shadow: var(--sh-sm);
+}
+.hl-outlook-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.hl-outlook-month {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cm-fg);
+}
+.hl-level-select {
+  padding: 4px 26px 4px 10px;
+  font-size: 0.76rem;
+}
+.hl-field-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cm-muted-fg);
+  margin: 10px 0 4px;
+}
+.hl-textarea {
+  width: 100%;
+  min-height: 52px;
+  resize: vertical;
+  border: 1px solid var(--cm-border-strong);
+  border-radius: var(--r-md);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--cm-fg);
+  background: var(--cm-white);
+  box-shadow: var(--sh-xs);
+}
+.hl-textarea:focus {
+  outline: none;
+  border-color: var(--cm-purple);
+  box-shadow: var(--ring);
+}
+.hl-outlook-card .cm-button {
+  margin-top: 12px;
+}
+.hl-updated-by {
+  margin: 8px 0 0;
+  font-size: 0.7rem;
+  color: var(--cm-faint-fg);
+}
+
+/* =========================================================================
    Modal
    ========================================================================= */
 .modal-overlay {

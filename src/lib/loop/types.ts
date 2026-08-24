@@ -164,6 +164,30 @@ export interface Item {
   activity: string[];
 }
 
+// A team's stated delivery confidence for one month of a Headlights cycle —
+// High/Medium/Low, why, and what would raise it — plus that month's top risks
+// and asks of leadership. Deliberately not named `confidence`: `Item.confidence`
+// is a 1-5 RICE-style estimate about one piece of work, and this is a
+// High/Medium/Low judgment about a whole team's whole month. Reusing the word
+// would make every future reference to "confidence" ambiguous about which one
+// is meant. See docs/launchpad-pivot.md.
+export type OutlookLevel = "high" | "medium" | "low";
+
+export interface DeliveryOutlook {
+  // Deterministic `${mission}:${month}` — one row per team per month, so
+  // saving is always an upsert and there's no separate id to generate or track.
+  id: string;
+  mission: string; // matches Item.mission / MISSIONS
+  month: string; // "YYYY-MM"
+  level: OutlookLevel | null; // null = not yet stated
+  reasoning: string;
+  whatWouldRaiseIt: string;
+  risks: string[]; // one line each
+  asks: string[]; // specific leadership asks: a decision, a connection, a resource
+  updatedBy: string;
+  updatedAt: string;
+}
+
 export interface Weights {
   // Kept for the same reason as `Item.votes`, and deliberately not zeroed: the
   // stored weight survives so turning voting back on restores the tuning some-
@@ -332,6 +356,11 @@ export interface LoopState {
   weights: Weights;
   bets: Bet[];
   milestones: Milestone[];
+  // Lives in LoopState (not beside it, the way workspace config does) on
+  // purpose: this is a declared current belief, exactly like `weights` — you
+  // want it forked when someone drafts a what-if, and diffed the same way.
+  // See docs/launchpad-pivot.md.
+  outlooks: DeliveryOutlook[];
 }
 
 // A personal "what-if" copy of the whole roadmap. `state` is a full LoopState

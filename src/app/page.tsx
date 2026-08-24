@@ -24,7 +24,7 @@ export default async function Home({
   const session = await getSession();
   if (!session) redirect("/login");
 
-  const { items, weights, bets, milestones } = await getState();
+  const { items, weights, bets, milestones, outlooks } = await getState();
   const params = await searchParams;
   const edit = typeof params.edit === "string" ? params.edit : undefined;
   const field = typeof params.field === "string" ? params.field : undefined;
@@ -35,6 +35,7 @@ export default async function Home({
       initialWeights={weights}
       initialBets={bets}
       initialMilestones={milestones}
+      initialOutlooks={outlooks}
       userEmail={session.user.email}
       viewParams={params}
       openBetOnMount={edit && bets.some((b) => b.id === edit) ? edit : undefined}

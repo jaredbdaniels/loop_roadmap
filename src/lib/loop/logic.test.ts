@@ -133,6 +133,7 @@ function state(over: Partial<LoopState> = {}): LoopState {
     weights: WEIGHTS,
     bets: [],
     milestones: [],
+    outlooks: [],
     ...over,
   };
 }

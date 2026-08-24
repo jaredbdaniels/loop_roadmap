@@ -110,6 +110,26 @@ export const STAGE_COLORS: Record<string, string> = {
   Releasing: "#27065C",
 };
 
+// A team's stated delivery confidence for one month of a Headlights cycle.
+// Kept as its own enum (not reused from anywhere else) — see the comment on
+// `OutlookLevel` in types.ts for why this is a different concept from
+// `Item.confidence`.
+export const OUTLOOK_LEVELS = ["high", "medium", "low"] as const;
+
+// Label + color per level. Deliberately reuses the semantic green/amber/red
+// read of "good/watch/bad" rather than STAGE_COLORS' blue/amber/green/purple
+// lifecycle palette — an outlook chip means "how worried should leadership
+// be", not "which lifecycle band", and the two must stay visually distinct
+// since they can appear side by side on the same board.
+export const OUTLOOK_LEVEL_INFO: Record<
+  (typeof OUTLOOK_LEVELS)[number],
+  { label: string; color: string }
+> = {
+  high: { label: "High", color: "#1C8A54" },
+  medium: { label: "Medium", color: "#B67A12" },
+  low: { label: "Low", color: "#C4463B" },
+};
+
 // Mapping from earlier stage models, applied to any imported or saved data.
 //
 // The immediately preceding model was Loop's own five-stage loop (Capture →
@@ -271,7 +291,7 @@ export const ZOOMS: Record<"month" | "quarter" | "year", number> = {
 
 export const DAY = 86400000;
 
-export type ViewKey = "board" | "mission" | "timeline" | "horizon";
+export type ViewKey = "board" | "mission" | "timeline" | "horizon" | "headlights";
 export type ZoomKey = "month" | "quarter" | "year";
 // How the timeline and Team views segment their rows: into team bands (the
 // default), into one band per bet, or into one band per domain (the durable

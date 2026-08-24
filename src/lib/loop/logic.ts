@@ -20,6 +20,7 @@ import {
   INTAKE_STAGE,
   ITEM_TYPES,
   MISSIONS,
+  OUTLOOK_LEVELS,
   PLANNED_HORIZONS,
   STAGES,
   STAGE_MIGRATION,
@@ -41,12 +42,14 @@ import type {
   BetEvidence,
   BetValue,
   BetVerdict,
+  DeliveryOutlook,
   EntityChange,
   FieldChange,
   Item,
   KeyResult,
   LoopState,
   Milestone,
+  OutlookLevel,
   PlannedHorizon,
   Prototype,
   StateDiff,
@@ -1311,6 +1314,75 @@ export function normalizeMilestones(list: Milestone[]): Milestone[] {
     if (typeof m.date !== "string") m.date = "";
     return m;
   });
+}
+
+/* ---------------- Headlights: delivery outlooks ---------------- */
+// A DeliveryOutlook's id is deterministic (`${mission}:${month}`), so there's
+// never a separate id-generation step — saving one is always an upsert keyed
+// by this.
+export function outlookId(mission: string, month: string): string {
+  return `${mission}:${month}`;
+}
+
+export function normalizeOutlooks(list: DeliveryOutlook[]): DeliveryOutlook[] {
+  return (Array.isArray(list) ? list : []).map((raw) => {
+    const o: DeliveryOutlook = { ...(raw as DeliveryOutlook) };
+    if (typeof o.mission !== "string") o.mission = "";
+    if (typeof o.month !== "string") o.month = "";
+    if (!o.id) o.id = outlookId(o.mission, o.month);
+    if (!OUTLOOK_LEVELS.includes(o.level as OutlookLevel)) o.level = null;
+    if (typeof o.reasoning !== "string") o.reasoning = "";
+    if (typeof o.whatWouldRaiseIt !== "string") o.whatWouldRaiseIt = "";
+    if (!Array.isArray(o.risks)) o.risks = [];
+    if (!Array.isArray(o.asks)) o.asks = [];
+    if (typeof o.updatedBy !== "string") o.updatedBy = "";
+    if (typeof o.updatedAt !== "string") o.updatedAt = "";
+    return o;
+  });
+}
+
+// "YYYY-MM" for a given date, defaulting to today. Kept as its own function
+// (rather than inlined `toISOString().slice(0, 7)`) because it needs to be
+// mockable/testable independent of the caller's clock.
+export function monthKey(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+// Current month plus the next `count - 1`, matching the Headlights cadence —
+// "each review covers the current month plus the next two." Rolls the year
+// over correctly via Date's own month-overflow arithmetic.
+export function rollingMonths(count = 3, from: Date = new Date()): string[] {
+  return Array.from({ length: count }, (_, i) =>
+    monthKey(new Date(from.getFullYear(), from.getMonth() + i, 1)),
+  );
+}
+
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+] as const;
+
+// "2026-08" -> "Aug 2026".
+export function monthLabel(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  if (!y || !m) return month;
+  return `${MONTH_NAMES[m - 1]} ${y}`;
+}
+
+// Whether an item's target range touches a given "YYYY-MM" month at all — the
+// placement rule the Headlights board renders from, so the board is a read of
+// data every item already carries (mission/stage/targetStart/targetEnd)
+// rather than a second, hand-maintained structure. An item with no dates set
+// can't be honestly placed on a calendar and is left for the caller to
+// surface separately (as "undated"), not silently dropped or guessed at.
+export function itemInMonth(item: Item, month: string): boolean {
+  if (!item.targetStart && !item.targetEnd) return false;
+  const start = item.targetStart ?? item.targetEnd!;
+  const end = item.targetEnd ?? item.targetStart!;
+  const [y, m] = month.split("-").map(Number);
+  const monthStart = new Date(y, m - 1, 1);
+  const monthEnd = new Date(y, m, 0);
+  return parseDate(start) <= monthEnd && parseDate(end) >= monthStart;
 }
 
 /* ---------------- scenario diffing ---------------- */

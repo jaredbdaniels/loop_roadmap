@@ -5,6 +5,7 @@ import {
   bets as betsTable,
   items as itemsTable,
   milestones as milestonesTable,
+  outlooks as outlooksTable,
   scenarios as scenariosTable,
   settings as settingsTable,
 } from "../schema";
@@ -13,15 +14,18 @@ import {
   seedBets,
   seedItems,
   seedMilestones,
+  seedOutlooks,
 } from "./seed";
 import {
   migrateItems,
   normalizeBets,
   normalizeMilestones,
+  normalizeOutlooks,
   trimForShare,
 } from "./logic";
 import type {
   Bet,
+  DeliveryOutlook,
   Item,
   LoopState,
   Milestone,
@@ -104,6 +108,31 @@ export async function ensureSeeded(): Promise<void> {
       }
     }
   }
+  const seededOutlooks = seedOutlooks();
+  if (seededOutlooks.length) {
+    try {
+      await db
+        .insert(outlooksTable)
+        .values(
+          seededOutlooks.map((o) => ({
+            id: o.id,
+            data: o,
+            updatedAt: new Date(o.updatedAt),
+          })),
+        )
+        .onConflictDoNothing();
+    } catch (err) {
+      // The outlooks table may not exist on older databases (see
+      // getAllOutlooks). Seeding is best-effort, same as milestones above.
+      if (isMissingRelation(err)) {
+        console.warn(
+          "outlooks table not found — run `npm run db:push` to seed outlooks.",
+        );
+      } else {
+        throw err;
+      }
+    }
+  }
   await db
     .insert(settingsTable)
     .values({ id: SETTINGS_ID, weights: SEED_WEIGHTS })
@@ -157,20 +186,37 @@ export async function getAllMilestones(): Promise<Milestone[]> {
   }
 }
 
+export async function getAllOutlooks(): Promise<DeliveryOutlook[]> {
+  try {
+    const rows = await db.select().from(outlooksTable);
+    return normalizeOutlooks(rows.map((r) => r.data));
+  } catch (err) {
+    if (isMissingRelation(err)) {
+      console.warn(
+        "outlooks table not found — run `npm run db:push`. Returning [].",
+      );
+      return [];
+    }
+    throw err;
+  }
+}
+
 export async function getState(): Promise<{
   items: Item[];
   weights: Weights;
   bets: Bet[];
   milestones: Milestone[];
+  outlooks: DeliveryOutlook[];
 }> {
   await ensureSeeded();
-  const [items, weights, bets, milestones] = await Promise.all([
+  const [items, weights, bets, milestones, outlooks] = await Promise.all([
     getAllItems(),
     getWeights(),
     getAllBets(),
     getAllMilestones(),
+    getAllOutlooks(),
   ]);
-  return { items, weights, bets, milestones };
+  return { items, weights, bets, milestones, outlooks };
 }
 
 // Read state trimmed for the anonymous, read-only /share/<token> view. A share
@@ -184,8 +230,9 @@ export async function getPublicState(): Promise<{
   weights: Weights;
   bets: Bet[];
   milestones: Milestone[];
+  outlooks: DeliveryOutlook[];
 }> {
-  const { items, weights, bets, milestones } = await getState();
+  const { items, weights, bets, milestones, outlooks } = await getState();
   // Intake is dropped here rather than hidden in the UI, because a share link is
   // handed to people outside the team and the payload is readable by anyone who
   // opens devtools. A parked idea's problem statement and KR must not ship to
@@ -194,7 +241,9 @@ export async function getPublicState(): Promise<{
   // most: an unpromoted idea read as "the roadmap" is a half-formed thought
   // mistaken for a commitment (see docs/settings-tab.md).
   const trimmed = trimForShare({ items, bets });
-  return { ...trimmed, weights, milestones };
+  // Outlooks pass through untrimmed for now — scoping share links to a
+  // leadership-rollup view is docs/launchpad-pivot.md Phase 4, not this pass.
+  return { ...trimmed, weights, milestones, outlooks };
 }
 
 export async function upsertItem(item: Item): Promise<void> {
@@ -275,6 +324,22 @@ export async function upsertMilestone(milestone: Milestone): Promise<void> {
 
 export async function deleteMilestone(id: string): Promise<void> {
   await db.delete(milestonesTable).where(eq(milestonesTable.id, id));
+}
+
+// Always an upsert — `id` is the deterministic `${mission}:${month}` key, so
+// there's no separate create path the way items/bets/milestones have.
+export async function upsertOutlook(outlook: DeliveryOutlook): Promise<void> {
+  await db
+    .insert(outlooksTable)
+    .values({
+      id: outlook.id,
+      data: outlook,
+      updatedAt: new Date(outlook.updatedAt),
+    })
+    .onConflictDoUpdate({
+      target: outlooksTable.id,
+      set: { data: outlook, updatedAt: new Date(outlook.updatedAt) },
+    });
 }
 
 export async function setWeights(weights: Weights): Promise<void> {
@@ -358,6 +423,8 @@ function rowToScenario(row: typeof scenariosTable.$inferSelect): Scenario {
       weights: st.weights ?? SEED_WEIGHTS,
       bets: normalizeBets(st.bets ?? []),
       milestones: normalizeMilestones(st.milestones ?? []),
+      // `?? []` covers scenarios forked before outlooks existed.
+      outlooks: normalizeOutlooks(st.outlooks ?? []),
     },
     forkedAt: row.forkedAt.toISOString(),
     createdAt: row.createdAt.toISOString(),
@@ -412,6 +479,7 @@ export async function createScenario(
     weights: live.weights,
     bets: live.bets,
     milestones: live.milestones,
+    outlooks: live.outlooks,
   };
   await db.insert(scenariosTable).values({
     id,

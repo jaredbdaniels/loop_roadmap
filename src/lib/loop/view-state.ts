@@ -60,7 +60,7 @@ export const DEFAULT_VIEW_STATE: ViewState = {
   detailId: null,
 };
 
-const VIEWS: ViewKey[] = ["board", "timeline", "horizon", "mission"];
+const VIEWS: ViewKey[] = ["board", "timeline", "horizon", "mission", "headlights"];
 const ZOOMS: ZoomKey[] = ["month", "quarter", "year"];
 const GROUP_BYS: GroupByKey[] = ["team", "domain", "bet"];
 

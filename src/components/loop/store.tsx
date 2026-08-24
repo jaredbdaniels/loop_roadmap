@@ -14,6 +14,7 @@ import {
   migrateItems,
   normalizeBets,
   normalizeMilestones,
+  normalizeOutlooks,
 } from "@/lib/loop/logic";
 import {
   parseViewState,
@@ -25,6 +26,7 @@ import {
 import { MAIN_SCENARIO } from "@/lib/loop/types";
 import type {
   Bet,
+  DeliveryOutlook,
   Item,
   LoopState,
   Milestone,
@@ -124,6 +126,7 @@ interface LoopContextValue {
   weights: Weights;
   bets: Bet[];
   milestones: Milestone[];
+  outlooks: DeliveryOutlook[];
   loading: boolean;
   sync: SyncStatus;
   // view state
@@ -219,6 +222,9 @@ interface LoopContextValue {
   createMilestone: (m: Milestone) => Promise<void>;
   updateMilestone: (m: Milestone) => Promise<void>;
   removeMilestone: (id: string) => Promise<void>;
+  // Always an upsert — a DeliveryOutlook's id is the deterministic
+  // `${mission}:${month}` key, so there's no separate create path.
+  saveOutlook: (o: DeliveryOutlook) => Promise<void>;
   updateWeights: (w: Weights) => Promise<void>;
   importData: (payload: {
     items: Item[];
@@ -249,6 +255,7 @@ export function LoopProvider({
   initialWeights,
   initialBets,
   initialMilestones,
+  initialOutlooks,
   readOnly = false,
   viewDefaults,
   viewParams,
@@ -259,6 +266,7 @@ export function LoopProvider({
   initialWeights: Weights;
   initialBets: Bet[];
   initialMilestones: Milestone[];
+  initialOutlooks: DeliveryOutlook[];
   readOnly?: boolean;
   // Set only on the anonymous /share/<token> view, so links out of the app stay
   // inside the token's namespace.
@@ -279,6 +287,7 @@ export function LoopProvider({
     useState<Bet[]>(initialBets);
   const [milestones, setMilestones] =
     useState<Milestone[]>(initialMilestones);
+  const [outlooks, setOutlooks] = useState<DeliveryOutlook[]>(initialOutlooks);
   const [loading, setLoading] = useState(false);
 
   // Resolved once, on the first render, from the page's defaults and its query
@@ -336,8 +345,14 @@ export function LoopProvider({
   // render — cheap and always current.
   const scenarioIdRef = useRef(scenarioId);
   scenarioIdRef.current = scenarioId;
-  const stateRef = useRef<LoopState>({ items, weights, bets, milestones });
-  stateRef.current = { items, weights, bets, milestones };
+  const stateRef = useRef<LoopState>({
+    items,
+    weights,
+    bets,
+    milestones,
+    outlooks,
+  });
+  stateRef.current = { items, weights, bets, milestones, outlooks };
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -448,11 +463,13 @@ export function LoopProvider({
         weights: Weights;
         bets?: Bet[];
         milestones?: Milestone[];
+        outlooks?: DeliveryOutlook[];
       };
       setItems(migrateItems(data.items));
       setWeights(data.weights);
       if (data.bets) setBets(normalizeBets(data.bets));
       if (data.milestones) setMilestones(normalizeMilestones(data.milestones));
+      if (data.outlooks) setOutlooks(normalizeOutlooks(data.outlooks));
       setLastSyncedAt(Date.now());
       setSyncFailed(false);
     } catch {
@@ -776,6 +793,29 @@ export function LoopProvider({
     [readOnly, toast, scheduleDraftSave],
   );
 
+  const saveOutlook = useCallback(
+    async (outlook: DeliveryOutlook) => {
+      if (readOnly) return;
+      setOutlooks((prev) => {
+        const exists = prev.some((o) => o.id === outlook.id);
+        return exists
+          ? prev.map((o) => (o.id === outlook.id ? outlook : o))
+          : [...prev, outlook];
+      });
+      if (scenarioIdRef.current !== MAIN_SCENARIO) {
+        scheduleDraftSave();
+        return;
+      }
+      const res = await fetch("/api/outlooks", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(outlook),
+      });
+      if (!res.ok) toast("Could not save the outlook.", true);
+    },
+    [readOnly, toast, scheduleDraftSave],
+  );
+
   const updateWeights = useCallback(
     async (w: Weights) => {
       if (readOnly) return;
@@ -889,6 +929,7 @@ export function LoopProvider({
         setWeights(scenario.state.weights);
         setBets(normalizeBets(scenario.state.bets));
         setMilestones(normalizeMilestones(scenario.state.milestones));
+        setOutlooks(normalizeOutlooks(scenario.state.outlooks));
         setScenarioId(scenario.id);
         setScenarioName(scenario.name);
       } catch {
@@ -928,6 +969,7 @@ export function LoopProvider({
         setWeights(scenario.state.weights);
         setBets(normalizeBets(scenario.state.bets));
         setMilestones(normalizeMilestones(scenario.state.milestones));
+        setOutlooks(normalizeOutlooks(scenario.state.outlooks));
         setScenarioId(scenario.id);
         setScenarioName(scenario.name);
         toast(
@@ -1016,6 +1058,7 @@ export function LoopProvider({
     weights,
     bets,
     milestones,
+    outlooks,
     loading,
     sync: {
       lastSyncedAt,
@@ -1085,6 +1128,7 @@ export function LoopProvider({
     createMilestone,
     updateMilestone,
     removeMilestone,
+    saveOutlook,
     updateWeights,
     importData,
     syncAdo,

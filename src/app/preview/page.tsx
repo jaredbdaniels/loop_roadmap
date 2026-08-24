@@ -5,6 +5,7 @@ import {
   seedBets,
   seedItems,
   seedMilestones,
+  seedOutlooks,
 } from "@/lib/loop/seed";
 import { LoopApp } from "@/components/loop/LoopApp";
 
@@ -32,6 +33,7 @@ export default async function PreviewPage({
       initialWeights={SEED_WEIGHTS}
       initialBets={seedBets()}
       initialMilestones={seedMilestones()}
+      initialOutlooks={seedOutlooks()}
       userEmail={session.user.email}
       readOnly
       viewDefaults={{ view: "timeline", groupBy: "domain" }}

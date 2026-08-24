@@ -3,8 +3,9 @@ import {
   migrateItems,
   normalizeBets,
   normalizeMilestones,
+  normalizeOutlooks,
 } from "./logic";
-import type { Bet, Item, Milestone, Weights } from "./types";
+import type { Bet, DeliveryOutlook, Item, Milestone, Weights } from "./types";
 
 // The two-year roadmap shipped with Loop, generated from the Architecture-Aligned
 // Org Chart plus the Epic Seed sheet by docs/seed-redesign/build_import.py: one
@@ -41,5 +42,18 @@ export function seedBets(): Bet[] {
 export function seedMilestones(): Milestone[] {
   return normalizeMilestones(
     JSON.parse(JSON.stringify(seedJson.milestones ?? [])) as Milestone[],
+  );
+}
+
+// Empty on purpose: a delivery outlook is a team's own monthly judgment, not
+// something to fabricate on their behalf. Teams fill this in themselves the
+// first time they open the Headlights view; see HeadlightsView's empty state.
+export function seedOutlooks(): DeliveryOutlook[] {
+  return normalizeOutlooks(
+    JSON.parse(
+      JSON.stringify(
+        (seedJson as { outlooks?: DeliveryOutlook[] }).outlooks ?? [],
+      ),
+    ) as DeliveryOutlook[],
   );
 }

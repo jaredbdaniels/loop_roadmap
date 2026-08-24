@@ -7,6 +7,7 @@ import {
 } from "drizzle-orm/pg-core";
 import type {
   Bet,
+  DeliveryOutlook,
   Item,
   LoopState,
   Milestone,
@@ -62,11 +63,28 @@ export const milestones = pgTable("milestones", {
     .notNull(),
 });
 
+// A team's stated delivery outlook for one month of a Headlights cycle, stored
+// as a lossless JSON blob just like items/bets/milestones. `id` is the
+// deterministic `${mission}:${month}` key (see DeliveryOutlook in
+// src/lib/loop/types.ts), so every write is an upsert and there's no separate
+// id generation step.
+export const outlooks = pgTable("outlooks", {
+  id: text("id").primaryKey(),
+  data: jsonb("data").$type<DeliveryOutlook>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 // A scenario is a personal, throwaway "what-if" copy of the whole roadmap. The
-// entire LoopState (items + weights + bets + milestones) is stored as one
-// lossless JSON blob per row — the same shape we round-trip through export/import
-// — so the live roadmap tables (items/bets/milestones/settings) and their
-// per-entity write path are left completely untouched. `createdBy` scopes a
+// entire LoopState (items + weights + bets + milestones + outlooks) is stored
+// as one lossless JSON blob per row — the same shape we round-trip through
+// export/import — so the live roadmap tables (items/bets/milestones/settings/
+// outlooks) and their per-entity write path are left completely untouched.
+// `createdBy` scopes a
 // scenario to its owner (personal drafts); `forkedAt` records when it was forked
 // from live (informational — the compare baseline is live *now*). See
 // src/lib/loop/types.ts for the LoopState shape.

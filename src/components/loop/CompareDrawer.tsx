@@ -56,6 +56,7 @@ export function CompareDrawer() {
     weights,
     bets,
     milestones,
+    outlooks,
     draftMode,
   } = useLoop();
   const [diff, setDiff] = useState<StateDiff | null>(null);
@@ -69,14 +70,14 @@ export function CompareDrawer() {
       const res = await fetch("/api/items", { cache: "no-store" });
       if (!res.ok) throw new Error();
       const live = (await res.json()) as LoopState;
-      const draft: LoopState = { items, weights, bets, milestones };
+      const draft: LoopState = { items, weights, bets, milestones, outlooks };
       setDiff(diffStates(live, draft));
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [items, weights, bets, milestones]);
+  }, [items, weights, bets, milestones, outlooks]);
 
   useEffect(() => {
     if (compareOpen && draftMode) run();
