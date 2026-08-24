@@ -42,12 +42,26 @@ const SETTINGS_ID = "global";
 // dependent code before the schema is pushed degrades gracefully (feature just
 // doesn't show) instead of crashing the whole server render. Every other DB
 // error still propagates.
+//
+// Drizzle wraps the driver error in its own `DrizzleQueryError`, which carries
+// the underlying pg error (with `.code`) as `.cause` rather than on itself —
+// checking only the outer error's `.code`/`.message` never matched, so this
+// went uncaught in production the moment a real "table not migrated yet" case
+// hit it: the outlooks table missing crashed every page load instead of
+// degrading gracefully. Walking `.cause` is what actually reaches the pg error.
 function isMissingRelation(err: unknown): boolean {
-  const e = err as { code?: string; message?: string };
-  return (
-    e?.code === "42P01" ||
-    /relation ".*" does not exist/i.test(e?.message ?? "")
-  );
+  let cur = err;
+  for (let depth = 0; cur && depth < 5; depth++) {
+    const e = cur as { code?: string; message?: string; cause?: unknown };
+    if (
+      e.code === "42P01" ||
+      /relation ".*" does not exist/i.test(e.message ?? "")
+    ) {
+      return true;
+    }
+    cur = e.cause;
+  }
+  return false;
 }
 
 // Seeds the two-year modernization roadmap + default weights the first time the
