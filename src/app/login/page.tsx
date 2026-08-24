@@ -118,16 +118,21 @@ function LoginHero() {
 
 function LoginInner() {
   const params = useSearchParams();
-  const error = params.get("error");
+  const queryError = params.get("error");
   const [loading, setLoading] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
 
   const signIn = async () => {
     setLoading(true);
-    await authClient.signIn.social({
+    setSignInError(null);
+    const { error: err } = await authClient.signIn.social({
       provider: "google",
       callbackURL: "/",
       errorCallbackURL: "/login?error=forbidden",
     });
+    // A successful call navigates away via callbackURL; only reachable on failure.
+    if (err) setSignInError(err.message || "Sign-in failed. Please try again.");
+    setLoading(false);
   };
 
   return (
@@ -145,12 +150,13 @@ function LoginInner() {
             Sign in with your Campminder Google account to jump into the
             roadmap.
           </p>
-          {error && (
+          {(signInError || queryError) && (
             <div className="login-error">
               <AlertCircle size={16} strokeWidth={2.2} />
-              {error === "forbidden"
-                ? "That account isn't a @campminder.com account. Product Launchpad is restricted to Campminder staff."
-                : "Sign-in failed. Please try again."}
+              {signInError ||
+                (queryError === "forbidden"
+                  ? "That account isn't a @campminder.com account. Product Launchpad is restricted to Campminder staff."
+                  : "Sign-in failed. Please try again.")}
             </div>
           )}
           <button className="google-btn" onClick={signIn} disabled={loading}>
