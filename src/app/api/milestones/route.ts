@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/require-session";
+import { getReadSession, getSession } from "@/lib/require-session";
 import { getAllMilestones, upsertMilestone } from "@/lib/loop/store";
 import type { Milestone } from "@/lib/loop/types";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/milestones — all timeline milestones.
-export async function GET() {
-  const sess = await getSession();
+// GET /api/milestones — all timeline milestones. Readable with a session or
+// the Loop MCP server's API key (see src/lib/mcp/auth.ts).
+export async function GET(req: Request) {
+  const sess = await getReadSession(req);
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const milestones = await getAllMilestones();
   return NextResponse.json({ milestones });

@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/require-session";
+import { getReadSession, getSession } from "@/lib/require-session";
 import { getState, upsertItem } from "@/lib/loop/store";
 import type { Item } from "@/lib/loop/types";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/items — full shared state (items + weights). Seeds on first call.
-export async function GET() {
-  const sess = await getSession();
+// Readable with a session or the Loop MCP server's API key (see
+// src/lib/mcp/auth.ts) — this is the read-only surface, not a write bypass.
+export async function GET(req: Request) {
+  const sess = await getReadSession(req);
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const state = await getState();
   return NextResponse.json(state);

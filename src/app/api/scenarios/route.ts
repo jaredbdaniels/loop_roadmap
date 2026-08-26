@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/require-session";
+import { getReadSession, getSession } from "@/lib/require-session";
 import { createScenario, listScenarios } from "@/lib/loop/store";
 import type { ScenarioKind } from "@/lib/loop/types";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/scenarios — the current user's scenarios (metadata only, no state).
-export async function GET() {
-  const sess = await getSession();
+// GET /api/scenarios — the current user's scenarios (metadata only, no
+// state). Readable with a session or the Loop MCP server's API key; the
+// service identity owns nothing, so a key only ever sees the locked
+// Headlights archives (see MCP_SERVICE_EMAIL in src/lib/mcp/auth.ts), never a
+// human's private what-if drafts.
+export async function GET(req: Request) {
+  const sess = await getReadSession(req);
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const scenarios = await listScenarios(sess.user.email);
   return NextResponse.json({ scenarios });

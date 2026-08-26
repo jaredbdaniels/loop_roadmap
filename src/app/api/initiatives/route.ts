@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/require-session";
+import { getReadSession, getSession } from "@/lib/require-session";
 import { getAllBets, upsertBet } from "@/lib/loop/store";
 import type { Bet } from "@/lib/loop/types";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/initiatives — all cross-team bets.
-export async function GET() {
-  const sess = await getSession();
+// GET /api/initiatives — all cross-team bets. Readable with a session or the
+// Loop MCP server's API key (see src/lib/mcp/auth.ts).
+export async function GET(req: Request) {
+  const sess = await getReadSession(req);
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const bets = await getAllBets();
   return NextResponse.json({ bets });

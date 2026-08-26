@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/require-session";
+import { getReadSession, getSession } from "@/lib/require-session";
 import { deleteScenario, getScenario, saveScenario } from "@/lib/loop/store";
 import type { LoopState } from "@/lib/loop/types";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/scenarios/:id — one scenario with its full state (owner only).
+// GET /api/scenarios/:id — one scenario with its full state (owner only,
+// plus locked Headlights archives — see getScenario). Readable with a
+// session or the Loop MCP server's API key.
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const sess = await getSession();
+  const sess = await getReadSession(req);
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
   const scenario = await getScenario(id, sess.user.email);
