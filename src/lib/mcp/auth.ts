@@ -1,5 +1,5 @@
 import "server-only";
-import { timingSafeEqual } from "node:crypto";
+import { safeEqual } from "../safe-equal";
 
 // Service-to-service auth for the Loop MCP server (see /mcp-server at the repo
 // root). An MCP client can't carry a Better Auth session cookie, so a shared
@@ -20,15 +20,6 @@ export const MCP_SERVICE_EMAIL = "mcp-service@campminder.internal";
 
 export function mcpConfigured(): boolean {
   return Boolean(process.env.LOOP_MCP_API_KEY);
-}
-
-// Constant-time compare that tolerates length differences without leaking them
-// through an early return (copied from aha/client.ts's safeEqual).
-function safeEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
 }
 
 export function verifyMcpApiKey(req: Request): boolean {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getReadSession, getSession } from "@/lib/require-session";
+import { getReadSession, getSession, isMcpSession } from "@/lib/require-session";
+import { MCP_SERVICE_EMAIL } from "@/lib/mcp/auth";
 import { deleteScenario, getScenario, saveScenario } from "@/lib/loop/store";
 import type { LoopState } from "@/lib/loop/types";
 
@@ -17,7 +18,12 @@ export async function GET(
   const { id } = await params;
   const scenario = await getScenario(id, sess.user.email);
   if (!scenario) return NextResponse.json({ error: "not found" }, { status: 404 });
-  return NextResponse.json({ scenario });
+  // Same redaction as GET /api/scenarios — the MCP key shouldn't leak the
+  // real human email that forked a shared Headlights archive.
+  const visible = isMcpSession(sess)
+    ? { ...scenario, createdBy: MCP_SERVICE_EMAIL }
+    : scenario;
+  return NextResponse.json({ scenario: visible });
 }
 
 // PUT /api/scenarios/:id — replace the scenario's working state (owner only).

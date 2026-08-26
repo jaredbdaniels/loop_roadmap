@@ -27,17 +27,36 @@ export async function getSession() {
   return auth.api.getSession({ headers: await headers() });
 }
 
+// The sentinel identity a valid Loop MCP API key resolves to. Deliberately
+// NOT cast to look like a real Better Auth session (that session also carries
+// a `session` field this doesn't have) — `isMcpService` lets callers tell the
+// two apart instead of a write handler silently treating this as a full user.
+export interface McpSession {
+  isMcpService: true;
+  user: { email: string; name: string; id: string };
+}
+
+export function isMcpSession(
+  sess: NonNullable<Awaited<ReturnType<typeof getReadSession>>>,
+): sess is McpSession {
+  return "isMcpService" in sess;
+}
+
 // Session for *read* routes: a real Better Auth session, or the Loop MCP
 // server's API key, which resolves to a sentinel service identity (never a
 // real user). Write routes must keep using getSession() — this is
 // deliberately read-only surface, not a general service-auth bypass.
+//
+// Checks the API key first: it's a cheap header compare, and an MCP client
+// never carries a session cookie, so this lets every MCP call skip
+// getSession()'s DB-backed lookup entirely instead of paying for a session
+// check that can never succeed for that caller.
 export async function getReadSession(req: Request) {
-  const sess = await getSession();
-  if (sess) return sess;
   if (verifyMcpApiKey(req)) {
     return {
+      isMcpService: true,
       user: { email: MCP_SERVICE_EMAIL, name: "Loop MCP", id: "mcp-service" },
-    } as unknown as Awaited<ReturnType<typeof auth.api.getSession>>;
+    } satisfies McpSession;
   }
-  return null;
+  return getSession();
 }

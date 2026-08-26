@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getReadSession, getSession } from "@/lib/require-session";
+import { getReadSession, getSession, isMcpSession } from "@/lib/require-session";
+import { MCP_SERVICE_EMAIL } from "@/lib/mcp/auth";
 import { createScenario, listScenarios } from "@/lib/loop/store";
 import type { ScenarioKind } from "@/lib/loop/types";
 
@@ -14,7 +15,13 @@ export async function GET(req: Request) {
   const sess = await getReadSession(req);
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const scenarios = await listScenarios(sess.user.email);
-  return NextResponse.json({ scenarios });
+  // The MCP key has no personal identity of its own; don't leak the real
+  // human email that forked a shared Headlights archive to whatever agent
+  // holds the shared key.
+  const visible = isMcpSession(sess)
+    ? scenarios.map((s) => ({ ...s, createdBy: MCP_SERVICE_EMAIL }))
+    : scenarios;
+  return NextResponse.json({ scenarios: visible });
 }
 
 // POST /api/scenarios — fork the live roadmap into a new named scenario.

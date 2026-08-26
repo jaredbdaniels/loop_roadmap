@@ -1,5 +1,5 @@
 import "server-only";
-import { timingSafeEqual } from "node:crypto";
+import { safeEqual } from "../safe-equal";
 
 // Thin, dependency-free helpers for the Aha! Ideas → Loop Capture webhook.
 //
@@ -17,15 +17,6 @@ import { timingSafeEqual } from "node:crypto";
 // the route 501s and the rest of the app is unaffected (mirrors adoConfigured()).
 export function ahaConfigured(): boolean {
   return Boolean(process.env.AHA_WEBHOOK_SECRET);
-}
-
-// Constant-time string compare that tolerates length differences without leaking
-// them through an early return.
-function safeEqual(a: string, b: string): boolean {
-  const ab = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
 }
 
 // A webhook can't carry a Better Auth session, so the shared secret is the auth
