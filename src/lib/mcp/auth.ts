@@ -1,4 +1,5 @@
 import "server-only";
+import { bearerToken } from "../bearer-token";
 import { safeEqual } from "../safe-equal";
 
 // Service-to-service auth for the Loop MCP server (see /mcp-server at the repo
@@ -25,7 +26,6 @@ export function mcpConfigured(): boolean {
 export function verifyMcpApiKey(req: Request): boolean {
   const expected = process.env.LOOP_MCP_API_KEY;
   if (!expected) return false;
-  const auth = req.headers.get("authorization") || "";
-  const bearer = auth.replace(/^Bearer\s+/i, "");
+  const bearer = bearerToken(req);
   return Boolean(bearer) && safeEqual(bearer, expected);
 }

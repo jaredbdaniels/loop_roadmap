@@ -1,4 +1,5 @@
 import "server-only";
+import { bearerToken } from "../bearer-token";
 import { safeEqual } from "../safe-equal";
 
 // Thin, dependency-free helpers for the Aha! Ideas → Loop Capture webhook.
@@ -32,8 +33,7 @@ export function verifyAhaSecret(req: Request): boolean {
   const header = req.headers.get("x-aha-secret");
   if (header && safeEqual(header, expected)) return true;
 
-  const auth = req.headers.get("authorization") || "";
-  const bearer = auth.replace(/^Bearer\s+/i, "");
+  const bearer = bearerToken(req);
   if (bearer && safeEqual(bearer, expected)) return true;
 
   try {
