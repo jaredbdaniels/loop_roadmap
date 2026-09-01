@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { OWNER_UNASSIGNED } from "@/lib/loop/constants";
 import type { Item } from "@/lib/loop/types";
-import { visibleItems } from "./mutations";
+import { visibleItems, withQuarter, withoutDates } from "./mutations";
 
 // Minimal Item factory — only the fields visibleItems reads matter here.
 function item(over: Partial<Item> = {}): Item {
@@ -103,5 +103,51 @@ describe("visibleItems share mode", () => {
       (i) => i.id,
     );
     expect(ids).toEqual(["dead"]);
+  });
+});
+
+// The Horizon view's by-quarter layout drags cards onto a fiscal-quarter
+// column rather than a Now/Next/Later one — withQuarter and withoutDates are
+// its two drop mutations.
+describe("withQuarter", () => {
+  it("keeps an already-scheduled item's duration, shifted to the new quarter", () => {
+    const it_ = item({ targetStart: "2026-10-01", targetEnd: "2026-10-15" });
+    const next = withQuarter(
+      it_,
+      new Date(2027, 2, 1), // Q3 FY27 start (March)
+      new Date(2027, 5, 1),
+    );
+    expect(next.targetStart).toBe("2027-03-01");
+    expect(next.targetEnd).toBe("2027-03-15");
+  });
+
+  it("gives an unscheduled item the dropped quarter's own span", () => {
+    const it_ = item({ targetStart: null, targetEnd: null });
+    const next = withQuarter(it_, new Date(2027, 2, 1), new Date(2027, 5, 1));
+    expect(next.targetStart).toBe("2027-03-01");
+    expect(next.targetEnd).toBe("2027-06-01");
+  });
+
+  it("clears a declined non-bet call once the item is scheduled again", () => {
+    const it_ = item({ horizon: "non-bet" });
+    expect(withQuarter(it_, new Date(2027, 2, 1), new Date(2027, 5, 1)).horizon).toBe(
+      null,
+    );
+  });
+
+  it("leaves any other horizon call untouched", () => {
+    const it_ = item({ horizon: "later" });
+    expect(withQuarter(it_, new Date(2027, 2, 1), new Date(2027, 5, 1)).horizon).toBe(
+      "later",
+    );
+  });
+});
+
+describe("withoutDates", () => {
+  it("clears both target dates", () => {
+    const it_ = item({ targetStart: "2026-10-01", targetEnd: "2026-10-15" });
+    const next = withoutDates(it_);
+    expect(next.targetStart).toBeNull();
+    expect(next.targetEnd).toBeNull();
   });
 });

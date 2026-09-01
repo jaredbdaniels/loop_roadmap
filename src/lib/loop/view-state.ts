@@ -21,6 +21,7 @@ import {
   OWNERS,
   OWNER_UNASSIGNED,
   type GroupByKey,
+  type HorizonLayoutKey,
   type ViewKey,
   type ZoomKey,
 } from "./constants";
@@ -30,6 +31,11 @@ export interface ViewState {
   view: ViewKey;
   zoom: ZoomKey;
   groupBy: GroupByKey;
+  // The Horizon view's column layout: the manual Now/Next/Later call, or one
+  // column per fiscal quarter. Only the Horizon view offers the control, but
+  // it round-trips like zoom and groupBy do — set it, wander off to another
+  // view, and it's still there when you come back.
+  horizonLayout: HorizonLayoutKey;
   // Team scope. Holds team *labels*, because that is what the filter itself
   // holds (see MISSIONS) — the query string carries the shorter, stabler team
   // ids and this module translates.
@@ -53,6 +59,7 @@ export const DEFAULT_VIEW_STATE: ViewState = {
   view: "board",
   zoom: "quarter",
   groupBy: "team",
+  horizonLayout: "call",
   teams: [],
   owner: "all",
   bet: "all",
@@ -63,6 +70,7 @@ export const DEFAULT_VIEW_STATE: ViewState = {
 const VIEWS: ViewKey[] = ["board", "timeline", "horizon", "mission", "headlights"];
 const ZOOMS: ZoomKey[] = ["month", "quarter", "year"];
 const GROUP_BYS: GroupByKey[] = ["team", "domain", "bet"];
+const HORIZON_LAYOUTS: HorizonLayoutKey[] = ["call", "quarter"];
 
 const TEAM_ID_BY_LABEL: Record<string, string> = Object.fromEntries(
   TEAMS.map((t) => [t.label, t.id]),
@@ -138,6 +146,11 @@ export function parseViewState(
     view: oneOf(read(raw, "view"), VIEWS, defaults.view),
     zoom: oneOf(read(raw, "zoom"), ZOOMS, defaults.zoom),
     groupBy: oneOf(read(raw, "group"), GROUP_BYS, defaults.groupBy),
+    horizonLayout: oneOf(
+      read(raw, "hlayout"),
+      HORIZON_LAYOUTS,
+      defaults.horizonLayout,
+    ),
     teams,
     owner,
     // Bet and item ids can't be checked without the roadmap in hand. The store
@@ -163,6 +176,8 @@ export function viewStateToParams(
   // them on the timeline, wandered off, and expect them back when you return.
   if (state.zoom !== defaults.zoom) params.set("zoom", state.zoom);
   if (state.groupBy !== defaults.groupBy) params.set("group", state.groupBy);
+  if (state.horizonLayout !== defaults.horizonLayout)
+    params.set("hlayout", state.horizonLayout);
   const ids = teamIds(state.teams);
   if (ids.join(",") !== teamIds(defaults.teams).join(","))
     params.set("teams", ids.length ? ids.join(",") : TEAMS_NONE);

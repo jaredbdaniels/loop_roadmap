@@ -5,7 +5,16 @@ import {
   type HorizonKey,
   type Stage,
 } from "@/lib/loop/constants";
-import { fmtRange, isIntake, snapToWeek, toISODate } from "@/lib/loop/logic";
+import {
+  daysBetween,
+  fiscalQuarterLabel,
+  fmtRange,
+  isIntake,
+  isScheduled,
+  parseDate,
+  snapToWeek,
+  toISODate,
+} from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 
 // Classify a stage transition for the celebration overlay: reaching Releasing
@@ -87,6 +96,53 @@ export function withHorizon(item: Item, key: HorizonKey): Item {
         : `Horizon set to ${key.charAt(0).toUpperCase() + key.slice(1)}.`,
     ],
   };
+}
+
+// Drop target for the Horizon view's by-quarter layout: move `item` into the
+// fiscal quarter starting `quarterStart`. An already-scheduled item keeps its
+// duration (a 3-quarter epic dragged a quarter over is still a 3-quarter
+// epic); an unscheduled one takes on the dropped quarter's own span. Dragging
+// out of a declined "non-bet" call is a real decision, not a side effect of
+// dropping it on a date — so it clears the horizon rather than leaving a
+// scheduled item that reads as both "declined" and "planned for Q2".
+export function withQuarter(
+  item: Item,
+  quarterStart: Date,
+  quarterEnd: Date,
+): Item {
+  const durationDays = isScheduled(item)
+    ? daysBetween(parseDate(item.targetStart!), parseDate(item.targetEnd!))
+    : daysBetween(quarterStart, quarterEnd);
+  const newEnd = new Date(quarterStart.getTime() + durationDays * DAY);
+  const next: Item = {
+    ...item,
+    targetStart: toISODate(quarterStart),
+    targetEnd: toISODate(newEnd),
+    horizon: item.horizon === "non-bet" ? null : item.horizon,
+    updatedAt: now(),
+  };
+  next.activity = [
+    ...(item.activity || []),
+    `Scheduled to ${fiscalQuarterLabel(quarterStart)} on the quarter board.`,
+  ];
+  return next;
+}
+
+// The other drop target on the by-quarter layout: the "Unscheduled" column,
+// for pulling a dated item back out of the calendar without touching its
+// horizon call.
+export function withoutDates(item: Item): Item {
+  const next: Item = {
+    ...item,
+    targetStart: null,
+    targetEnd: null,
+    updatedAt: now(),
+  };
+  next.activity = [
+    ...(item.activity || []),
+    "Dates cleared on the quarter board.",
+  ];
+  return next;
 }
 
 export function placedOnTimeline(item: Item): Item {

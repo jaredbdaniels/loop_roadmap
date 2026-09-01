@@ -28,6 +28,7 @@ describe("parseViewState", () => {
       view: "timeline",
       zoom: "month",
       group: "bet",
+      hlayout: "quarter",
       teams: `${TEAM_A.id},${TEAM_B.id}`,
       owner: OWNER_UNASSIGNED,
       bet: "bet-7",
@@ -38,6 +39,7 @@ describe("parseViewState", () => {
       view: "timeline",
       zoom: "month",
       groupBy: "bet",
+      horizonLayout: "quarter",
       teams: [TEAM_A.label, TEAM_B.label],
       owner: OWNER_UNASSIGNED,
       bet: "bet-7",
@@ -51,6 +53,7 @@ describe("parseViewState", () => {
       view: "gantt",
       zoom: "decade",
       group: "vibes",
+      hlayout: "sprint",
       owner: "Nobody In The Roster",
       killed: "",
     });
@@ -92,11 +95,18 @@ describe("viewStateToParams", () => {
     expect(params.toString()).toBe("view=timeline&zoom=year");
   });
 
+  it("round-trips the Horizon view's quarter layout", () => {
+    const state: ViewState = { ...DEFAULT_VIEW_STATE, horizonLayout: "quarter" };
+    expect(viewStateToParams(state).get("hlayout")).toBe("quarter");
+    expect(roundTrip(state).horizonLayout).toBe("quarter");
+  });
+
   it("round-trips a fully-specified state", () => {
     const state: ViewState = {
       view: "mission",
       zoom: "month",
       groupBy: "domain",
+      horizonLayout: "quarter",
       teams: [TEAM_B.label],
       owner: OWNER_UNASSIGNED,
       bet: "bet-42",

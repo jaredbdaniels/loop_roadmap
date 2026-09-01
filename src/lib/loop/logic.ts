@@ -724,6 +724,15 @@ export function nextFiscalQuarterStart(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth() - monthsIn + 3, 1);
 }
 
+// First day of the fiscal quarter containing `d` — the mirror of
+// nextFiscalQuarterStart, minus its "+3". The Horizon view's quarter columns
+// key on this so a quarter's cards land under one date, not whichever day the
+// item happens to carry.
+export function fiscalQuarterStart(d: Date): Date {
+  const monthsIn = (d.getMonth() - FISCAL_START_MONTH + 12) % 3;
+  return new Date(d.getFullYear(), d.getMonth() - monthsIn, 1);
+}
+
 // Monotonic index for ordering/diffing fiscal quarters across years.
 export function fiscalQuarterIndex(d: Date): number {
   const { year, quarter } = fiscalQuarter(d);

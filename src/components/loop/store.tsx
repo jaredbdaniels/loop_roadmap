@@ -9,7 +9,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { GroupByKey, ViewKey, ZoomKey } from "@/lib/loop/constants";
+import type {
+  GroupByKey,
+  HorizonLayoutKey,
+  ViewKey,
+  ZoomKey,
+} from "@/lib/loop/constants";
 import {
   migrateItems,
   normalizeBets,
@@ -152,6 +157,10 @@ interface LoopContextValue {
   // Whether the timeline and Team views group rows by team or by bet.
   groupBy: GroupByKey;
   setGroupBy: (g: GroupByKey) => void;
+  // Whether the Horizon view's columns are the Now/Next/Later call or one
+  // column per fiscal quarter.
+  horizonLayout: HorizonLayoutKey;
+  setHorizonLayout: (h: HorizonLayoutKey) => void;
   showKilled: boolean;
   setShowKilled: (b: boolean) => void;
   shareMode: boolean;
@@ -314,6 +323,9 @@ export function LoopProvider({
   const [filterOwner, setFilterOwner] = useState(initialViewState.owner);
   const [filterBet, setFilterBet] = useState(initialViewState.bet);
   const [groupBy, setGroupBy] = useState<GroupByKey>(initialViewState.groupBy);
+  const [horizonLayout, setHorizonLayout] = useState<HorizonLayoutKey>(
+    initialViewState.horizonLayout,
+  );
   const [showKilled, setShowKilled] = useState(initialViewState.showKilled);
   // In read-only (share) mode share-mode is forced on and can't be toggled off.
   const [shareMode, setShareMode] = useState(readOnly);
@@ -588,6 +600,7 @@ export function LoopProvider({
         view,
         zoom,
         groupBy,
+        horizonLayout,
         teams: filterMission,
         owner: filterOwner,
         bet: filterBet,
@@ -607,6 +620,7 @@ export function LoopProvider({
     view,
     zoom,
     groupBy,
+    horizonLayout,
     filterMission,
     filterOwner,
     filterBet,
@@ -1127,6 +1141,8 @@ export function LoopProvider({
     setFilterBet,
     groupBy,
     setGroupBy,
+    horizonLayout,
+    setHorizonLayout,
     showKilled,
     setShowKilled,
     shareMode,

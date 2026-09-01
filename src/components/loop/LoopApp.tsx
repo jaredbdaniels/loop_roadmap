@@ -23,7 +23,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { toPng } from "html-to-image";
-import type { GroupByKey, ViewKey, ZoomKey } from "@/lib/loop/constants";
+import type {
+  GroupByKey,
+  HorizonLayoutKey,
+  ViewKey,
+  ZoomKey,
+} from "@/lib/loop/constants";
 import { OWNERS, OWNER_UNASSIGNED } from "@/lib/loop/constants";
 import type { RawParams, ViewState } from "@/lib/loop/view-state";
 import type {
@@ -78,6 +83,11 @@ const GROUP_BYS: { key: GroupByKey; label: string }[] = [
   { key: "team", label: "Team" },
   { key: "domain", label: "Domain" },
   { key: "bet", label: "Bet" },
+];
+
+const HORIZON_LAYOUTS: { key: HorizonLayoutKey; label: string }[] = [
+  { key: "call", label: "Now / Next / Later" },
+  { key: "quarter", label: "Quarter" },
 ];
 
 export function LoopApp({
@@ -165,6 +175,8 @@ function Shell({
     setFilterBet,
     groupBy,
     setGroupBy,
+    horizonLayout,
+    setHorizonLayout,
     showKilled,
     setShowKilled,
     readOnly,
@@ -507,6 +519,27 @@ function Shell({
                 title={`Group by ${g.label.toLowerCase()}`}
               >
                 {g.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {view === "horizon" && (
+          <div className="segmented" role="tablist" aria-label="Horizon layout">
+            {HORIZON_LAYOUTS.map((h) => (
+              <button
+                key={h.key}
+                role="tab"
+                aria-selected={horizonLayout === h.key}
+                className={horizonLayout === h.key ? "active" : ""}
+                onClick={() => setHorizonLayout(h.key)}
+                title={
+                  h.key === "quarter"
+                    ? "Lay out columns by fiscal quarter instead of the Now/Next/Later call"
+                    : "Lay out columns by the Now/Next/Later call"
+                }
+              >
+                {h.label}
               </button>
             ))}
           </div>

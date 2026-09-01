@@ -238,6 +238,12 @@ export const BET_COLORS = [
 
 export type HorizonKey = "now" | "next" | "later" | "unassigned" | "non-bet";
 
+// How the Horizon view lays out its columns: the manual Now/Next/Later call
+// (the default — see HorizonKey), or one column per fiscal quarter derived
+// from each item's dates. Same items, same cards; only the bucketing rule
+// changes, which is why it lives beside HorizonKey rather than duplicating it.
+export type HorizonLayoutKey = "call" | "quarter";
+
 export const HORIZONS: {
   key: HorizonKey;
   label: string;
