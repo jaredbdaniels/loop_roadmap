@@ -17,6 +17,7 @@ import {
   createsDepCycle,
   daysBetween,
   depConflicts,
+  fiscalQuarterIndex,
   fiscalQuarterLabel,
   fiscalSeasonLabel,
   fmtDate,
@@ -29,6 +30,7 @@ import {
   isScheduled,
   nextFiscalQuarterStart,
   parseDate,
+  quarterThemeForIndex,
   resolveDomain,
   snapToWeek,
   stackMilestoneFlags,
@@ -72,6 +74,7 @@ export function TimelineView() {
     items,
     bets,
     milestones,
+    quarterlyThemes,
     zoom,
     filterMission,
     filterBet,
@@ -82,6 +85,7 @@ export function TimelineView() {
     openDetail,
     betHref,
     openMilestone,
+    openQuarterlyTheme,
     openCapture,
     updateItem,
     updateMilestone,
@@ -164,8 +168,14 @@ export function TimelineView() {
   // ----- header cells -----
   const monthCells: { width: number; label: string }[] = [];
   // Each quarter cell carries both names: the season is what people say out
-  // loud, the FY label is what ADO and finance speak. See logic.ts.
-  const quarterCells: { width: number; season: string; label: string }[] = [];
+  // loud, the FY label is what ADO and finance speak. See logic.ts. `index`
+  // is the fiscalQuarterIndex, which is how a cell looks up its theme.
+  const quarterCells: {
+    width: number;
+    season: string;
+    label: string;
+    index: number;
+  }[] = [];
   const gridLines: { left: number; q: boolean }[] = [];
   {
     let cursor = new Date(start);
@@ -193,6 +203,7 @@ export function TimelineView() {
           width: daysBetween(cursor, qEnd) * ppd,
           season: fiscalSeasonLabel(cursor),
           label: fiscalQuarterLabel(cursor),
+          index: fiscalQuarterIndex(cursor),
         });
       }
       gridLines.push({
@@ -813,20 +824,55 @@ export function TimelineView() {
               >
                 <div className="tl-header">
                   <div className="tl-qrow">
-                    {quarterCells.map((c, i) => (
-                      <div
-                        key={i}
-                        className="tl-qcell"
-                        style={{ width: c.width }}
-                        // The first and last cells can be clipped to a sliver
-                        // by the axis range, so both names stay reachable on
-                        // hover.
-                        title={`${c.season} · ${c.label}`}
-                      >
-                        <span className="tl-qcell-season">{c.season}</span>
-                        <span className="tl-qcell-fy">{c.label}</span>
-                      </div>
-                    ))}
+                    {quarterCells.map((c, i) => {
+                      const theme = quarterThemeForIndex(
+                        quarterlyThemes,
+                        c.index,
+                      );
+                      return (
+                        <div
+                          key={i}
+                          className="tl-qcell"
+                          style={{ width: c.width }}
+                          // The first and last cells can be clipped to a sliver
+                          // by the axis range, so both names stay reachable on
+                          // hover — and the narrative, never shown inline, rides
+                          // along here too.
+                          title={
+                            `${c.season} · ${c.label}` +
+                            (theme?.narrative ? ` — ${theme.narrative}` : "")
+                          }
+                        >
+                          <span className="tl-qcell-season">{c.season}</span>
+                          <span className="tl-qcell-fy">{c.label}</span>
+                          {theme?.title ? (
+                            shareMode ? (
+                              <span className="tl-qcell-theme">
+                                {theme.title}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="tl-qcell-theme"
+                                onClick={() => openQuarterlyTheme(c.index)}
+                              >
+                                {theme.title}
+                              </button>
+                            )
+                          ) : (
+                            !shareMode && (
+                              <button
+                                type="button"
+                                className="tl-qcell-theme tl-qcell-theme--empty"
+                                onClick={() => openQuarterlyTheme(c.index)}
+                              >
+                                + theme
+                              </button>
+                            )
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="tl-mrow">
                     {monthCells.map((c, i) => (

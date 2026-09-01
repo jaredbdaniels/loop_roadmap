@@ -15,6 +15,7 @@ import {
   killedDeps,
   nextFiscalQuarterStart,
   parseDate,
+  quarterThemeForIndex,
   subProgress,
   unmetDeps,
 } from "@/lib/loop/logic";
@@ -150,6 +151,7 @@ function QuarterBoard({ items }: { items: Item[] }) {
         {cells.map((c) => (
           <QuarterColumn
             key={c.index}
+            quarterIndex={c.index}
             label={c.label}
             desc={`${c.season} · drag a card here to schedule it`}
             color={quarterColor}
@@ -183,6 +185,7 @@ function QuarterBoard({ items }: { items: Item[] }) {
 }
 
 function QuarterColumn({
+  quarterIndex,
   label,
   desc,
   color,
@@ -190,6 +193,9 @@ function QuarterColumn({
   isNoop,
   onDropItem,
 }: {
+  // Set only for an actual fiscal-quarter column — the "Unscheduled" and
+  // non-bet trailing columns aren't quarters, so they get no theme affordance.
+  quarterIndex?: number;
   label: string;
   desc: string;
   color: string;
@@ -200,8 +206,13 @@ function QuarterColumn({
   isNoop: (item: Item) => boolean;
   onDropItem: (item: Item) => Item;
 }) {
-  const { items, dragId, updateItem } = useLoop();
+  const { items, dragId, updateItem, quarterlyThemes, openQuarterlyTheme, shareMode } =
+    useLoop();
   const [over, setOver] = useState(false);
+  const theme =
+    quarterIndex !== undefined
+      ? quarterThemeForIndex(quarterlyThemes, quarterIndex)
+      : undefined;
 
   return (
     <div
@@ -232,7 +243,35 @@ function QuarterColumn({
         <span className="col-title">{label}</span>
         <span className="col-count">{colItems.length}</span>
       </div>
-      <div className="hz-col-desc">{desc}</div>
+      {quarterIndex !== undefined && theme?.title ? (
+        shareMode ? (
+          <div className="hz-col-theme" title={theme.narrative || theme.title}>
+            {theme.title}
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="hz-col-theme"
+            title={theme.narrative || theme.title}
+            onClick={() => openQuarterlyTheme(quarterIndex)}
+          >
+            {theme.title}
+          </button>
+        )
+      ) : (
+        <div className="hz-col-desc">
+          {desc}
+          {quarterIndex !== undefined && !shareMode && (
+            <button
+              type="button"
+              className="hz-col-theme hz-col-theme--empty"
+              onClick={() => openQuarterlyTheme(quarterIndex)}
+            >
+              + Add a theme
+            </button>
+          )}
+        </div>
+      )}
       <div className="column-body">
         {colItems.map((item) => (
           <HorizonCard key={item.id} item={item} />

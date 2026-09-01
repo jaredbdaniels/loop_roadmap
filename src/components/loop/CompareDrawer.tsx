@@ -35,6 +35,7 @@ const FIELD_LABELS: Record<string, string> = {
   whatWouldRaiseIt: "What would raise it",
   risks: "Risks",
   asks: "Asks",
+  narrative: "Narrative",
 };
 
 function label(field: string): string {
@@ -62,6 +63,7 @@ export function CompareDrawer() {
     bets,
     milestones,
     outlooks,
+    quarterlyThemes,
     draftMode,
   } = useLoop();
   const [diff, setDiff] = useState<StateDiff | null>(null);
@@ -75,14 +77,21 @@ export function CompareDrawer() {
       const res = await fetch("/api/items", { cache: "no-store" });
       if (!res.ok) throw new Error();
       const live = (await res.json()) as LoopState;
-      const draft: LoopState = { items, weights, bets, milestones, outlooks };
+      const draft: LoopState = {
+        items,
+        weights,
+        bets,
+        milestones,
+        outlooks,
+        quarterlyThemes,
+      };
       setDiff(diffStates(live, draft));
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [items, weights, bets, milestones, outlooks]);
+  }, [items, weights, bets, milestones, outlooks, quarterlyThemes]);
 
   useEffect(() => {
     if (compareOpen && draftMode) run();
@@ -247,6 +256,33 @@ export function CompareDrawer() {
                     </div>
                   ))}
                   {diff.outlooksChanged.map((c) => (
+                    <div key={c.id} className="cmp-row">
+                      <strong>{c.title}</strong>
+                      <span className="cmp-sub">
+                        {c.changes.map((ch) => label(ch.field)).join(", ")} changed
+                      </span>
+                    </div>
+                  ))}
+                </Section>
+              )}
+
+              {(diff.quarterlyThemesAdded.length > 0 ||
+                diff.quarterlyThemesRemoved.length > 0 ||
+                diff.quarterlyThemesChanged.length > 0) && (
+                <Section title="Quarterly themes">
+                  {diff.quarterlyThemesAdded.map((t) => (
+                    <div key={t.id} className="cmp-row">
+                      <span className="cmp-tag cmp-tag--add">added</span>
+                      <strong>{t.title || "(untitled)"}</strong>
+                    </div>
+                  ))}
+                  {diff.quarterlyThemesRemoved.map((t) => (
+                    <div key={t.id} className="cmp-row">
+                      <span className="cmp-tag cmp-tag--rm">removed</span>
+                      <strong>{t.title || "(untitled)"}</strong>
+                    </div>
+                  ))}
+                  {diff.quarterlyThemesChanged.map((c) => (
                     <div key={c.id} className="cmp-row">
                       <strong>{c.title}</strong>
                       <span className="cmp-sub">

@@ -36,6 +36,7 @@ import type {
   DeliveryOutlook,
   Item,
   Milestone,
+  QuarterlyTheme,
   Weights,
 } from "@/lib/loop/types";
 import { authClient } from "@/lib/auth-client";
@@ -51,6 +52,7 @@ import { DetailModal } from "./DetailModal";
 import { CaptureModal } from "./CaptureModal";
 import { BetModal } from "./BetModal";
 import { MilestoneModal } from "./MilestoneModal";
+import { QuarterThemeModal } from "./QuarterThemeModal";
 import { SettingsModal } from "./SettingsModal";
 import { ShareModal } from "./ShareModal";
 import { CompareDrawer } from "./CompareDrawer";
@@ -96,6 +98,7 @@ export function LoopApp({
   initialBets,
   initialMilestones,
   initialOutlooks,
+  initialQuarterlyThemes,
   userEmail,
   readOnly = false,
   viewDefaults,
@@ -109,6 +112,7 @@ export function LoopApp({
   initialBets: Bet[];
   initialMilestones: Milestone[];
   initialOutlooks: DeliveryOutlook[];
+  initialQuarterlyThemes: QuarterlyTheme[];
   // null on the anonymous /share/<token> view.
   userEmail: string | null;
   readOnly?: boolean;
@@ -135,6 +139,7 @@ export function LoopApp({
       initialBets={initialBets}
       initialMilestones={initialMilestones}
       initialOutlooks={initialOutlooks}
+      initialQuarterlyThemes={initialQuarterlyThemes}
       readOnly={readOnly}
       viewDefaults={viewDefaults}
       viewParams={viewParams}
@@ -683,6 +688,7 @@ function Shell({
       <CaptureModal />
       <BetModal />
       <MilestoneModal />
+      <QuarterThemeModal userEmail={userEmail} />
       <SettingsModal />
       {!readOnly && <ShareModal />}
       {!readOnly && <CompareDrawer />}

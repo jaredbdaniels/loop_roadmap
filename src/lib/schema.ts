@@ -11,6 +11,7 @@ import type {
   Item,
   LoopState,
   Milestone,
+  QuarterlyTheme,
   Weights,
 } from "./loop/types";
 
@@ -75,6 +76,18 @@ export const outlooks = pgTable("outlooks", {
     .defaultNow()
     .notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+// A PM-authored narrative headline for one fiscal quarter, stored as a
+// lossless JSON blob just like items/bets/milestones/outlooks. `id` is the
+// deterministic `quarter:<quarterIndex>` key (see QuarterlyTheme in
+// src/lib/loop/types.ts), so every write is an upsert, mirroring `outlooks`.
+export const quarterlyThemes = pgTable("quarterly_themes", {
+  id: text("id").primaryKey(),
+  data: jsonb("data").$type<QuarterlyTheme>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
 });

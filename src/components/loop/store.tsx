@@ -20,6 +20,7 @@ import {
   normalizeBets,
   normalizeMilestones,
   normalizeOutlooks,
+  normalizeQuarterThemes,
 } from "@/lib/loop/logic";
 import {
   parseViewState,
@@ -35,6 +36,7 @@ import type {
   Item,
   LoopState,
   Milestone,
+  QuarterlyTheme,
   Scenario,
   ScenarioKind,
   ScenarioMeta,
@@ -133,6 +135,7 @@ interface LoopContextValue {
   bets: Bet[];
   milestones: Milestone[];
   outlooks: DeliveryOutlook[];
+  quarterlyThemes: QuarterlyTheme[];
   loading: boolean;
   sync: SyncStatus;
   // view state
@@ -218,6 +221,13 @@ interface LoopContextValue {
   milestoneEdit: string | null;
   openMilestone: (idOrNew: string) => void;
   closeMilestone: () => void;
+  // quarterly theme editor: null when closed, else the fiscal quarter index
+  // being edited. Unlike milestones there's no "new" vs "existing" id
+  // distinction — every quarter is always a valid (possibly empty) edit
+  // target, so the editor is keyed by quarterIndex rather than a theme id.
+  quarterlyThemeEditIndex: number | null;
+  openQuarterlyTheme: (quarterIndex: number) => void;
+  closeQuarterlyTheme: () => void;
   // drag (board/horizon) — shared without re-render
   dragId: React.MutableRefObject<string | null>;
   // toasts
@@ -242,6 +252,9 @@ interface LoopContextValue {
   // Always an upsert — a DeliveryOutlook's id is the deterministic
   // `${mission}:${month}` key, so there's no separate create path.
   saveOutlook: (o: DeliveryOutlook) => Promise<void>;
+  // Always an upsert — a QuarterlyTheme's id is the deterministic
+  // `quarter:<quarterIndex>` key, so there's no separate create path.
+  saveQuarterlyTheme: (t: QuarterlyTheme) => Promise<void>;
   updateWeights: (w: Weights) => Promise<void>;
   importData: (payload: {
     items: Item[];
@@ -273,6 +286,7 @@ export function LoopProvider({
   initialBets,
   initialMilestones,
   initialOutlooks,
+  initialQuarterlyThemes,
   readOnly = false,
   viewDefaults,
   viewParams,
@@ -284,6 +298,7 @@ export function LoopProvider({
   initialBets: Bet[];
   initialMilestones: Milestone[];
   initialOutlooks: DeliveryOutlook[];
+  initialQuarterlyThemes: QuarterlyTheme[];
   readOnly?: boolean;
   // Set only on the anonymous /share/<token> view, so links out of the app stay
   // inside the token's namespace.
@@ -305,6 +320,9 @@ export function LoopProvider({
   const [milestones, setMilestones] =
     useState<Milestone[]>(initialMilestones);
   const [outlooks, setOutlooks] = useState<DeliveryOutlook[]>(initialOutlooks);
+  const [quarterlyThemes, setQuarterlyThemes] = useState<QuarterlyTheme[]>(
+    initialQuarterlyThemes,
+  );
   const [loading, setLoading] = useState(false);
 
   // Resolved once, on the first render, from the page's defaults and its query
@@ -342,6 +360,9 @@ export function LoopProvider({
   const [betEdit, setBetEdit] = useState<string | null>(null);
   const [betFocus, setBetFocus] = useState<string | null>(null);
   const [milestoneEdit, setMilestoneEdit] = useState<string | null>(null);
+  const [quarterlyThemeEditIndex, setQuarterlyThemeEditIndex] = useState<
+    number | null
+  >(null);
 
   const [scenarios, setScenarios] = useState<ScenarioMeta[]>([]);
   const [scenarioId, setScenarioId] = useState<string>(MAIN_SCENARIO);
@@ -374,8 +395,16 @@ export function LoopProvider({
     bets,
     milestones,
     outlooks,
+    quarterlyThemes,
   });
-  stateRef.current = { items, weights, bets, milestones, outlooks };
+  stateRef.current = {
+    items,
+    weights,
+    bets,
+    milestones,
+    outlooks,
+    quarterlyThemes,
+  };
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -509,12 +538,15 @@ export function LoopProvider({
         bets?: Bet[];
         milestones?: Milestone[];
         outlooks?: DeliveryOutlook[];
+        quarterlyThemes?: QuarterlyTheme[];
       };
       setItems(migrateItems(data.items));
       setWeights(data.weights);
       if (data.bets) setBets(normalizeBets(data.bets));
       if (data.milestones) setMilestones(normalizeMilestones(data.milestones));
       if (data.outlooks) setOutlooks(normalizeOutlooks(data.outlooks));
+      if (data.quarterlyThemes)
+        setQuarterlyThemes(normalizeQuarterThemes(data.quarterlyThemes));
       setLastSyncedAt(Date.now());
       setSyncFailed(false);
     } catch {
@@ -546,6 +578,7 @@ export function LoopProvider({
     settingsOpen ||
     betEdit !== null ||
     milestoneEdit !== null ||
+    quarterlyThemeEditIndex !== null ||
     draftMode;
 
   const lastSyncedAtRef = useRef(lastSyncedAt);
@@ -863,6 +896,29 @@ export function LoopProvider({
     [blocked, toast, scheduleDraftSave],
   );
 
+  const saveQuarterlyTheme = useCallback(
+    async (theme: QuarterlyTheme) => {
+      if (blocked()) return;
+      setQuarterlyThemes((prev) => {
+        const exists = prev.some((t) => t.id === theme.id);
+        return exists
+          ? prev.map((t) => (t.id === theme.id ? theme : t))
+          : [...prev, theme];
+      });
+      if (scenarioIdRef.current !== MAIN_SCENARIO) {
+        scheduleDraftSave();
+        return;
+      }
+      const res = await fetch("/api/quarterly-themes", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(theme),
+      });
+      if (!res.ok) toast("Could not save the quarterly theme.", true);
+    },
+    [blocked, toast, scheduleDraftSave],
+  );
+
   const updateWeights = useCallback(
     async (w: Weights) => {
       if (blocked()) return;
@@ -978,6 +1034,9 @@ export function LoopProvider({
         setBets(normalizeBets(scenario.state.bets));
         setMilestones(normalizeMilestones(scenario.state.milestones));
         setOutlooks(normalizeOutlooks(scenario.state.outlooks));
+        setQuarterlyThemes(
+          normalizeQuarterThemes(scenario.state.quarterlyThemes),
+        );
         setScenarioId(scenario.id);
         setScenarioName(scenario.name);
         setScenarioLocked(scenario.locked);
@@ -1024,6 +1083,9 @@ export function LoopProvider({
         setBets(normalizeBets(scenario.state.bets));
         setMilestones(normalizeMilestones(scenario.state.milestones));
         setOutlooks(normalizeOutlooks(scenario.state.outlooks));
+        setQuarterlyThemes(
+          normalizeQuarterThemes(scenario.state.quarterlyThemes),
+        );
         setScenarioId(scenario.id);
         setScenarioName(scenario.name);
         setScenarioLocked(scenario.locked);
@@ -1100,6 +1162,14 @@ export function LoopProvider({
     [],
   );
   const closeMilestone = useCallback(() => setMilestoneEdit(null), []);
+  const openQuarterlyTheme = useCallback(
+    (quarterIndex: number) => setQuarterlyThemeEditIndex(quarterIndex),
+    [],
+  );
+  const closeQuarterlyTheme = useCallback(
+    () => setQuarterlyThemeEditIndex(null),
+    [],
+  );
   const toggleShareMode = useCallback(() => {
     // Locked on in the public share view — there's nothing to toggle back to.
     if (readOnly) return;
@@ -1120,6 +1190,7 @@ export function LoopProvider({
     bets,
     milestones,
     outlooks,
+    quarterlyThemes,
     loading,
     sync: {
       lastSyncedAt,
@@ -1177,6 +1248,9 @@ export function LoopProvider({
     milestoneEdit,
     openMilestone,
     closeMilestone,
+    quarterlyThemeEditIndex,
+    openQuarterlyTheme,
+    closeQuarterlyTheme,
     dragId,
     toasts,
     toast,
@@ -1193,6 +1267,7 @@ export function LoopProvider({
     updateMilestone,
     removeMilestone,
     saveOutlook,
+    saveQuarterlyTheme,
     updateWeights,
     importData,
     syncAdo,

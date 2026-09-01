@@ -6,6 +6,7 @@ import {
   betUndeclaredSpend,
   betUnstaffedClaims,
   computeRank,
+  dateForQuarterIndex,
   diffCount,
   diffStates,
   FLAG_GAP,
@@ -21,9 +22,11 @@ import {
   nextFiscalQuarterStart,
   betChangeLog,
   normalizeBets,
+  normalizeQuarterThemes,
   framingGaps,
   migrateItems,
   plannedShareTotal,
+  quarterThemeId,
   resolveDomain,
   runTheBusinessShare,
   stackMilestoneFlags,
@@ -40,6 +43,7 @@ import type {
   LoopState,
   Milestone,
   Prototype,
+  QuarterlyTheme,
   Weights,
 } from "./types";
 
@@ -142,6 +146,7 @@ function state(over: Partial<LoopState> = {}): LoopState {
     bets: [],
     milestones: [],
     outlooks: [],
+    quarterlyThemes: [],
     ...over,
   };
 }
@@ -371,6 +376,88 @@ describe("diffStates", () => {
       after: "low",
     });
     expect(d.outlooksChanged[0].changes.some((c) => c.field === "risks")).toBe(true);
+  });
+
+  it("reports added, removed, and changed quarterly themes", () => {
+    const theme = (over: Partial<QuarterlyTheme> = {}): QuarterlyTheme => ({
+      id: quarterThemeId(8108),
+      quarterIndex: 8108,
+      title: "Foundations for self-serve onboarding",
+      narrative: "",
+      updatedBy: "pm@campminder.com",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+      ...over,
+    });
+    const live = state({ quarterlyThemes: [theme()] });
+    const draft = state({
+      quarterlyThemes: [theme({ title: "Onboarding, take two" })],
+    });
+    const d = diffStates(live, draft);
+    expect(d.quarterlyThemesChanged).toHaveLength(1);
+    expect(d.quarterlyThemesChanged[0].changes).toContainEqual({
+      field: "title",
+      before: "Foundations for self-serve onboarding",
+      after: "Onboarding, take two",
+    });
+
+    const added = diffStates(
+      state({ quarterlyThemes: [] }),
+      state({ quarterlyThemes: [theme()] }),
+    );
+    expect(added.quarterlyThemesAdded.map((t) => t.id)).toEqual([theme().id]);
+
+    const removed = diffStates(
+      state({ quarterlyThemes: [theme()] }),
+      state({ quarterlyThemes: [] }),
+    );
+    expect(removed.quarterlyThemesRemoved.map((t) => t.id)).toEqual([
+      theme().id,
+    ]);
+  });
+
+  it("ignores updatedBy/updatedAt-only changes on a quarterly theme", () => {
+    const theme = (over: Partial<QuarterlyTheme> = {}): QuarterlyTheme => ({
+      id: quarterThemeId(8108),
+      quarterIndex: 8108,
+      title: "Same title",
+      narrative: "Same narrative",
+      updatedBy: "pm@campminder.com",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+      ...over,
+    });
+    const live = state({ quarterlyThemes: [theme()] });
+    const draft = state({
+      quarterlyThemes: [
+        theme({ updatedBy: "someone-else@campminder.com", updatedAt: "2026-09-01T00:00:00.000Z" }),
+      ],
+    });
+    expect(diffStates(live, draft).quarterlyThemesChanged).toHaveLength(0);
+  });
+});
+
+describe("quarterThemeId", () => {
+  it("is deterministic and stable across calls", () => {
+    expect(quarterThemeId(8108)).toBe("quarter:8108");
+    expect(quarterThemeId(8108)).toBe(quarterThemeId(8108));
+  });
+});
+
+describe("normalizeQuarterThemes", () => {
+  it("backfills defaults and derives id from quarterIndex on legacy rows", () => {
+    const [t] = normalizeQuarterThemes([
+      { quarterIndex: 8108 } as QuarterlyTheme,
+    ]);
+    expect(t.id).toBe("quarter:8108");
+    expect(t.title).toBe("");
+    expect(t.narrative).toBe("");
+    expect(t.updatedBy).toBe("");
+    expect(t.updatedAt).toBe("");
+  });
+
+  it("degrades a non-array input to an empty list", () => {
+    expect(normalizeQuarterThemes(null as unknown as QuarterlyTheme[])).toEqual(
+      [],
+    );
   });
 });
 
@@ -645,6 +732,20 @@ describe("fiscalQuarter", () => {
     const aug = fiscalQuarterIndex(new Date(2026, 7, 1)); // Q4 FY26
     const sep = fiscalQuarterIndex(new Date(2026, 8, 1)); // Q1 FY27
     expect(sep - aug).toBe(1);
+  });
+
+  it("dateForQuarterIndex round-trips fiscalQuarterIndex/fiscalQuarterLabel", () => {
+    const dates = [
+      new Date(2026, 5, 1), // Q4 FY26
+      new Date(2026, 8, 1), // Q1 FY27
+      new Date(2026, 11, 1), // Q2 FY27
+      new Date(2027, 2, 1), // Q3 FY27
+    ];
+    for (const d of dates) {
+      const roundTripped = dateForQuarterIndex(fiscalQuarterIndex(d));
+      expect(fiscalQuarterLabel(roundTripped)).toBe(fiscalQuarterLabel(d));
+      expect(fiscalQuarterIndex(roundTripped)).toBe(fiscalQuarterIndex(d));
+    }
   });
 
   it("finds the fiscal quarter boundaries at Sep / Dec / Mar / Jun", () => {

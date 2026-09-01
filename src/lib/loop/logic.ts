@@ -52,6 +52,7 @@ import type {
   OutlookLevel,
   PlannedHorizon,
   Prototype,
+  QuarterlyTheme,
   StateDiff,
   SubItem,
   Weights,
@@ -745,6 +746,18 @@ export function fiscalQuarterLabel(d: Date): string {
   return `Q${quarter} FY${String(year).slice(-2)}`;
 }
 
+// The mirror of fiscalQuarterIndex: a representative date (the 1st of the
+// quarter's first calendar month) for a given monotonic index. Lets a stored
+// `QuarterlyTheme.quarterIndex` be rendered back through fiscalQuarterLabel /
+// fiscalSeasonLabel without the caller having to carry its own Date around.
+export function dateForQuarterIndex(index: number): Date {
+  const year = Math.floor(index / 4);
+  const quarter = (index % 4) + 1;
+  const startMonth = (FISCAL_START_MONTH + (quarter - 1) * 3) % 12;
+  const calendarYear = startMonth >= FISCAL_START_MONTH ? year - 1 : year;
+  return new Date(calendarYear, startMonth, 1);
+}
+
 /* ---------------- seasons ----------------
    Campminder talks in seasons, not quarter numbers: Fall, Winter, Spring,
    Summer. Because the fiscal year starts in September the two line up exactly —
@@ -1362,6 +1375,39 @@ export function normalizeOutlooks(list: DeliveryOutlook[]): DeliveryOutlook[] {
   });
 }
 
+/* ---------------- quarterly themes ---------------- */
+// A QuarterlyTheme's id is deterministic (`quarter:<quarterIndex>`), mirroring
+// outlookId() above — saving one is always an upsert keyed by this, never a
+// separate id-generation step.
+export function quarterThemeId(quarterIndex: number): string {
+  return `quarter:${quarterIndex}`;
+}
+
+export function normalizeQuarterThemes(
+  list: QuarterlyTheme[],
+): QuarterlyTheme[] {
+  return (Array.isArray(list) ? list : []).map((raw) => {
+    const t: QuarterlyTheme = { ...(raw as QuarterlyTheme) };
+    if (typeof t.quarterIndex !== "number") t.quarterIndex = 0;
+    if (!t.id) t.id = quarterThemeId(t.quarterIndex);
+    if (typeof t.title !== "string") t.title = "";
+    if (typeof t.narrative !== "string") t.narrative = "";
+    if (typeof t.updatedBy !== "string") t.updatedBy = "";
+    if (typeof t.updatedAt !== "string") t.updatedAt = "";
+    return t;
+  });
+}
+
+// Lookup by quarter, the way a caller already looks up an outlook by
+// mission+month. Shared by the Horizon quarter board and the Timeline quarter
+// ruler so both surfaces read the same theme for the same quarter.
+export function quarterThemeForIndex(
+  themes: QuarterlyTheme[],
+  quarterIndex: number,
+): QuarterlyTheme | undefined {
+  return themes.find((t) => t.quarterIndex === quarterIndex);
+}
+
 // "YYYY-MM" for a given date, defaulting to today. Kept as its own function
 // (rather than inlined `toISOString().slice(0, 7)`) because it needs to be
 // mockable/testable independent of the caller's clock.
@@ -1634,6 +1680,27 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
       });
   }
 
+  const liveThemes = new Map(
+    live.quarterlyThemes.map((t) => [t.id, t]),
+  );
+  const draftThemes = new Map(
+    draft.quarterlyThemes.map((t) => [t.id, t]),
+  );
+  const quarterlyThemesChanged: EntityChange[] = [];
+  for (const d of draft.quarterlyThemes) {
+    const l = liveThemes.get(d.id);
+    if (!l) continue;
+    const changes = (["title", "narrative"] as const)
+      .filter((f) => l[f] !== d[f])
+      .map((f) => ({ field: f, before: l[f], after: d[f] }));
+    if (changes.length)
+      quarterlyThemesChanged.push({
+        id: d.id,
+        title: fiscalQuarterLabel(dateForQuarterIndex(d.quarterIndex)),
+        changes,
+      });
+  }
+
   const weights = (["reach", "confidence", "strategicFit"] as const)
     .filter((k) => live.weights[k] !== draft.weights[k])
     .map((k) => ({ field: k, before: live.weights[k], after: draft.weights[k] }));
@@ -1651,6 +1718,13 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
     outlooksAdded: draft.outlooks.filter((o) => !liveOutlooks.has(o.id)),
     outlooksRemoved: live.outlooks.filter((o) => !draftOutlooks.has(o.id)),
     outlooksChanged,
+    quarterlyThemesAdded: draft.quarterlyThemes.filter(
+      (t) => !liveThemes.has(t.id),
+    ),
+    quarterlyThemesRemoved: live.quarterlyThemes.filter(
+      (t) => !draftThemes.has(t.id),
+    ),
+    quarterlyThemesChanged,
     weights,
   };
 }
@@ -1670,6 +1744,9 @@ export function diffCount(d: StateDiff): number {
     d.outlooksAdded.length +
     d.outlooksRemoved.length +
     d.outlooksChanged.length +
+    d.quarterlyThemesAdded.length +
+    d.quarterlyThemesRemoved.length +
+    d.quarterlyThemesChanged.length +
     d.weights.length
   );
 }
