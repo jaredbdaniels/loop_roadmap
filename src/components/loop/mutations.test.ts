@@ -141,6 +141,15 @@ describe("withQuarter", () => {
       "later",
     );
   });
+
+  // Fiscal Q1 (Sep 1 - Dec 1) spans the US "fall back" DST transition, so this
+  // regresses to Nov 30 if the end date is computed with fixed-length-day
+  // (ms) arithmetic instead of calendar-date arithmetic.
+  it("lands on the true quarter end even when the span crosses a DST transition", () => {
+    const it_ = item({ targetStart: null, targetEnd: null });
+    const next = withQuarter(it_, new Date(2026, 8, 1), new Date(2026, 11, 1));
+    expect(next.targetEnd).toBe("2026-12-01");
+  });
 });
 
 describe("withoutDates", () => {
@@ -149,5 +158,19 @@ describe("withoutDates", () => {
     const next = withoutDates(it_);
     expect(next.targetStart).toBeNull();
     expect(next.targetEnd).toBeNull();
+  });
+
+  it("leaves a normal horizon call untouched", () => {
+    const it_ = item({ horizon: "later" });
+    expect(withoutDates(it_).horizon).toBe("later");
+  });
+
+  it("clears a declined non-bet call, since the Non-Bet column is keyed on horizon, not dates", () => {
+    const it_ = item({
+      horizon: "non-bet",
+      targetStart: "2026-10-01",
+      targetEnd: "2026-10-15",
+    });
+    expect(withoutDates(it_).horizon).toBeNull();
   });
 });

@@ -136,10 +136,21 @@ function QuarterBoard({ items }: { items: Item[] }) {
   // the radar).
   const quarterColor = "#3DA5D9";
 
+  // Bucket the scheduled, bet-worthy items by fiscal quarter once, rather
+  // than re-filtering the full item list inside every cell below.
+  const byQuarter = new Map<number, Item[]>();
+  for (const i of items) {
+    if (!isScheduled(i) || i.horizon === "non-bet") continue;
+    const idx = fiscalQuarterIndex(parseDate(i.targetStart!));
+    const bucket = byQuarter.get(idx);
+    if (bucket) bucket.push(i);
+    else byQuarter.set(idx, [i]);
+  }
+
   return (
     <div className="board-wrap">
       <div className="board">
-        <QuarterColumn
+        <DropColumn
           label="Unscheduled"
           desc="No target dates yet — drag here to clear a date."
           color="#A0A0A0"
@@ -148,19 +159,12 @@ function QuarterBoard({ items }: { items: Item[] }) {
           onDropItem={withoutDates}
         />
         {cells.map((c) => (
-          <QuarterColumn
+          <DropColumn
             key={c.index}
             label={c.label}
             desc={`${c.season} · drag a card here to schedule it`}
             color={quarterColor}
-            colItems={items
-              .filter(
-                (i) =>
-                  isScheduled(i) &&
-                  i.horizon !== "non-bet" &&
-                  fiscalQuarterIndex(parseDate(i.targetStart!)) === c.index,
-              )
-              .sort(byRank)}
+            colItems={(byQuarter.get(c.index) ?? []).sort(byRank)}
             isNoop={(it) =>
               isScheduled(it) &&
               it.horizon !== "non-bet" &&
@@ -169,7 +173,7 @@ function QuarterBoard({ items }: { items: Item[] }) {
             onDropItem={(it) => withQuarter(it, c.start, c.end)}
           />
         ))}
-        <QuarterColumn
+        <DropColumn
           label={nonBetInfo.label}
           desc={nonBetInfo.desc}
           color={nonBetInfo.color}
@@ -182,13 +186,17 @@ function QuarterBoard({ items }: { items: Item[] }) {
   );
 }
 
-function QuarterColumn({
+// Shared drag-and-drop column body for both Horizon layouts (Now/Next/Later
+// and by-quarter) — they differ only in the no-op predicate and the drop
+// mutation, so both HorizonColumn and the quarter board's cells render this.
+function DropColumn({
   label,
   desc,
   color,
   colItems,
   isNoop,
   onDropItem,
+  wide = false,
 }: {
   label: string;
   desc: string;
@@ -199,6 +207,7 @@ function QuarterColumn({
   // line for a card that didn't actually move.
   isNoop: (item: Item) => boolean;
   onDropItem: (item: Item) => Item;
+  wide?: boolean;
 }) {
   const { items, dragId, updateItem } = useLoop();
   const [over, setOver] = useState(false);
@@ -206,7 +215,10 @@ function QuarterColumn({
   return (
     <div
       className={"column" + (over ? " drop-ok" : "")}
-      style={{ ["--column-color" as string]: color }}
+      style={{
+        ...(wide ? { width: "auto" } : {}),
+        ["--column-color" as string]: color,
+      }}
       onDragOver={(e) => {
         if (!dragId.current) return;
         const it = items.find((i) => i.id === dragId.current);
@@ -255,45 +267,16 @@ function HorizonColumn({
   desc: string;
   colItems: Item[];
 }) {
-  const { items, dragId, updateItem } = useLoop();
-  const [over, setOver] = useState(false);
-
   return (
-    <div
-      className={"column" + (over ? " drop-ok" : "")}
-      style={{ width: "auto", ["--column-color" as string]: color }}
-      onDragOver={(e) => {
-        if (!dragId.current) return;
-        const it = items.find((i) => i.id === dragId.current);
-        if (it && !it.killed) {
-          e.preventDefault();
-          setOver(true);
-        }
-      }}
-      onDragLeave={(e) => {
-        if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-        setOver(false);
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        setOver(false);
-        const it = items.find((i) => i.id === dragId.current);
-        dragId.current = null;
-        if (!it || it.killed || (it.horizon || "unassigned") === hKey) return;
-        updateItem(withHorizon(it, hKey));
-      }}
-    >
-      <div className="column-header">
-        <span className="col-title">{label}</span>
-        <span className="col-count">{colItems.length}</span>
-      </div>
-      <div className="hz-col-desc">{desc}</div>
-      <div className="column-body">
-        {colItems.map((item) => (
-          <HorizonCard key={item.id} item={item} />
-        ))}
-      </div>
-    </div>
+    <DropColumn
+      label={label}
+      desc={desc}
+      color={color}
+      colItems={colItems}
+      wide
+      isNoop={(it) => (it.horizon || "unassigned") === hKey}
+      onDropItem={(it) => withHorizon(it, hKey)}
+    />
   );
 }
 
