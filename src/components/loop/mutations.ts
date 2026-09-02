@@ -113,7 +113,14 @@ export function withQuarter(
   const durationDays = isScheduled(item)
     ? daysBetween(parseDate(item.targetStart!), parseDate(item.targetEnd!))
     : daysBetween(quarterStart, quarterEnd);
-  const newEnd = new Date(quarterStart.getTime() + durationDays * DAY);
+  // Calendar-date arithmetic, not `quarterStart.getTime() + durationDays * DAY`:
+  // the latter adds a fixed number of real hours, which lands a day short
+  // whenever the span crosses a DST transition.
+  const newEnd = new Date(
+    quarterStart.getFullYear(),
+    quarterStart.getMonth(),
+    quarterStart.getDate() + durationDays,
+  );
   const next: Item = {
     ...item,
     targetStart: toISODate(quarterStart),
@@ -130,12 +137,15 @@ export function withQuarter(
 
 // The other drop target on the by-quarter layout: the "Unscheduled" column,
 // for pulling a dated item back out of the calendar without touching its
-// horizon call.
+// horizon call — except a declined "non-bet" call, which is cleared for the
+// same reason withQuarter clears it: the Non-Bet column is keyed on horizon,
+// not dates, so leaving it in place would make the drop look like a no-op.
 export function withoutDates(item: Item): Item {
   const next: Item = {
     ...item,
     targetStart: null,
     targetEnd: null,
+    horizon: item.horizon === "non-bet" ? null : item.horizon,
     updatedAt: now(),
   };
   next.activity = [
