@@ -294,10 +294,12 @@ export async function getPublicState(): Promise<{
   // rather than merely not rendered. It is also the difference that matters
   // most: an unpromoted idea read as "the roadmap" is a half-formed thought
   // mistaken for a commitment (see docs/settings-tab.md).
-  const trimmed = trimForShare({ items, bets, outlooks });
-  // A quarterly theme is portfolio narrative, not sensitive detail — it passes
-  // through untrimmed, the same way milestones do.
-  return { ...trimmed, weights, milestones, quarterlyThemes };
+  //
+  // A quarterly theme's title/narrative are the intended public content, but
+  // updatedBy is an internal author identifier — trimForShare blanks it the
+  // same way it blanks DeliveryOutlook.updatedBy.
+  const trimmed = trimForShare({ items, bets, outlooks, quarterlyThemes });
+  return { ...trimmed, weights, milestones };
 }
 
 export async function upsertItem(item: Item): Promise<void> {

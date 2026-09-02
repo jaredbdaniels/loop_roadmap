@@ -751,11 +751,13 @@ export function fiscalQuarterLabel(d: Date): string {
 // `QuarterlyTheme.quarterIndex` be rendered back through fiscalQuarterLabel /
 // fiscalSeasonLabel without the caller having to carry its own Date around.
 export function dateForQuarterIndex(index: number): Date {
-  const year = Math.floor(index / 4);
-  const quarter = (index % 4) + 1;
-  const startMonth = (FISCAL_START_MONTH + (quarter - 1) * 3) % 12;
-  const calendarYear = startMonth >= FISCAL_START_MONTH ? year - 1 : year;
-  return new Date(calendarYear, startMonth, 1);
+  const fiscalYear = Math.floor(index / 4);
+  const quarter0 = index % 4; // 0-indexed quarter within the fiscal year
+  // Date's constructor carries a month outside 0-11 into the year itself, so
+  // handing it FISCAL_START_MONTH + quarter0*3 unmodded lands on the right
+  // calendar year for every quarter without a separate branch — the same
+  // carry fiscalQuarter()'s "year" field encodes by hand.
+  return new Date(fiscalYear - 1, FISCAL_START_MONTH + quarter0 * 3, 1);
 }
 
 /* ---------------- seasons ----------------
@@ -1005,12 +1007,21 @@ export function normalizeBets(list: Bet[]): Bet[] {
 // failure loud instead of silent. `DeliveryOutlook.reasoning`/`risks`/`asks`
 // are exactly that kind of note — frank, internal confidence commentary — so
 // they're cleared the same way `Bet.activity` is; `level` stays, matching how
-// scores and timelines stay visible elsewhere in this trim.
+// scores and timelines stay visible elsewhere in this trim. `QuarterlyTheme`'s
+// `title`/`narrative` are the intended public content (that's the whole point
+// of a narrative theme), but `updatedBy` is the same kind of internal-author
+// identifier as `DeliveryOutlook.updatedBy`, so it's blanked the same way.
 export function trimForShare(state: {
   items: Item[];
   bets: Bet[];
   outlooks: DeliveryOutlook[];
-}): { items: Item[]; bets: Bet[]; outlooks: DeliveryOutlook[] } {
+  quarterlyThemes: QuarterlyTheme[];
+}): {
+  items: Item[];
+  bets: Bet[];
+  outlooks: DeliveryOutlook[];
+  quarterlyThemes: QuarterlyTheme[];
+} {
   return {
     items: state.items
       .filter((it) => !it.killed && !isIntake(it))
@@ -1024,6 +1035,7 @@ export function trimForShare(state: {
       asks: [],
       updatedBy: "",
     })),
+    quarterlyThemes: state.quarterlyThemes.map((t) => ({ ...t, updatedBy: "" })),
   };
 }
 
@@ -1389,7 +1401,11 @@ export function normalizeQuarterThemes(
   return (Array.isArray(list) ? list : []).map((raw) => {
     const t: QuarterlyTheme = { ...(raw as QuarterlyTheme) };
     if (typeof t.quarterIndex !== "number") t.quarterIndex = 0;
-    if (!t.id) t.id = quarterThemeId(t.quarterIndex);
+    // Always recomputed, never just backfilled when missing — a stale id from
+    // a partial write or hand-edited row must never disagree with
+    // quarterIndex, since quarterThemeForIndex looks up by quarterIndex only
+    // and a mismatched id would make the row silently unfindable.
+    t.id = quarterThemeId(t.quarterIndex);
     if (typeof t.title !== "string") t.title = "";
     if (typeof t.narrative !== "string") t.narrative = "";
     if (typeof t.updatedBy !== "string") t.updatedBy = "";

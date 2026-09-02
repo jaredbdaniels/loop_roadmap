@@ -5,6 +5,7 @@ import {
   dateForQuarterIndex,
   fiscalQuarterLabel,
   fiscalSeasonLabel,
+  quarterThemeForIndex,
   quarterThemeId,
 } from "@/lib/loop/logic";
 import type { QuarterlyTheme } from "@/lib/loop/types";
@@ -28,7 +29,7 @@ export function QuarterThemeModal({ userEmail }: { userEmail: string | null }) {
   const quarterIndex = quarterlyThemeEditIndex;
   const existing =
     quarterIndex !== null
-      ? quarterlyThemes.find((t) => t.quarterIndex === quarterIndex) ?? null
+      ? quarterThemeForIndex(quarterlyThemes, quarterIndex) ?? null
       : null;
 
   return quarterIndex !== null ? (

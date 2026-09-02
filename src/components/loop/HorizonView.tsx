@@ -243,25 +243,25 @@ function QuarterColumn({
         <span className="col-title">{label}</span>
         <span className="col-count">{colItems.length}</span>
       </div>
-      {quarterIndex !== undefined && theme?.title ? (
-        shareMode ? (
-          <div className="hz-col-theme" title={theme.narrative || theme.title}>
-            {theme.title}
-          </div>
+      <div className="hz-col-desc">{desc}</div>
+      {quarterIndex !== undefined &&
+        (theme?.title ? (
+          shareMode ? (
+            <div className="hz-col-theme" title={theme.narrative || theme.title}>
+              {theme.title}
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="hz-col-theme"
+              title={theme.narrative || theme.title}
+              onClick={() => openQuarterlyTheme(quarterIndex)}
+            >
+              {theme.title}
+            </button>
+          )
         ) : (
-          <button
-            type="button"
-            className="hz-col-theme"
-            title={theme.narrative || theme.title}
-            onClick={() => openQuarterlyTheme(quarterIndex)}
-          >
-            {theme.title}
-          </button>
-        )
-      ) : (
-        <div className="hz-col-desc">
-          {desc}
-          {quarterIndex !== undefined && !shareMode && (
+          !shareMode && (
             <button
               type="button"
               className="hz-col-theme hz-col-theme--empty"
@@ -269,9 +269,8 @@ function QuarterColumn({
             >
               + Add a theme
             </button>
-          )}
-        </div>
-      )}
+          )
+        ))}
       <div className="column-body">
         {colItems.map((item) => (
           <HorizonCard key={item.id} item={item} />

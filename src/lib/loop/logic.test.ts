@@ -1074,6 +1074,7 @@ describe("trimForShare", () => {
       ],
       bets: [bet({ id: "b1", activity: ["Status Proposed → Active."] })],
       outlooks: [],
+      quarterlyThemes: [],
     });
     expect(out.items[0].activity).toEqual([]);
     expect(out.bets[0].activity).toEqual([]);
@@ -1088,6 +1089,7 @@ describe("trimForShare", () => {
       ],
       bets: [],
       outlooks: [],
+      quarterlyThemes: [],
     });
     expect(out.items.map((i) => i.id)).toEqual(["alive"]);
     expect(out.items[0].killedReason).toBe("");
@@ -1101,6 +1103,7 @@ describe("trimForShare", () => {
       items: [],
       bets: [bet({ thesis: "We believe X", killCriteria: "WAU flat" })],
       outlooks: [],
+      quarterlyThemes: [],
     });
     expect(out.bets[0].thesis).toBe("We believe X");
     expect(out.bets[0].killCriteria).toBe("WAU flat");
@@ -1124,6 +1127,7 @@ describe("trimForShare", () => {
           updatedAt: "2026-08-01T00:00:00.000Z",
         },
       ],
+      quarterlyThemes: [],
     });
     expect(out.outlooks[0].level).toBe("low");
     expect(out.outlooks[0].reasoning).toBe("");
@@ -1131,6 +1135,31 @@ describe("trimForShare", () => {
     expect(out.outlooks[0].risks).toEqual([]);
     expect(out.outlooks[0].asks).toEqual([]);
     expect(out.outlooks[0].updatedBy).toBe("");
+  });
+
+  it("keeps a quarterly theme's title and narrative but clears updatedBy", () => {
+    const out = trimForShare({
+      items: [],
+      bets: [],
+      outlooks: [],
+      quarterlyThemes: [
+        {
+          id: "quarter:1",
+          quarterIndex: 1,
+          title: "Foundations for self-serve onboarding",
+          narrative: "Why this quarter is about onboarding.",
+          updatedBy: "pm@campminder.com",
+          updatedAt: "2026-08-01T00:00:00.000Z",
+        },
+      ],
+    });
+    expect(out.quarterlyThemes[0].title).toBe(
+      "Foundations for self-serve onboarding",
+    );
+    expect(out.quarterlyThemes[0].narrative).toBe(
+      "Why this quarter is about onboarding.",
+    );
+    expect(out.quarterlyThemes[0].updatedBy).toBe("");
   });
 });
 
