@@ -4,8 +4,16 @@ import {
   normalizeBets,
   normalizeMilestones,
   normalizeOutlooks,
+  normalizeQuarterThemes,
 } from "./logic";
-import type { Bet, DeliveryOutlook, Item, Milestone, Weights } from "./types";
+import type {
+  Bet,
+  DeliveryOutlook,
+  Item,
+  Milestone,
+  QuarterlyTheme,
+  Weights,
+} from "./types";
 
 // The two-year roadmap shipped with Loop, generated from the Architecture-Aligned
 // Org Chart plus the Epic Seed sheet by docs/seed-redesign/build_import.py: one
@@ -56,4 +64,13 @@ export function seedOutlooks(): DeliveryOutlook[] {
       ),
     ) as DeliveryOutlook[],
   );
+}
+
+// Always empty, same reasoning as seedOutlooks: a quarterly theme is a PM's
+// own claim about what a quarter is for, not something to write on their
+// behalf. A seeded example would be read as a template and copied rather than
+// replaced (see docs/narrative-view.md's identical rule for the future
+// narrative view).
+export function seedQuarterlyThemes(): QuarterlyTheme[] {
+  return normalizeQuarterThemes([]);
 }

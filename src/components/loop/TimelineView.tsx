@@ -13,10 +13,12 @@ import {
   ZOOMS,
 } from "@/lib/loop/constants";
 import {
+  activeThemeMission,
   blockerSatisfied,
   createsDepCycle,
   daysBetween,
   depConflicts,
+  fiscalQuarterIndex,
   fiscalQuarterLabel,
   fiscalSeasonLabel,
   fmtDate,
@@ -29,6 +31,8 @@ import {
   isScheduled,
   nextFiscalQuarterStart,
   parseDate,
+  quarterThemeForIndex,
+  themeIsInherited,
   resolveDomain,
   snapToWeek,
   stackMilestoneFlags,
@@ -45,6 +49,7 @@ import { useLoop } from "./store";
 import { placedOnTimeline, visibleItems } from "./mutations";
 import { MissionTag } from "./MissionTag";
 import { ItemLink } from "./ItemLink";
+import { QuarterThemeAffordance } from "./QuarterThemeAffordance";
 import { SeasonLanes } from "./SeasonLanes";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 
@@ -72,6 +77,7 @@ export function TimelineView() {
     items,
     bets,
     milestones,
+    quarterlyThemes,
     zoom,
     filterMission,
     filterBet,
@@ -82,6 +88,7 @@ export function TimelineView() {
     openDetail,
     betHref,
     openMilestone,
+    openQuarterlyTheme,
     openCapture,
     updateItem,
     updateMilestone,
@@ -130,6 +137,9 @@ export function TimelineView() {
     filterOwner,
     shareMode,
   );
+  // Team-scoped when exactly one team is filtered, else the cross-cutting
+  // theme — see quarterThemeForIndex() and activeThemeMission() in logic.ts.
+  const activeMission = activeThemeMission(filterMission);
   const ppd = ZOOMS[zoom];
   const { start, end } = timelineRange(vis, milestones);
   const totalDays = daysBetween(start, end);
@@ -164,8 +174,14 @@ export function TimelineView() {
   // ----- header cells -----
   const monthCells: { width: number; label: string }[] = [];
   // Each quarter cell carries both names: the season is what people say out
-  // loud, the FY label is what ADO and finance speak. See logic.ts.
-  const quarterCells: { width: number; season: string; label: string }[] = [];
+  // loud, the FY label is what ADO and finance speak. See logic.ts. `index`
+  // is the fiscalQuarterIndex, which is how a cell looks up its theme.
+  const quarterCells: {
+    width: number;
+    season: string;
+    label: string;
+    index: number;
+  }[] = [];
   const gridLines: { left: number; q: boolean }[] = [];
   {
     let cursor = new Date(start);
@@ -193,6 +209,7 @@ export function TimelineView() {
           width: daysBetween(cursor, qEnd) * ppd,
           season: fiscalSeasonLabel(cursor),
           label: fiscalQuarterLabel(cursor),
+          index: fiscalQuarterIndex(cursor),
         });
       }
       gridLines.push({
@@ -813,20 +830,49 @@ export function TimelineView() {
               >
                 <div className="tl-header">
                   <div className="tl-qrow">
-                    {quarterCells.map((c, i) => (
-                      <div
-                        key={i}
-                        className="tl-qcell"
-                        style={{ width: c.width }}
-                        // The first and last cells can be clipped to a sliver
-                        // by the axis range, so both names stay reachable on
-                        // hover.
-                        title={`${c.season} · ${c.label}`}
-                      >
-                        <span className="tl-qcell-season">{c.season}</span>
-                        <span className="tl-qcell-fy">{c.label}</span>
-                      </div>
-                    ))}
+                    {quarterCells.map((c, i) => {
+                      const theme = quarterThemeForIndex(
+                        quarterlyThemes,
+                        c.index,
+                        activeMission,
+                      );
+                      const inherited = themeIsInherited(
+                        theme,
+                        activeMission,
+                      );
+                      return (
+                        <div
+                          key={i}
+                          className="tl-qcell"
+                          style={{ width: c.width }}
+                          // The first and last cells can be clipped to a sliver
+                          // by the axis range, so both names stay reachable on
+                          // hover — and the narrative, never shown inline, rides
+                          // along here too.
+                          title={
+                            `${c.season} · ${c.label}` +
+                            (theme?.narrative ? ` — ${theme.narrative}` : "") +
+                            (inherited ? " (cross-cutting)" : "")
+                          }
+                        >
+                          <span className="tl-qcell-season">{c.season}</span>
+                          <span className="tl-qcell-fy">{c.label}</span>
+                          <QuarterThemeAffordance
+                            theme={theme}
+                            shareMode={shareMode}
+                            onOpen={() => openQuarterlyTheme(c.index)}
+                            className="tl-qcell-theme"
+                            emptyClassName="tl-qcell-theme--empty"
+                            emptyTitle={
+                              activeMission
+                                ? `Add a theme for ${activeMission}`
+                                : "Add a theme"
+                            }
+                            emptyContent="+ theme"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="tl-mrow">
                     {monthCells.map((c, i) => (

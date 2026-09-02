@@ -6,6 +6,7 @@ import {
   items as itemsTable,
   milestones as milestonesTable,
   outlooks as outlooksTable,
+  quarterlyThemes as quarterlyThemesTable,
   scenarios as scenariosTable,
   settings as settingsTable,
 } from "../schema";
@@ -21,6 +22,7 @@ import {
   normalizeBets,
   normalizeMilestones,
   normalizeOutlooks,
+  normalizeQuarterThemes,
   trimForShare,
 } from "./logic";
 import type {
@@ -29,6 +31,7 @@ import type {
   Item,
   LoopState,
   Milestone,
+  QuarterlyTheme,
   Scenario,
   ScenarioMeta,
   Weights,
@@ -147,6 +150,10 @@ export async function ensureSeeded(): Promise<void> {
       }
     }
   }
+  // No insert block here, unlike bets/milestones/outlooks above:
+  // seedQuarterlyThemes() always returns [] by design (see seed.ts) — a
+  // quarterly theme is a PM's own claim, not something to seed an example
+  // for — so there's nothing to write on first run.
   await db
     .insert(settingsTable)
     .values({ id: SETTINGS_ID, weights: SEED_WEIGHTS })
@@ -212,22 +219,33 @@ export async function getAllOutlooks(): Promise<DeliveryOutlook[]> {
   );
 }
 
+export async function getAllQuarterlyThemes(): Promise<QuarterlyTheme[]> {
+  return getAllRows(
+    () => db.select().from(quarterlyThemesTable),
+    normalizeQuarterThemes,
+    "quarterly_themes",
+  );
+}
+
 export async function getState(): Promise<{
   items: Item[];
   weights: Weights;
   bets: Bet[];
   milestones: Milestone[];
   outlooks: DeliveryOutlook[];
+  quarterlyThemes: QuarterlyTheme[];
 }> {
   await ensureSeeded();
-  const [items, weights, bets, milestones, outlooks] = await Promise.all([
-    getAllItems(),
-    getWeights(),
-    getAllBets(),
-    getAllMilestones(),
-    getAllOutlooks(),
-  ]);
-  return { items, weights, bets, milestones, outlooks };
+  const [items, weights, bets, milestones, outlooks, quarterlyThemes] =
+    await Promise.all([
+      getAllItems(),
+      getWeights(),
+      getAllBets(),
+      getAllMilestones(),
+      getAllOutlooks(),
+      getAllQuarterlyThemes(),
+    ]);
+  return { items, weights, bets, milestones, outlooks, quarterlyThemes };
 }
 
 // Read state trimmed for the anonymous, read-only /share/<token> view. A share
@@ -242,8 +260,10 @@ export async function getPublicState(): Promise<{
   bets: Bet[];
   milestones: Milestone[];
   outlooks: DeliveryOutlook[];
+  quarterlyThemes: QuarterlyTheme[];
 }> {
-  const { items, weights, bets, milestones, outlooks } = await getState();
+  const { items, weights, bets, milestones, outlooks, quarterlyThemes } =
+    await getState();
   // Intake is dropped here rather than hidden in the UI, because a share link is
   // handed to people outside the team and the payload is readable by anyone who
   // opens devtools. A parked idea's problem statement and KR must not ship to
@@ -251,7 +271,11 @@ export async function getPublicState(): Promise<{
   // rather than merely not rendered. It is also the difference that matters
   // most: an unpromoted idea read as "the roadmap" is a half-formed thought
   // mistaken for a commitment (see docs/settings-tab.md).
-  const trimmed = trimForShare({ items, bets, outlooks });
+  //
+  // A quarterly theme's title/narrative are the intended public content, but
+  // updatedBy is an internal author identifier — trimForShare blanks it the
+  // same way it blanks DeliveryOutlook.updatedBy.
+  const trimmed = trimForShare({ items, bets, outlooks, quarterlyThemes });
   return { ...trimmed, weights, milestones };
 }
 
@@ -351,6 +375,22 @@ export async function upsertOutlook(outlook: DeliveryOutlook): Promise<void> {
     });
 }
 
+// Always an upsert — `id` is the deterministic `quarter:<quarterIndex>` key,
+// same reasoning as upsertOutlook above.
+export async function upsertQuarterlyTheme(theme: QuarterlyTheme): Promise<void> {
+  await db
+    .insert(quarterlyThemesTable)
+    .values({
+      id: theme.id,
+      data: theme,
+      updatedAt: new Date(theme.updatedAt),
+    })
+    .onConflictDoUpdate({
+      target: quarterlyThemesTable.id,
+      set: { data: theme, updatedAt: new Date(theme.updatedAt) },
+    });
+}
+
 export async function setWeights(weights: Weights): Promise<void> {
   await db
     .insert(settingsTable)
@@ -440,6 +480,8 @@ function rowToScenario(row: typeof scenariosTable.$inferSelect): Scenario {
       milestones: normalizeMilestones(st.milestones ?? []),
       // `?? []` covers scenarios forked before outlooks existed.
       outlooks: normalizeOutlooks(st.outlooks ?? []),
+      // Same reasoning, for scenarios forked before quarterly themes existed.
+      quarterlyThemes: normalizeQuarterThemes(st.quarterlyThemes ?? []),
     },
     // `?? "whatif"` covers scenarios created before kind/locked existed.
     kind: row.kind ?? "whatif",
@@ -508,6 +550,7 @@ export async function createScenario(
     bets: live.bets,
     milestones: live.milestones,
     outlooks: live.outlooks,
+    quarterlyThemes: live.quarterlyThemes,
   };
   const locked = kind === "headlights-archive";
   await db.insert(scenariosTable).values({

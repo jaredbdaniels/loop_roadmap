@@ -98,13 +98,18 @@ export function withHorizon(item: Item, key: HorizonKey): Item {
   };
 }
 
+// Dragging a "non-bet" (declined) call onto the calendar or back off it is a
+// real decision, not a side effect of the drop — so both quarter-board drop
+// targets below clear it rather than leaving an item that reads as both
+// "declined" and scheduled.
+function clearNonBetHorizon(horizon: Item["horizon"]): Item["horizon"] {
+  return horizon === "non-bet" ? null : horizon;
+}
+
 // Drop target for the Horizon view's by-quarter layout: move `item` into the
 // fiscal quarter starting `quarterStart`. An already-scheduled item keeps its
 // duration (a 3-quarter epic dragged a quarter over is still a 3-quarter
-// epic); an unscheduled one takes on the dropped quarter's own span. Dragging
-// out of a declined "non-bet" call is a real decision, not a side effect of
-// dropping it on a date — so it clears the horizon rather than leaving a
-// scheduled item that reads as both "declined" and "planned for Q2".
+// epic); an unscheduled one takes on the dropped quarter's own span.
 export function withQuarter(
   item: Item,
   quarterStart: Date,
@@ -125,7 +130,7 @@ export function withQuarter(
     ...item,
     targetStart: toISODate(quarterStart),
     targetEnd: toISODate(newEnd),
-    horizon: item.horizon === "non-bet" ? null : item.horizon,
+    horizon: clearNonBetHorizon(item.horizon),
     updatedAt: now(),
   };
   next.activity = [
@@ -145,7 +150,7 @@ export function withoutDates(item: Item): Item {
     ...item,
     targetStart: null,
     targetEnd: null,
-    horizon: item.horizon === "non-bet" ? null : item.horizon,
+    horizon: clearNonBetHorizon(item.horizon),
     updatedAt: now(),
   };
   next.activity = [

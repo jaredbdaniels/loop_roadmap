@@ -34,6 +34,9 @@ export default async function PreviewPage({
       initialBets={seedBets()}
       initialMilestones={seedMilestones()}
       initialOutlooks={seedOutlooks()}
+      // No seed source — a quarterly theme is a PM's own claim, not something
+      // to fabricate for the committed seed roadmap.
+      initialQuarterlyThemes={[]}
       userEmail={session.user.email}
       readOnly
       viewDefaults={{ view: "timeline", groupBy: "domain" }}

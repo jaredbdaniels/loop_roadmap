@@ -1,0 +1,53 @@
+import { NextResponse } from "next/server";
+import { getReadSession, getSession } from "@/lib/require-session";
+import { quarterThemeId } from "@/lib/loop/logic";
+import { getAllQuarterlyThemes, upsertQuarterlyTheme } from "@/lib/loop/store";
+import type { QuarterlyTheme } from "@/lib/loop/types";
+
+export const dynamic = "force-dynamic";
+
+// GET /api/quarterly-themes — every fiscal quarter's narrative theme.
+// Readable with a session or the Loop MCP server's API key (see
+// src/lib/mcp/auth.ts).
+export async function GET(req: Request) {
+  const sess = await getReadSession(req);
+  if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  return NextResponse.json({ quarterlyThemes: await getAllQuarterlyThemes() });
+}
+
+// POST /api/quarterly-themes — save one quarter's theme, cross-cutting or
+// team-scoped. Always an upsert: `id` is the deterministic
+// `quarter:<quarterIndex>` (mission null) or `quarter:<quarterIndex>:
+// <mission>` key, so there's no separate create vs. update distinction the
+// way items/bets/milestones have.
+export async function POST(req: Request) {
+  const sess = await getSession();
+  if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const theme = (await req.json()) as QuarterlyTheme;
+  if (
+    !theme?.id ||
+    typeof theme.quarterIndex !== "number" ||
+    Number.isNaN(theme.quarterIndex)
+  ) {
+    return NextResponse.json(
+      { error: "id and quarterIndex required" },
+      { status: 400 },
+    );
+  }
+  // `|| null`, not `?? null`: an empty string must normalize to null the
+  // same way normalizeQuarterThemes() does on read, or a mission: "" write
+  // would persist a row quarterThemeForIndex's `t.mission === null` check
+  // can't find until the next full read runs it through that normalizer.
+  const mission = theme.mission || null;
+  if (theme.id !== quarterThemeId(theme.quarterIndex, mission)) {
+    return NextResponse.json(
+      {
+        error:
+          "id must be `quarter:<quarterIndex>` (or `quarter:<quarterIndex>:<mission>` for a team-scoped theme)",
+      },
+      { status: 400 },
+    );
+  }
+  await upsertQuarterlyTheme({ ...theme, mission });
+  return NextResponse.json({ ok: true, quarterlyTheme: theme });
+}

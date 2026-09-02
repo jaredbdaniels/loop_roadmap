@@ -2138,6 +2138,12 @@ table.hl-rollup tbody tr:last-child td {
   line-height: 1.3;
   max-width: 520px;
 }
+/* The team a quarter-theme edit is scoped to (QuarterThemeModal), styled
+   lighter than the quarter label so the two read as headline + qualifier. */
+.modal-header-sub {
+  font-weight: 500;
+  color: var(--cm-muted-fg);
+}
 .modal-close {
   display: grid;
   place-items: center;
@@ -2596,9 +2602,12 @@ table.hl-rollup tbody tr:last-child td {
   height: 28px;
 }
 /* Two names per quarter: the season leads because that's what people say, the
-   fiscal quarter stays underneath for ADO and finance. See logic.ts. */
+   fiscal quarter stays underneath for ADO and finance. See logic.ts. A third
+   line — the quarter's narrative theme, when a PM has set one — rides beneath
+   both. All cells in the row are flex siblings sharing one height, so the row
+   is sized to fit the theme line unconditionally rather than per-cell. */
 .tl-qrow {
-  height: 40px;
+  height: 56px;
 }
 .tl-qcell {
   display: flex;
@@ -2628,6 +2637,33 @@ table.hl-rollup tbody tr:last-child td {
   color: var(--cm-faint-fg);
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.tl-qcell-theme {
+  /* Undo the uppercase/letter-spacing the two calendar labels above want —
+     this is a written headline, not a label. */
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--cm-fg);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+button.tl-qcell-theme {
+  cursor: pointer;
+}
+.tl-qcell-theme--empty {
+  font-weight: 500;
+  color: var(--cm-faint-fg);
+}
+.tl-qcell-theme--empty:hover {
+  color: var(--cm-accent);
 }
 .tl-mcell {
   border-left: 1px solid var(--cm-border);
@@ -3639,6 +3675,41 @@ body.share-mode .tl-link-handle {
   padding: 0 4px 12px;
   margin-top: -4px;
   line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+/* The quarter's narrative headline, in place of the static desc text once a
+   PM has set one — same slot, same column, just a story instead of a hint. */
+.hz-col-theme {
+  display: block;
+  width: 100%;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--cm-fg);
+  padding: 0 4px 12px;
+  margin-top: -4px;
+  line-height: 1.4;
+  text-align: left;
+  background: none;
+  border: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+button.hz-col-theme {
+  cursor: pointer;
+}
+.hz-col-theme--empty {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--cm-muted-fg);
+  padding: 0 4px 4px;
+  margin-top: 0;
+}
+.hz-col-theme--empty:hover {
+  color: var(--cm-accent);
 }
 .hz-dates {
   font-size: 0.72rem;

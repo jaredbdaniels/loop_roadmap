@@ -21,7 +21,8 @@ export default async function SharePage({
   const { token } = await params;
   if (!(await validateShareToken(token))) notFound();
 
-  const { items, weights, bets, milestones, outlooks } = await getPublicState();
+  const { items, weights, bets, milestones, outlooks, quarterlyThemes } =
+    await getPublicState();
 
   return (
     <LoopApp
@@ -30,6 +31,7 @@ export default async function SharePage({
       initialBets={bets}
       initialMilestones={milestones}
       initialOutlooks={outlooks}
+      initialQuarterlyThemes={quarterlyThemes}
       userEmail={null}
       readOnly
       viewParams={await searchParams}

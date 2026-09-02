@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeThemeMission,
   betFundedShare,
   betJtbdScope,
   betReach,
   betUndeclaredSpend,
   betUnstaffedClaims,
   computeRank,
+  dateForQuarterIndex,
   diffCount,
   diffStates,
   FLAG_GAP,
@@ -21,9 +23,12 @@ import {
   nextFiscalQuarterStart,
   betChangeLog,
   normalizeBets,
+  normalizeQuarterThemes,
   framingGaps,
   migrateItems,
   plannedShareTotal,
+  quarterThemeForIndex,
+  quarterThemeId,
   resolveDomain,
   runTheBusinessShare,
   stackMilestoneFlags,
@@ -40,6 +45,7 @@ import type {
   LoopState,
   Milestone,
   Prototype,
+  QuarterlyTheme,
   Weights,
 } from "./types";
 
@@ -142,6 +148,7 @@ function state(over: Partial<LoopState> = {}): LoopState {
     bets: [],
     milestones: [],
     outlooks: [],
+    quarterlyThemes: [],
     ...over,
   };
 }
@@ -371,6 +378,205 @@ describe("diffStates", () => {
       after: "low",
     });
     expect(d.outlooksChanged[0].changes.some((c) => c.field === "risks")).toBe(true);
+  });
+
+  it("reports added, removed, and changed quarterly themes", () => {
+    const theme = (over: Partial<QuarterlyTheme> = {}): QuarterlyTheme => ({
+      id: quarterThemeId(8108),
+      quarterIndex: 8108,
+      mission: null,
+      title: "Foundations for self-serve onboarding",
+      narrative: "",
+      updatedBy: "pm@campminder.com",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+      ...over,
+    });
+    const live = state({ quarterlyThemes: [theme()] });
+    const draft = state({
+      quarterlyThemes: [theme({ title: "Onboarding, take two" })],
+    });
+    const d = diffStates(live, draft);
+    expect(d.quarterlyThemesChanged).toHaveLength(1);
+    expect(d.quarterlyThemesChanged[0].changes).toContainEqual({
+      field: "title",
+      before: "Foundations for self-serve onboarding",
+      after: "Onboarding, take two",
+    });
+
+    const added = diffStates(
+      state({ quarterlyThemes: [] }),
+      state({ quarterlyThemes: [theme()] }),
+    );
+    expect(added.quarterlyThemesAdded.map((t) => t.id)).toEqual([theme().id]);
+
+    const removed = diffStates(
+      state({ quarterlyThemes: [theme()] }),
+      state({ quarterlyThemes: [] }),
+    );
+    expect(removed.quarterlyThemesRemoved.map((t) => t.id)).toEqual([
+      theme().id,
+    ]);
+  });
+
+  it("ignores updatedBy/updatedAt-only changes on a quarterly theme", () => {
+    const theme = (over: Partial<QuarterlyTheme> = {}): QuarterlyTheme => ({
+      id: quarterThemeId(8108),
+      quarterIndex: 8108,
+      mission: null,
+      title: "Same title",
+      narrative: "Same narrative",
+      updatedBy: "pm@campminder.com",
+      updatedAt: "2026-08-01T00:00:00.000Z",
+      ...over,
+    });
+    const live = state({ quarterlyThemes: [theme()] });
+    const draft = state({
+      quarterlyThemes: [
+        theme({ updatedBy: "someone-else@campminder.com", updatedAt: "2026-09-01T00:00:00.000Z" }),
+      ],
+    });
+    expect(diffStates(live, draft).quarterlyThemesChanged).toHaveLength(0);
+  });
+});
+
+describe("quarterThemeId", () => {
+  it("is deterministic and stable across calls", () => {
+    expect(quarterThemeId(8108)).toBe("quarter:8108");
+    expect(quarterThemeId(8108)).toBe(quarterThemeId(8108));
+  });
+
+  it("defaults to the cross-cutting id when mission is omitted or null", () => {
+    expect(quarterThemeId(8108)).toBe(quarterThemeId(8108, null));
+  });
+
+  it("scopes the id to a team when mission is given", () => {
+    expect(quarterThemeId(8108, "Platform AI")).toBe("quarter:8108:Platform AI");
+    expect(quarterThemeId(8108, "Platform AI")).not.toBe(quarterThemeId(8108));
+  });
+});
+
+describe("normalizeQuarterThemes", () => {
+  it("backfills defaults and derives id from quarterIndex on legacy rows", () => {
+    const [t] = normalizeQuarterThemes([
+      { quarterIndex: 8108 } as QuarterlyTheme,
+    ]);
+    expect(t.id).toBe("quarter:8108");
+    expect(t.mission).toBeNull();
+    expect(t.title).toBe("");
+    expect(t.narrative).toBe("");
+    expect(t.updatedBy).toBe("");
+    expect(t.updatedAt).toBe("");
+  });
+
+  it("derives a team-scoped id from quarterIndex + mission", () => {
+    const [t] = normalizeQuarterThemes([
+      { quarterIndex: 8108, mission: "Platform AI" } as QuarterlyTheme,
+    ]);
+    expect(t.id).toBe("quarter:8108:Platform AI");
+    expect(t.mission).toBe("Platform AI");
+  });
+
+  it("corrects a stale id that disagrees with quarterIndex/mission", () => {
+    const [t] = normalizeQuarterThemes([
+      {
+        id: "quarter:1:Platform AI",
+        quarterIndex: 8108,
+        mission: "Platform AI",
+      } as QuarterlyTheme,
+    ]);
+    expect(t.id).toBe("quarter:8108:Platform AI");
+  });
+
+  it("treats an empty-string mission as no team scope", () => {
+    const [t] = normalizeQuarterThemes([
+      { quarterIndex: 8108, mission: "" } as unknown as QuarterlyTheme,
+    ]);
+    expect(t.mission).toBeNull();
+    expect(t.id).toBe("quarter:8108");
+  });
+
+  it("degrades a non-array input to an empty list", () => {
+    expect(normalizeQuarterThemes(null as unknown as QuarterlyTheme[])).toEqual(
+      [],
+    );
+  });
+});
+
+describe("activeThemeMission", () => {
+  it("is null with no team selected (All Teams)", () => {
+    expect(activeThemeMission([])).toBeNull();
+  });
+
+  it("is that team when exactly one is selected", () => {
+    expect(activeThemeMission(["Platform AI"])).toBe("Platform AI");
+  });
+
+  it("is null when multiple teams are selected", () => {
+    expect(activeThemeMission(["Platform AI", "Growth"])).toBeNull();
+  });
+});
+
+describe("quarterThemeForIndex", () => {
+  const crossCutting: QuarterlyTheme = {
+    id: quarterThemeId(8108),
+    quarterIndex: 8108,
+    mission: null,
+    title: "Cross-cutting theme",
+    narrative: "",
+    updatedBy: "",
+    updatedAt: "",
+  };
+  const teamTheme: QuarterlyTheme = {
+    id: quarterThemeId(8108, "Platform AI"),
+    quarterIndex: 8108,
+    mission: "Platform AI",
+    title: "Platform AI's own theme",
+    narrative: "",
+    updatedBy: "",
+    updatedAt: "",
+  };
+
+  it("returns the cross-cutting theme when no single team is in view", () => {
+    const themes = [crossCutting, teamTheme];
+    expect(quarterThemeForIndex(themes, 8108, null)?.title).toBe(
+      "Cross-cutting theme",
+    );
+  });
+
+  it("prefers a team's own theme when that team is the only one filtered", () => {
+    const themes = [crossCutting, teamTheme];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")?.title).toBe(
+      "Platform AI's own theme",
+    );
+  });
+
+  it("falls back to the cross-cutting theme when the filtered team has none of its own", () => {
+    const themes = [crossCutting];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")?.title).toBe(
+      "Cross-cutting theme",
+    );
+  });
+
+  it("falls back to the cross-cutting theme when the team's own row has a blank title", () => {
+    const themes = [crossCutting, { ...teamTheme, title: "" }];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")?.title).toBe(
+      "Cross-cutting theme",
+    );
+  });
+
+  it("returns undefined when neither the team nor the cross-cutting row is set", () => {
+    expect(quarterThemeForIndex([], 8108, "Platform AI")).toBeUndefined();
+  });
+
+  it("never lets a different team's theme leak into another team's view", () => {
+    const otherTeamTheme: QuarterlyTheme = {
+      ...teamTheme,
+      id: quarterThemeId(8108, "Growth"),
+      mission: "Growth",
+      title: "Growth's own theme",
+    };
+    const themes = [otherTeamTheme];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")).toBeUndefined();
   });
 });
 
@@ -645,6 +851,20 @@ describe("fiscalQuarter", () => {
     const aug = fiscalQuarterIndex(new Date(2026, 7, 1)); // Q4 FY26
     const sep = fiscalQuarterIndex(new Date(2026, 8, 1)); // Q1 FY27
     expect(sep - aug).toBe(1);
+  });
+
+  it("dateForQuarterIndex round-trips fiscalQuarterIndex/fiscalQuarterLabel", () => {
+    const dates = [
+      new Date(2026, 5, 1), // Q4 FY26
+      new Date(2026, 8, 1), // Q1 FY27
+      new Date(2026, 11, 1), // Q2 FY27
+      new Date(2027, 2, 1), // Q3 FY27
+    ];
+    for (const d of dates) {
+      const roundTripped = dateForQuarterIndex(fiscalQuarterIndex(d));
+      expect(fiscalQuarterLabel(roundTripped)).toBe(fiscalQuarterLabel(d));
+      expect(fiscalQuarterIndex(roundTripped)).toBe(fiscalQuarterIndex(d));
+    }
   });
 
   it("finds the fiscal quarter boundaries at Sep / Dec / Mar / Jun", () => {
@@ -973,6 +1193,7 @@ describe("trimForShare", () => {
       ],
       bets: [bet({ id: "b1", activity: ["Status Proposed → Active."] })],
       outlooks: [],
+      quarterlyThemes: [],
     });
     expect(out.items[0].activity).toEqual([]);
     expect(out.bets[0].activity).toEqual([]);
@@ -987,6 +1208,7 @@ describe("trimForShare", () => {
       ],
       bets: [],
       outlooks: [],
+      quarterlyThemes: [],
     });
     expect(out.items.map((i) => i.id)).toEqual(["alive"]);
     expect(out.items[0].killedReason).toBe("");
@@ -1000,6 +1222,7 @@ describe("trimForShare", () => {
       items: [],
       bets: [bet({ thesis: "We believe X", killCriteria: "WAU flat" })],
       outlooks: [],
+      quarterlyThemes: [],
     });
     expect(out.bets[0].thesis).toBe("We believe X");
     expect(out.bets[0].killCriteria).toBe("WAU flat");
@@ -1023,6 +1246,7 @@ describe("trimForShare", () => {
           updatedAt: "2026-08-01T00:00:00.000Z",
         },
       ],
+      quarterlyThemes: [],
     });
     expect(out.outlooks[0].level).toBe("low");
     expect(out.outlooks[0].reasoning).toBe("");
@@ -1030,6 +1254,32 @@ describe("trimForShare", () => {
     expect(out.outlooks[0].risks).toEqual([]);
     expect(out.outlooks[0].asks).toEqual([]);
     expect(out.outlooks[0].updatedBy).toBe("");
+  });
+
+  it("keeps a quarterly theme's title and narrative but clears updatedBy", () => {
+    const out = trimForShare({
+      items: [],
+      bets: [],
+      outlooks: [],
+      quarterlyThemes: [
+        {
+          id: "quarter:1",
+          quarterIndex: 1,
+          mission: null,
+          title: "Foundations for self-serve onboarding",
+          narrative: "Why this quarter is about onboarding.",
+          updatedBy: "pm@campminder.com",
+          updatedAt: "2026-08-01T00:00:00.000Z",
+        },
+      ],
+    });
+    expect(out.quarterlyThemes[0].title).toBe(
+      "Foundations for self-serve onboarding",
+    );
+    expect(out.quarterlyThemes[0].narrative).toBe(
+      "Why this quarter is about onboarding.",
+    );
+    expect(out.quarterlyThemes[0].updatedBy).toBe("");
   });
 });
 

@@ -52,6 +52,7 @@ import type {
   OutlookLevel,
   PlannedHorizon,
   Prototype,
+  QuarterlyTheme,
   StateDiff,
   SubItem,
   Weights,
@@ -745,6 +746,20 @@ export function fiscalQuarterLabel(d: Date): string {
   return `Q${quarter} FY${String(year).slice(-2)}`;
 }
 
+// The mirror of fiscalQuarterIndex: a representative date (the 1st of the
+// quarter's first calendar month) for a given monotonic index. Lets a stored
+// `QuarterlyTheme.quarterIndex` be rendered back through fiscalQuarterLabel /
+// fiscalSeasonLabel without the caller having to carry its own Date around.
+export function dateForQuarterIndex(index: number): Date {
+  const fiscalYear = Math.floor(index / 4);
+  const quarter0 = index % 4; // 0-indexed quarter within the fiscal year
+  // Date's constructor carries a month outside 0-11 into the year itself, so
+  // handing it FISCAL_START_MONTH + quarter0*3 unmodded lands on the right
+  // calendar year for every quarter without a separate branch — the same
+  // carry fiscalQuarter()'s "year" field encodes by hand.
+  return new Date(fiscalYear - 1, FISCAL_START_MONTH + quarter0 * 3, 1);
+}
+
 /* ---------------- seasons ----------------
    Campminder talks in seasons, not quarter numbers: Fall, Winter, Spring,
    Summer. Because the fiscal year starts in September the two line up exactly —
@@ -992,12 +1007,21 @@ export function normalizeBets(list: Bet[]): Bet[] {
 // failure loud instead of silent. `DeliveryOutlook.reasoning`/`risks`/`asks`
 // are exactly that kind of note — frank, internal confidence commentary — so
 // they're cleared the same way `Bet.activity` is; `level` stays, matching how
-// scores and timelines stay visible elsewhere in this trim.
+// scores and timelines stay visible elsewhere in this trim. `QuarterlyTheme`'s
+// `title`/`narrative` are the intended public content (that's the whole point
+// of a narrative theme), but `updatedBy` is the same kind of internal-author
+// identifier as `DeliveryOutlook.updatedBy`, so it's blanked the same way.
 export function trimForShare(state: {
   items: Item[];
   bets: Bet[];
   outlooks: DeliveryOutlook[];
-}): { items: Item[]; bets: Bet[]; outlooks: DeliveryOutlook[] } {
+  quarterlyThemes: QuarterlyTheme[];
+}): {
+  items: Item[];
+  bets: Bet[];
+  outlooks: DeliveryOutlook[];
+  quarterlyThemes: QuarterlyTheme[];
+} {
   return {
     items: state.items
       .filter((it) => !it.killed && !isIntake(it))
@@ -1011,6 +1035,7 @@ export function trimForShare(state: {
       asks: [],
       updatedBy: "",
     })),
+    quarterlyThemes: state.quarterlyThemes.map((t) => ({ ...t, updatedBy: "" })),
   };
 }
 
@@ -1362,6 +1387,93 @@ export function normalizeOutlooks(list: DeliveryOutlook[]): DeliveryOutlook[] {
   });
 }
 
+/* ---------------- quarterly themes ---------------- */
+// A QuarterlyTheme's id is deterministic — `quarter:<quarterIndex>` for the
+// cross-cutting row (mission null), `quarter:<quarterIndex>:<mission>` for a
+// row scoped to one team — mirroring outlookId() above. Saving one is always
+// an upsert keyed by this, never a separate id-generation step.
+export function quarterThemeId(
+  quarterIndex: number,
+  mission: string | null = null,
+): string {
+  return mission
+    ? `quarter:${quarterIndex}:${mission}`
+    : `quarter:${quarterIndex}`;
+}
+
+export function normalizeQuarterThemes(
+  list: QuarterlyTheme[],
+): QuarterlyTheme[] {
+  return (Array.isArray(list) ? list : []).map((raw) => {
+    const t: QuarterlyTheme = { ...(raw as QuarterlyTheme) };
+    if (typeof t.quarterIndex !== "number") t.quarterIndex = 0;
+    if (typeof t.mission !== "string" || !t.mission) t.mission = null;
+    // Always recomputed, never just backfilled when missing — a stale id from
+    // a partial write or hand-edited row must never disagree with
+    // quarterIndex/mission, since quarterThemeForIndex looks up by those
+    // fields only and a mismatched id would make the row silently unfindable.
+    t.id = quarterThemeId(t.quarterIndex, t.mission);
+    if (typeof t.title !== "string") t.title = "";
+    if (typeof t.narrative !== "string") t.narrative = "";
+    if (typeof t.updatedBy !== "string") t.updatedBy = "";
+    if (typeof t.updatedAt !== "string") t.updatedAt = "";
+    return t;
+  });
+}
+
+// The single team a theme edit/lookup should scope to, given the active team
+// filter (`filterMission` in store.tsx — zero, one, or many teams selected).
+// Only unambiguous when exactly one team is selected: "All Teams" (empty) and
+// several teams at once both mean "no team scope", i.e. the cross-cutting
+// theme.
+export function activeThemeMission(filterMission: string[]): string | null {
+  return filterMission.length === 1 ? filterMission[0] : null;
+}
+
+// Lookup by quarter, the way a caller already looks up an outlook by
+// mission+month. Shared by the Horizon quarter board and the Timeline quarter
+// ruler so both surfaces read the same theme for the same quarter, filtered
+// to the same team.
+//
+// `activeMission` null (or omitted) means "no single team is in view" — the
+// cross-cutting row is the only thing that can show. With a single team in
+// view, that team's own row wins over the cross-cutting one, but only if it
+// actually has a title: a team row with a blank title is "nothing set for
+// this team yet", not "explicitly no theme", so it falls through to the
+// cross-cutting row exactly like a missing row would — same "blank means
+// cleared" convention as the cross-cutting row's own title.
+export function quarterThemeForIndex(
+  themes: QuarterlyTheme[],
+  quarterIndex: number,
+  activeMission: string | null = null,
+): QuarterlyTheme | undefined {
+  if (activeMission) {
+    const teamTheme = themes.find(
+      (t) => t.quarterIndex === quarterIndex && t.mission === activeMission,
+    );
+    if (teamTheme?.title) return teamTheme;
+  }
+  return themes.find(
+    (t) => t.quarterIndex === quarterIndex && t.mission === null,
+  );
+}
+
+// True when a single team is in view but the theme actually being shown
+// (from quarterThemeForIndex above) is the cross-cutting fallback, not that
+// team's own — badges the affordance so it doesn't read as "this is
+// <team>'s own theme". Shared by the Timeline quarter ruler and the Horizon
+// quarter board so both surfaces agree on when to show the badge.
+export function themeIsInherited(
+  theme: QuarterlyTheme | undefined,
+  activeMission: string | null,
+): boolean {
+  return (
+    activeMission !== null &&
+    theme !== undefined &&
+    theme.mission !== activeMission
+  );
+}
+
 // "YYYY-MM" for a given date, defaulting to today. Kept as its own function
 // (rather than inlined `toISOString().slice(0, 7)`) because it needs to be
 // mockable/testable independent of the caller's clock.
@@ -1634,6 +1746,30 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
       });
   }
 
+  // Defensive `?? []`, matching rowToScenario's guard on the same field:
+  // an older row (or a stale server response predating this field) may not
+  // have quarterlyThemes at all.
+  const liveQuarterlyThemes = live.quarterlyThemes ?? [];
+  const draftQuarterlyThemes = draft.quarterlyThemes ?? [];
+  const liveThemes = new Map(liveQuarterlyThemes.map((t) => [t.id, t]));
+  const draftThemes = new Map(draftQuarterlyThemes.map((t) => [t.id, t]));
+  const quarterlyThemesChanged: EntityChange[] = [];
+  for (const d of draftQuarterlyThemes) {
+    const l = liveThemes.get(d.id);
+    if (!l) continue;
+    const changes = (["title", "narrative"] as const)
+      .filter((f) => l[f] !== d[f])
+      .map((f) => ({ field: f, before: l[f], after: d[f] }));
+    if (changes.length)
+      quarterlyThemesChanged.push({
+        id: d.id,
+        title: d.mission
+          ? `${d.mission} — ${fiscalQuarterLabel(dateForQuarterIndex(d.quarterIndex))}`
+          : fiscalQuarterLabel(dateForQuarterIndex(d.quarterIndex)),
+        changes,
+      });
+  }
+
   const weights = (["reach", "confidence", "strategicFit"] as const)
     .filter((k) => live.weights[k] !== draft.weights[k])
     .map((k) => ({ field: k, before: live.weights[k], after: draft.weights[k] }));
@@ -1651,6 +1787,13 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
     outlooksAdded: draft.outlooks.filter((o) => !liveOutlooks.has(o.id)),
     outlooksRemoved: live.outlooks.filter((o) => !draftOutlooks.has(o.id)),
     outlooksChanged,
+    quarterlyThemesAdded: draftQuarterlyThemes.filter(
+      (t) => !liveThemes.has(t.id),
+    ),
+    quarterlyThemesRemoved: liveQuarterlyThemes.filter(
+      (t) => !draftThemes.has(t.id),
+    ),
+    quarterlyThemesChanged,
     weights,
   };
 }
@@ -1670,6 +1813,9 @@ export function diffCount(d: StateDiff): number {
     d.outlooksAdded.length +
     d.outlooksRemoved.length +
     d.outlooksChanged.length +
+    d.quarterlyThemesAdded.length +
+    d.quarterlyThemesRemoved.length +
+    d.quarterlyThemesChanged.length +
     d.weights.length
   );
 }
