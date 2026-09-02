@@ -15,9 +15,11 @@ export async function GET(req: Request) {
   return NextResponse.json({ quarterlyThemes: await getAllQuarterlyThemes() });
 }
 
-// POST /api/quarterly-themes — save one quarter's theme. Always an upsert:
-// `id` is the deterministic `quarter:<quarterIndex>` key, so there's no
-// separate create vs. update distinction the way items/bets/milestones have.
+// POST /api/quarterly-themes — save one quarter's theme, cross-cutting or
+// team-scoped. Always an upsert: `id` is the deterministic
+// `quarter:<quarterIndex>` (mission null) or `quarter:<quarterIndex>:
+// <mission>` key, so there's no separate create vs. update distinction the
+// way items/bets/milestones have.
 export async function POST(req: Request) {
   const sess = await getSession();
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -28,12 +30,16 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  if (theme.id !== quarterThemeId(theme.quarterIndex)) {
+  const mission = theme.mission ?? null;
+  if (theme.id !== quarterThemeId(theme.quarterIndex, mission)) {
     return NextResponse.json(
-      { error: "id must be `quarter:<quarterIndex>`" },
+      {
+        error:
+          "id must be `quarter:<quarterIndex>` (or `quarter:<quarterIndex>:<mission>` for a team-scoped theme)",
+      },
       { status: 400 },
     );
   }
-  await upsertQuarterlyTheme(theme);
+  await upsertQuarterlyTheme({ ...theme, mission });
   return NextResponse.json({ ok: true, quarterlyTheme: theme });
 }

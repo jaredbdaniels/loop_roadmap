@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import {
+  activeThemeMission,
   dateForQuarterIndex,
   fiscalQuarterLabel,
   fiscalSeasonLabel,
-  quarterThemeForIndex,
   quarterThemeId,
 } from "@/lib/loop/logic";
 import type { QuarterlyTheme } from "@/lib/loop/types";
@@ -16,27 +16,51 @@ import { nowISO, useLoop } from "./store";
 // ruler (see HorizonView.tsx / TimelineView.tsx) — never from a toolbar "new"
 // button, because every quarter is always a valid, addressable edit target,
 // whether or not a theme has been set for it yet.
+//
+// Scoped by the active team filter (activeThemeMission — exactly one team
+// selected): with a single team in view this edits that team's own theme;
+// with zero or several teams in view it edits the cross-cutting theme shown
+// everywhere else. See quarterThemeForIndex() in logic.ts for how the two are
+// reconciled when rendering a column/cell.
 export function QuarterThemeModal({ userEmail }: { userEmail: string | null }) {
   const {
     quarterlyThemeEditIndex,
     closeQuarterlyTheme,
     quarterlyThemes,
+    filterMission,
     saveQuarterlyTheme,
     toast,
     readOnly,
   } = useLoop();
 
   const quarterIndex = quarterlyThemeEditIndex;
-  const existing =
+  const mission = activeThemeMission(filterMission);
+  // Looked up directly (not via quarterThemeForIndex) because editing needs
+  // the *raw* row for the active scope, not the resolved-with-fallback theme
+  // a column displays — a team with no theme of its own must edit a blank
+  // form, even though the column it clicked is currently showing the
+  // cross-cutting title as a fallback.
+  const crossCutting =
     quarterIndex !== null
-      ? quarterThemeForIndex(quarterlyThemes, quarterIndex) ?? null
+      ? (quarterlyThemes.find(
+          (t) => t.quarterIndex === quarterIndex && t.mission === null,
+        ) ?? null)
       : null;
+  const teamTheme =
+    quarterIndex !== null && mission
+      ? (quarterlyThemes.find(
+          (t) => t.quarterIndex === quarterIndex && t.mission === mission,
+        ) ?? null)
+      : null;
+  const existing = mission ? teamTheme : crossCutting;
 
   return quarterIndex !== null ? (
     <QuarterThemeForm
-      key={quarterIndex}
+      key={`${quarterIndex}:${mission ?? ""}`}
       quarterIndex={quarterIndex}
+      mission={mission}
       existing={existing}
+      inheritedFrom={mission && !teamTheme?.title ? crossCutting : null}
       readOnly={readOnly}
       onClose={closeQuarterlyTheme}
       onSave={saveQuarterlyTheme}
@@ -48,7 +72,9 @@ export function QuarterThemeModal({ userEmail }: { userEmail: string | null }) {
 
 function QuarterThemeForm({
   quarterIndex,
+  mission,
   existing,
+  inheritedFrom,
   readOnly,
   onClose,
   onSave,
@@ -56,15 +82,28 @@ function QuarterThemeForm({
   userEmail,
 }: {
   quarterIndex: number;
+  mission: string | null;
   existing: QuarterlyTheme | null;
+  // The cross-cutting theme this team is currently falling back to, when it
+  // has none of its own — null once the team has its own title, or when
+  // `mission` is null (already editing the cross-cutting row).
+  inheritedFrom: QuarterlyTheme | null;
   readOnly: boolean;
   onClose: () => void;
-  onSave: (t: QuarterlyTheme) => void;
+  onSave: (t: QuarterlyTheme) => Promise<void>;
   toast: (msg: string, warn?: boolean) => void;
   userEmail: string | null;
 }) {
   const [title, setTitle] = useState(existing?.title ?? "");
   const [narrative, setNarrative] = useState(existing?.narrative ?? "");
+  // Blocks closing until the save round-trips. Closing right after firing the
+  // request (the previous behaviour) let the background poll resume before
+  // the write was confirmed — a poll landing in that window would refetch
+  // pre-save state and silently overwrite the just-added theme. Waiting here
+  // keeps the poll paused (quarterlyThemeEditIndex stays non-null — see
+  // store.tsx's pollPausedRef) for the entire request, not just until the
+  // optimistic local update.
+  const [saving, setSaving] = useState(false);
 
   const quarterDate = dateForQuarterIndex(quarterIndex);
   const quarterLabel = `${fiscalQuarterLabel(quarterDate)} · ${fiscalSeasonLabel(quarterDate)}`;
@@ -72,17 +111,23 @@ function QuarterThemeForm({
   // Always an upsert, never a create/delete pair: a blank title is what "no
   // theme this quarter" looks like, the same way an outlook with nothing
   // stated is the same as no row. So there's no title-required guard here
-  // the way MilestoneModal has one, and no delete button.
-  const save = () => {
+  // the way MilestoneModal has one, and no delete button. For a team-scoped
+  // row, blank also means "fall back to the cross-cutting theme" — see
+  // quarterThemeForIndex().
+  const save = async () => {
+    if (saving) return;
     const theme: QuarterlyTheme = {
-      id: existing?.id ?? quarterThemeId(quarterIndex),
+      id: existing?.id ?? quarterThemeId(quarterIndex, mission),
       quarterIndex,
+      mission,
       title: title.trim(),
       narrative: narrative.trim(),
       updatedBy: userEmail ?? "",
       updatedAt: nowISO(),
     };
-    onSave(theme);
+    setSaving(true);
+    await onSave(theme);
+    setSaving(false);
     toast(theme.title ? "Quarter theme saved." : "Quarter theme cleared.");
     onClose();
   };
@@ -90,16 +135,32 @@ function QuarterThemeForm({
   return (
     <div
       className="modal-overlay"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => e.target === e.currentTarget && !saving && onClose()}
     >
       <div className="modal">
         <div className="modal-header">
-          <h2>{quarterLabel} theme</h2>
-          <button className="modal-close" onClick={onClose} aria-label="Close">
+          <h2>
+            {quarterLabel} theme
+            {mission ? <span className="modal-header-sub"> · {mission}</span> : null}
+          </h2>
+          <button
+            className="modal-close"
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Close"
+          >
             ×
           </button>
         </div>
         <div className="modal-body">
+          {inheritedFrom?.title && (
+            <p className="helper" style={{ marginBottom: 16 }}>
+              {mission} has no theme of its own for this quarter yet — the
+              board is currently showing the cross-cutting theme, &ldquo;
+              {inheritedFrom.title}&rdquo;. Saving a title here sets a theme
+              just for {mission}.
+            </p>
+          )}
           {/* Read-only share view: fields are disabled and the save button
               below is hidden, so viewers can read but not edit. */}
           <fieldset
@@ -127,12 +188,13 @@ function QuarterThemeForm({
         </div>
         <div className="modal-actions">
           <span className="helper">
-            Shown as this quarter&rsquo;s headline on the Horizon quarter board
-            and the Timeline ruler. Clear the title to remove it.
+            {mission
+              ? `Shown as this quarter’s headline for ${mission} only, while ${mission} is the only team in view. Clear the title to fall back to the cross-cutting theme.`
+              : "Shown as this quarter’s headline whenever no single team is filtered (“All Teams”, or several teams at once). A team viewing its own theme instead sees that one here. Clear the title to remove it."}
           </span>
           {!readOnly && (
-            <button className="cm-button" onClick={save}>
-              Save
+            <button className="cm-button" onClick={save} disabled={saving}>
+              {saving ? "Saving…" : "Save"}
             </button>
           )}
         </div>

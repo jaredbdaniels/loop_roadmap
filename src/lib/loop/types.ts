@@ -190,14 +190,22 @@ export interface DeliveryOutlook {
 
 // A PM-authored narrative headline for one fiscal quarter — "what's the story
 // here", not another field on an item. Mirrors DeliveryOutlook: deterministic
-// id keyed by the quarter, one row per quarter, always an upsert. See
-// docs/narrative-view.md, which calls out that chapters named Now/Next/Later
-// aren't a story yet and recommends a sticky, human-authored label — this is
-// that label, scoped to the fiscal-quarter axis rather than the horizon axis.
+// id keyed by the quarter (and, for a team-scoped row, the team), one row per
+// quarter/mission pair, always an upsert. See docs/narrative-view.md, which
+// calls out that chapters named Now/Next/Later aren't a story yet and
+// recommends a sticky, human-authored label — this is that label, scoped to
+// the fiscal-quarter axis rather than the horizon axis.
 export interface QuarterlyTheme {
-  // Deterministic `quarter:${quarterIndex}` — see quarterThemeId() in logic.ts.
+  // Deterministic `quarter:${quarterIndex}` (mission null) or
+  // `quarter:${quarterIndex}:${mission}` — see quarterThemeId() in logic.ts.
   id: string;
   quarterIndex: number; // fiscalQuarterIndex() — the sort/match key
+  // null = the cross-cutting theme shown when no single team is filtered.
+  // Non-null = a theme scoped to that team (MISSIONS entry), shown only when
+  // the board/timeline is filtered to exactly that one team — see
+  // quarterThemeForIndex() in logic.ts, which falls back to the cross-cutting
+  // row when a team has no theme of its own for the quarter.
+  mission: string | null;
   title: string; // short headline, e.g. "Foundations for self-serve onboarding"
   narrative: string; // the "why this quarter" paragraph
   updatedBy: string;

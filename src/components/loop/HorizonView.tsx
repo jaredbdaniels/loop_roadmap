@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { HORIZONS, STAGE_COLORS, type HorizonKey } from "@/lib/loop/constants";
 import {
+  activeThemeMission,
   computeRank,
   fiscalQuarterIndex,
   fiscalQuarterLabel,
@@ -217,13 +218,28 @@ function DropColumn({
   onDropItem: (item: Item) => Item;
   wide?: boolean;
 }) {
-  const { items, dragId, updateItem, quarterlyThemes, openQuarterlyTheme, shareMode } =
-    useLoop();
+  const {
+    items,
+    dragId,
+    updateItem,
+    quarterlyThemes,
+    filterMission,
+    openQuarterlyTheme,
+    shareMode,
+  } = useLoop();
   const [over, setOver] = useState(false);
+  // Team-scoped when exactly one team is filtered, else the cross-cutting
+  // theme — see quarterThemeForIndex() and activeThemeMission() in logic.ts.
+  const activeMission = activeThemeMission(filterMission);
   const theme =
     quarterIndex !== undefined
-      ? quarterThemeForIndex(quarterlyThemes, quarterIndex)
+      ? quarterThemeForIndex(quarterlyThemes, quarterIndex, activeMission)
       : undefined;
+  // True when a single team is in view but what's showing is the
+  // cross-cutting fallback, not a theme of that team's own — called out in
+  // the tooltip so it doesn't read as "this is Platform AI's theme".
+  const themeIsInherited =
+    activeMission !== null && theme !== undefined && theme.mission !== activeMission;
 
   return (
     <div
@@ -261,14 +277,23 @@ function DropColumn({
       {quarterIndex !== undefined &&
         (theme?.title ? (
           shareMode ? (
-            <div className="hz-col-theme" title={theme.narrative || theme.title}>
+            <div
+              className="hz-col-theme"
+              title={
+                (theme.narrative || theme.title) +
+                (themeIsInherited ? " (cross-cutting)" : "")
+              }
+            >
               {theme.title}
             </div>
           ) : (
             <button
               type="button"
               className="hz-col-theme"
-              title={theme.narrative || theme.title}
+              title={
+                (theme.narrative || theme.title) +
+                (themeIsInherited ? " (cross-cutting)" : "")
+              }
               onClick={() => openQuarterlyTheme(quarterIndex)}
             >
               {theme.title}
@@ -281,7 +306,7 @@ function DropColumn({
               className="hz-col-theme hz-col-theme--empty"
               onClick={() => openQuarterlyTheme(quarterIndex)}
             >
-              + Add a theme
+              {activeMission ? `+ Add a theme for ${activeMission}` : "+ Add a theme"}
             </button>
           )
         ))}

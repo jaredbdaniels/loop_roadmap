@@ -1388,11 +1388,17 @@ export function normalizeOutlooks(list: DeliveryOutlook[]): DeliveryOutlook[] {
 }
 
 /* ---------------- quarterly themes ---------------- */
-// A QuarterlyTheme's id is deterministic (`quarter:<quarterIndex>`), mirroring
-// outlookId() above — saving one is always an upsert keyed by this, never a
-// separate id-generation step.
-export function quarterThemeId(quarterIndex: number): string {
-  return `quarter:${quarterIndex}`;
+// A QuarterlyTheme's id is deterministic — `quarter:<quarterIndex>` for the
+// cross-cutting row (mission null), `quarter:<quarterIndex>:<mission>` for a
+// row scoped to one team — mirroring outlookId() above. Saving one is always
+// an upsert keyed by this, never a separate id-generation step.
+export function quarterThemeId(
+  quarterIndex: number,
+  mission: string | null = null,
+): string {
+  return mission
+    ? `quarter:${quarterIndex}:${mission}`
+    : `quarter:${quarterIndex}`;
 }
 
 export function normalizeQuarterThemes(
@@ -1401,11 +1407,12 @@ export function normalizeQuarterThemes(
   return (Array.isArray(list) ? list : []).map((raw) => {
     const t: QuarterlyTheme = { ...(raw as QuarterlyTheme) };
     if (typeof t.quarterIndex !== "number") t.quarterIndex = 0;
+    if (typeof t.mission !== "string" || !t.mission) t.mission = null;
     // Always recomputed, never just backfilled when missing — a stale id from
     // a partial write or hand-edited row must never disagree with
-    // quarterIndex, since quarterThemeForIndex looks up by quarterIndex only
-    // and a mismatched id would make the row silently unfindable.
-    t.id = quarterThemeId(t.quarterIndex);
+    // quarterIndex/mission, since quarterThemeForIndex looks up by those
+    // fields only and a mismatched id would make the row silently unfindable.
+    t.id = quarterThemeId(t.quarterIndex, t.mission);
     if (typeof t.title !== "string") t.title = "";
     if (typeof t.narrative !== "string") t.narrative = "";
     if (typeof t.updatedBy !== "string") t.updatedBy = "";
@@ -1414,14 +1421,41 @@ export function normalizeQuarterThemes(
   });
 }
 
+// The single team a theme edit/lookup should scope to, given the active team
+// filter (`filterMission` in store.tsx — zero, one, or many teams selected).
+// Only unambiguous when exactly one team is selected: "All Teams" (empty) and
+// several teams at once both mean "no team scope", i.e. the cross-cutting
+// theme.
+export function activeThemeMission(filterMission: string[]): string | null {
+  return filterMission.length === 1 ? filterMission[0] : null;
+}
+
 // Lookup by quarter, the way a caller already looks up an outlook by
 // mission+month. Shared by the Horizon quarter board and the Timeline quarter
-// ruler so both surfaces read the same theme for the same quarter.
+// ruler so both surfaces read the same theme for the same quarter, filtered
+// to the same team.
+//
+// `activeMission` null (or omitted) means "no single team is in view" — the
+// cross-cutting row is the only thing that can show. With a single team in
+// view, that team's own row wins over the cross-cutting one, but only if it
+// actually has a title: a team row with a blank title is "nothing set for
+// this team yet", not "explicitly no theme", so it falls through to the
+// cross-cutting row exactly like a missing row would — same "blank means
+// cleared" convention as the cross-cutting row's own title.
 export function quarterThemeForIndex(
   themes: QuarterlyTheme[],
   quarterIndex: number,
+  activeMission: string | null = null,
 ): QuarterlyTheme | undefined {
-  return themes.find((t) => t.quarterIndex === quarterIndex);
+  if (activeMission) {
+    const teamTheme = themes.find(
+      (t) => t.quarterIndex === quarterIndex && t.mission === activeMission,
+    );
+    if (teamTheme?.title) return teamTheme;
+  }
+  return themes.find(
+    (t) => t.quarterIndex === quarterIndex && t.mission === null,
+  );
 }
 
 // "YYYY-MM" for a given date, defaulting to today. Kept as its own function
@@ -1712,7 +1746,9 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
     if (changes.length)
       quarterlyThemesChanged.push({
         id: d.id,
-        title: fiscalQuarterLabel(dateForQuarterIndex(d.quarterIndex)),
+        title: d.mission
+          ? `${d.mission} — ${fiscalQuarterLabel(dateForQuarterIndex(d.quarterIndex))}`
+          : fiscalQuarterLabel(dateForQuarterIndex(d.quarterIndex)),
         changes,
       });
   }

@@ -13,6 +13,7 @@ import {
   ZOOMS,
 } from "@/lib/loop/constants";
 import {
+  activeThemeMission,
   blockerSatisfied,
   createsDepCycle,
   daysBetween,
@@ -134,6 +135,9 @@ export function TimelineView() {
     filterOwner,
     shareMode,
   );
+  // Team-scoped when exactly one team is filtered, else the cross-cutting
+  // theme — see quarterThemeForIndex() and activeThemeMission() in logic.ts.
+  const activeMission = activeThemeMission(filterMission);
   const ppd = ZOOMS[zoom];
   const { start, end } = timelineRange(vis, milestones);
   const totalDays = daysBetween(start, end);
@@ -828,7 +832,15 @@ export function TimelineView() {
                       const theme = quarterThemeForIndex(
                         quarterlyThemes,
                         c.index,
+                        activeMission,
                       );
+                      // A single team is in view but what's showing is the
+                      // cross-cutting fallback, not that team's own theme —
+                      // called out in the tooltip below.
+                      const themeIsInherited =
+                        activeMission !== null &&
+                        theme !== undefined &&
+                        theme.mission !== activeMission;
                       return (
                         <div
                           key={i}
@@ -840,7 +852,8 @@ export function TimelineView() {
                           // along here too.
                           title={
                             `${c.season} · ${c.label}` +
-                            (theme?.narrative ? ` — ${theme.narrative}` : "")
+                            (theme?.narrative ? ` — ${theme.narrative}` : "") +
+                            (themeIsInherited ? " (cross-cutting)" : "")
                           }
                         >
                           <span className="tl-qcell-season">{c.season}</span>
@@ -864,6 +877,11 @@ export function TimelineView() {
                               <button
                                 type="button"
                                 className="tl-qcell-theme tl-qcell-theme--empty"
+                                title={
+                                  activeMission
+                                    ? `Add a theme for ${activeMission}`
+                                    : "Add a theme"
+                                }
                                 onClick={() => openQuarterlyTheme(c.index)}
                               >
                                 + theme

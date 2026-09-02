@@ -274,12 +274,14 @@ export function CompareDrawer() {
                     <div key={t.id} className="cmp-row">
                       <span className="cmp-tag cmp-tag--add">added</span>
                       <strong>{t.title || "(untitled)"}</strong>
+                      {t.mission && <span className="cmp-sub">{t.mission}</span>}
                     </div>
                   ))}
                   {diff.quarterlyThemesRemoved.map((t) => (
                     <div key={t.id} className="cmp-row">
                       <span className="cmp-tag cmp-tag--rm">removed</span>
                       <strong>{t.title || "(untitled)"}</strong>
+                      {t.mission && <span className="cmp-sub">{t.mission}</span>}
                     </div>
                   ))}
                   {diff.quarterlyThemesChanged.map((c) => (

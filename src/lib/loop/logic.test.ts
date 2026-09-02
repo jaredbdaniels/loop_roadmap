@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeThemeMission,
   betFundedShare,
   betJtbdScope,
   betReach,
@@ -26,6 +27,7 @@ import {
   framingGaps,
   migrateItems,
   plannedShareTotal,
+  quarterThemeForIndex,
   quarterThemeId,
   resolveDomain,
   runTheBusinessShare,
@@ -382,6 +384,7 @@ describe("diffStates", () => {
     const theme = (over: Partial<QuarterlyTheme> = {}): QuarterlyTheme => ({
       id: quarterThemeId(8108),
       quarterIndex: 8108,
+      mission: null,
       title: "Foundations for self-serve onboarding",
       narrative: "",
       updatedBy: "pm@campminder.com",
@@ -419,6 +422,7 @@ describe("diffStates", () => {
     const theme = (over: Partial<QuarterlyTheme> = {}): QuarterlyTheme => ({
       id: quarterThemeId(8108),
       quarterIndex: 8108,
+      mission: null,
       title: "Same title",
       narrative: "Same narrative",
       updatedBy: "pm@campminder.com",
@@ -440,6 +444,15 @@ describe("quarterThemeId", () => {
     expect(quarterThemeId(8108)).toBe("quarter:8108");
     expect(quarterThemeId(8108)).toBe(quarterThemeId(8108));
   });
+
+  it("defaults to the cross-cutting id when mission is omitted or null", () => {
+    expect(quarterThemeId(8108)).toBe(quarterThemeId(8108, null));
+  });
+
+  it("scopes the id to a team when mission is given", () => {
+    expect(quarterThemeId(8108, "Platform AI")).toBe("quarter:8108:Platform AI");
+    expect(quarterThemeId(8108, "Platform AI")).not.toBe(quarterThemeId(8108));
+  });
 });
 
 describe("normalizeQuarterThemes", () => {
@@ -448,16 +461,122 @@ describe("normalizeQuarterThemes", () => {
       { quarterIndex: 8108 } as QuarterlyTheme,
     ]);
     expect(t.id).toBe("quarter:8108");
+    expect(t.mission).toBeNull();
     expect(t.title).toBe("");
     expect(t.narrative).toBe("");
     expect(t.updatedBy).toBe("");
     expect(t.updatedAt).toBe("");
   });
 
+  it("derives a team-scoped id from quarterIndex + mission", () => {
+    const [t] = normalizeQuarterThemes([
+      { quarterIndex: 8108, mission: "Platform AI" } as QuarterlyTheme,
+    ]);
+    expect(t.id).toBe("quarter:8108:Platform AI");
+    expect(t.mission).toBe("Platform AI");
+  });
+
+  it("corrects a stale id that disagrees with quarterIndex/mission", () => {
+    const [t] = normalizeQuarterThemes([
+      {
+        id: "quarter:1:Platform AI",
+        quarterIndex: 8108,
+        mission: "Platform AI",
+      } as QuarterlyTheme,
+    ]);
+    expect(t.id).toBe("quarter:8108:Platform AI");
+  });
+
+  it("treats an empty-string mission as no team scope", () => {
+    const [t] = normalizeQuarterThemes([
+      { quarterIndex: 8108, mission: "" } as unknown as QuarterlyTheme,
+    ]);
+    expect(t.mission).toBeNull();
+    expect(t.id).toBe("quarter:8108");
+  });
+
   it("degrades a non-array input to an empty list", () => {
     expect(normalizeQuarterThemes(null as unknown as QuarterlyTheme[])).toEqual(
       [],
     );
+  });
+});
+
+describe("activeThemeMission", () => {
+  it("is null with no team selected (All Teams)", () => {
+    expect(activeThemeMission([])).toBeNull();
+  });
+
+  it("is that team when exactly one is selected", () => {
+    expect(activeThemeMission(["Platform AI"])).toBe("Platform AI");
+  });
+
+  it("is null when multiple teams are selected", () => {
+    expect(activeThemeMission(["Platform AI", "Growth"])).toBeNull();
+  });
+});
+
+describe("quarterThemeForIndex", () => {
+  const crossCutting: QuarterlyTheme = {
+    id: quarterThemeId(8108),
+    quarterIndex: 8108,
+    mission: null,
+    title: "Cross-cutting theme",
+    narrative: "",
+    updatedBy: "",
+    updatedAt: "",
+  };
+  const teamTheme: QuarterlyTheme = {
+    id: quarterThemeId(8108, "Platform AI"),
+    quarterIndex: 8108,
+    mission: "Platform AI",
+    title: "Platform AI's own theme",
+    narrative: "",
+    updatedBy: "",
+    updatedAt: "",
+  };
+
+  it("returns the cross-cutting theme when no single team is in view", () => {
+    const themes = [crossCutting, teamTheme];
+    expect(quarterThemeForIndex(themes, 8108, null)?.title).toBe(
+      "Cross-cutting theme",
+    );
+  });
+
+  it("prefers a team's own theme when that team is the only one filtered", () => {
+    const themes = [crossCutting, teamTheme];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")?.title).toBe(
+      "Platform AI's own theme",
+    );
+  });
+
+  it("falls back to the cross-cutting theme when the filtered team has none of its own", () => {
+    const themes = [crossCutting];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")?.title).toBe(
+      "Cross-cutting theme",
+    );
+  });
+
+  it("falls back to the cross-cutting theme when the team's own row has a blank title", () => {
+    const themes = [crossCutting, { ...teamTheme, title: "" }];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")?.title).toBe(
+      "Cross-cutting theme",
+    );
+  });
+
+  it("returns undefined when neither the team nor the cross-cutting row is set", () => {
+    expect(quarterThemeForIndex([], 8108, "Platform AI")).toBeUndefined();
+  });
+
+  it("never lets a different team's theme leak into another team's view", () => {
+    const otherTeamTheme: QuarterlyTheme = {
+      ...teamTheme,
+      id: quarterThemeId(8108, "Growth"),
+      mission: "Growth",
+      title: "Growth's own theme",
+    };
+    const themes = [otherTeamTheme];
+    expect(quarterThemeForIndex(themes, 8108, "Platform AI")).toBeUndefined();
   });
 });
 
@@ -1146,6 +1265,7 @@ describe("trimForShare", () => {
         {
           id: "quarter:1",
           quarterIndex: 1,
+          mission: null,
           title: "Foundations for self-serve onboarding",
           narrative: "Why this quarter is about onboarding.",
           updatedBy: "pm@campminder.com",
