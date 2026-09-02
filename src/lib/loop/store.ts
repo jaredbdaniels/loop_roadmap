@@ -16,7 +16,6 @@ import {
   seedItems,
   seedMilestones,
   seedOutlooks,
-  seedQuarterlyThemes,
 } from "./seed";
 import {
   migrateItems,
@@ -151,32 +150,10 @@ export async function ensureSeeded(): Promise<void> {
       }
     }
   }
-  const seededThemes = seedQuarterlyThemes();
-  if (seededThemes.length) {
-    try {
-      await db
-        .insert(quarterlyThemesTable)
-        .values(
-          seededThemes.map((t) => ({
-            id: t.id,
-            data: t,
-            updatedAt: new Date(t.updatedAt),
-          })),
-        )
-        .onConflictDoNothing();
-    } catch (err) {
-      // The quarterly_themes table may not exist on older databases (see
-      // getAllQuarterlyThemes). Seeding is best-effort, same as milestones/
-      // outlooks above.
-      if (isMissingRelation(err)) {
-        console.warn(
-          "quarterly_themes table not found — run `npm run db:push` to seed quarterly themes.",
-        );
-      } else {
-        throw err;
-      }
-    }
-  }
+  // No insert block here, unlike bets/milestones/outlooks above:
+  // seedQuarterlyThemes() always returns [] by design (see seed.ts) — a
+  // quarterly theme is a PM's own claim, not something to seed an example
+  // for — so there's nothing to write on first run.
   await db
     .insert(settingsTable)
     .values({ id: SETTINGS_ID, weights: SEED_WEIGHTS })

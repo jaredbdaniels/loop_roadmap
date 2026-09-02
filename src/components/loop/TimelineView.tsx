@@ -32,6 +32,7 @@ import {
   nextFiscalQuarterStart,
   parseDate,
   quarterThemeForIndex,
+  themeIsInherited,
   resolveDomain,
   snapToWeek,
   stackMilestoneFlags,
@@ -48,6 +49,7 @@ import { useLoop } from "./store";
 import { placedOnTimeline, visibleItems } from "./mutations";
 import { MissionTag } from "./MissionTag";
 import { ItemLink } from "./ItemLink";
+import { QuarterThemeAffordance } from "./QuarterThemeAffordance";
 import { SeasonLanes } from "./SeasonLanes";
 import { ConfirmDeleteModal } from "./ConfirmDeleteModal";
 
@@ -834,13 +836,10 @@ export function TimelineView() {
                         c.index,
                         activeMission,
                       );
-                      // A single team is in view but what's showing is the
-                      // cross-cutting fallback, not that team's own theme —
-                      // called out in the tooltip below.
-                      const themeIsInherited =
-                        activeMission !== null &&
-                        theme !== undefined &&
-                        theme.mission !== activeMission;
+                      const inherited = themeIsInherited(
+                        theme,
+                        activeMission,
+                      );
                       return (
                         <div
                           key={i}
@@ -853,41 +852,24 @@ export function TimelineView() {
                           title={
                             `${c.season} · ${c.label}` +
                             (theme?.narrative ? ` — ${theme.narrative}` : "") +
-                            (themeIsInherited ? " (cross-cutting)" : "")
+                            (inherited ? " (cross-cutting)" : "")
                           }
                         >
                           <span className="tl-qcell-season">{c.season}</span>
                           <span className="tl-qcell-fy">{c.label}</span>
-                          {theme?.title ? (
-                            shareMode ? (
-                              <span className="tl-qcell-theme">
-                                {theme.title}
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                className="tl-qcell-theme"
-                                onClick={() => openQuarterlyTheme(c.index)}
-                              >
-                                {theme.title}
-                              </button>
-                            )
-                          ) : (
-                            !shareMode && (
-                              <button
-                                type="button"
-                                className="tl-qcell-theme tl-qcell-theme--empty"
-                                title={
-                                  activeMission
-                                    ? `Add a theme for ${activeMission}`
-                                    : "Add a theme"
-                                }
-                                onClick={() => openQuarterlyTheme(c.index)}
-                              >
-                                + theme
-                              </button>
-                            )
-                          )}
+                          <QuarterThemeAffordance
+                            theme={theme}
+                            shareMode={shareMode}
+                            onOpen={() => openQuarterlyTheme(c.index)}
+                            className="tl-qcell-theme"
+                            emptyClassName="tl-qcell-theme--empty"
+                            emptyTitle={
+                              activeMission
+                                ? `Add a theme for ${activeMission}`
+                                : "Add a theme"
+                            }
+                            emptyContent="+ theme"
+                          />
                         </div>
                       );
                     })}

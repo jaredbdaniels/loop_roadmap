@@ -254,7 +254,9 @@ interface LoopContextValue {
   saveOutlook: (o: DeliveryOutlook) => Promise<void>;
   // Always an upsert — a QuarterlyTheme's id is the deterministic
   // `quarter:<quarterIndex>` key, so there's no separate create path.
-  saveQuarterlyTheme: (t: QuarterlyTheme) => Promise<void>;
+  // Resolves false (blocked, or the save failed) rather than throwing, so
+  // callers like QuarterThemeModal can skip their success toast/close.
+  saveQuarterlyTheme: (t: QuarterlyTheme) => Promise<boolean>;
   updateWeights: (w: Weights) => Promise<void>;
   importData: (payload: {
     items: Item[];
@@ -897,8 +899,8 @@ export function LoopProvider({
   );
 
   const saveQuarterlyTheme = useCallback(
-    async (theme: QuarterlyTheme) => {
-      if (blocked()) return;
+    async (theme: QuarterlyTheme): Promise<boolean> => {
+      if (blocked()) return false;
       setQuarterlyThemes((prev) => {
         const exists = prev.some((t) => t.id === theme.id);
         return exists
@@ -907,14 +909,18 @@ export function LoopProvider({
       });
       if (scenarioIdRef.current !== MAIN_SCENARIO) {
         scheduleDraftSave();
-        return;
+        return true;
       }
       const res = await fetch("/api/quarterly-themes", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(theme),
       });
-      if (!res.ok) toast("Could not save the quarterly theme.", true);
+      if (!res.ok) {
+        toast("Could not save the quarterly theme.", true);
+        return false;
+      }
+      return true;
     },
     [blocked, toast, scheduleDraftSave],
   );

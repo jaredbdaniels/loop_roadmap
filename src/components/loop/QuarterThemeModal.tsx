@@ -34,7 +34,23 @@ export function QuarterThemeModal({ userEmail }: { userEmail: string | null }) {
   } = useLoop();
 
   const quarterIndex = quarterlyThemeEditIndex;
-  const mission = activeThemeMission(filterMission);
+  const liveMission = activeThemeMission(filterMission);
+  // Captured once when the modal opens for a given quarter, not recomputed
+  // on every render: the team filter lives on the page behind this modal
+  // and (for a keyboard user tabbing past the overlay) can still change
+  // while the form is open. Recomputing live would remount the form
+  // mid-edit — discarding unsaved text — and could retarget Save at a
+  // different team's (or the cross-cutting) theme than the one opened.
+  const [opened, setOpened] = useState<{
+    quarterIndex: number;
+    mission: string | null;
+  } | null>(null);
+  if (quarterIndex === null) {
+    if (opened !== null) setOpened(null);
+  } else if (opened?.quarterIndex !== quarterIndex) {
+    setOpened({ quarterIndex, mission: liveMission });
+  }
+  const mission = opened?.quarterIndex === quarterIndex ? opened.mission : liveMission;
   // Looked up directly (not via quarterThemeForIndex) because editing needs
   // the *raw* row for the active scope, not the resolved-with-fallback theme
   // a column displays — a team with no theme of its own must edit a blank
@@ -90,7 +106,7 @@ function QuarterThemeForm({
   inheritedFrom: QuarterlyTheme | null;
   readOnly: boolean;
   onClose: () => void;
-  onSave: (t: QuarterlyTheme) => Promise<void>;
+  onSave: (t: QuarterlyTheme) => Promise<boolean>;
   toast: (msg: string, warn?: boolean) => void;
   userEmail: string | null;
 }) {
@@ -126,8 +142,13 @@ function QuarterThemeForm({
       updatedAt: nowISO(),
     };
     setSaving(true);
-    await onSave(theme);
+    const ok = await onSave(theme);
     setSaving(false);
+    // blocked()/a failed fetch already raised their own warning toast inside
+    // onSave — don't follow it with a contradictory "saved" toast, and don't
+    // close, so the unconfirmed edit stays visible (and the poll stays
+    // paused) instead of silently vanishing on the next refetch.
+    if (!ok) return;
     toast(theme.title ? "Quarter theme saved." : "Quarter theme cleared.");
     onClose();
   };

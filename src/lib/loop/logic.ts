@@ -1458,6 +1458,22 @@ export function quarterThemeForIndex(
   );
 }
 
+// True when a single team is in view but the theme actually being shown
+// (from quarterThemeForIndex above) is the cross-cutting fallback, not that
+// team's own — badges the affordance so it doesn't read as "this is
+// <team>'s own theme". Shared by the Timeline quarter ruler and the Horizon
+// quarter board so both surfaces agree on when to show the badge.
+export function themeIsInherited(
+  theme: QuarterlyTheme | undefined,
+  activeMission: string | null,
+): boolean {
+  return (
+    activeMission !== null &&
+    theme !== undefined &&
+    theme.mission !== activeMission
+  );
+}
+
 // "YYYY-MM" for a given date, defaulting to today. Kept as its own function
 // (rather than inlined `toISOString().slice(0, 7)`) because it needs to be
 // mockable/testable independent of the caller's clock.
@@ -1730,14 +1746,15 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
       });
   }
 
-  const liveThemes = new Map(
-    live.quarterlyThemes.map((t) => [t.id, t]),
-  );
-  const draftThemes = new Map(
-    draft.quarterlyThemes.map((t) => [t.id, t]),
-  );
+  // Defensive `?? []`, matching rowToScenario's guard on the same field:
+  // an older row (or a stale server response predating this field) may not
+  // have quarterlyThemes at all.
+  const liveQuarterlyThemes = live.quarterlyThemes ?? [];
+  const draftQuarterlyThemes = draft.quarterlyThemes ?? [];
+  const liveThemes = new Map(liveQuarterlyThemes.map((t) => [t.id, t]));
+  const draftThemes = new Map(draftQuarterlyThemes.map((t) => [t.id, t]));
   const quarterlyThemesChanged: EntityChange[] = [];
-  for (const d of draft.quarterlyThemes) {
+  for (const d of draftQuarterlyThemes) {
     const l = liveThemes.get(d.id);
     if (!l) continue;
     const changes = (["title", "narrative"] as const)
@@ -1770,10 +1787,10 @@ export function diffStates(live: LoopState, draft: LoopState): StateDiff {
     outlooksAdded: draft.outlooks.filter((o) => !liveOutlooks.has(o.id)),
     outlooksRemoved: live.outlooks.filter((o) => !draftOutlooks.has(o.id)),
     outlooksChanged,
-    quarterlyThemesAdded: draft.quarterlyThemes.filter(
+    quarterlyThemesAdded: draftQuarterlyThemes.filter(
       (t) => !liveThemes.has(t.id),
     ),
-    quarterlyThemesRemoved: live.quarterlyThemes.filter(
+    quarterlyThemesRemoved: liveQuarterlyThemes.filter(
       (t) => !draftThemes.has(t.id),
     ),
     quarterlyThemesChanged,

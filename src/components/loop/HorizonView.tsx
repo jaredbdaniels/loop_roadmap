@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { HORIZONS, STAGE_COLORS, type HorizonKey } from "@/lib/loop/constants";
 import {
   activeThemeMission,
@@ -18,6 +18,7 @@ import {
   parseDate,
   quarterThemeForIndex,
   subProgress,
+  themeIsInherited,
   unmetDeps,
 } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
@@ -25,6 +26,7 @@ import { useLoop } from "./store";
 import { visibleItems, withHorizon, withQuarter, withoutDates } from "./mutations";
 import { MissionTag } from "./MissionTag";
 import { ItemLink } from "./ItemLink";
+import { QuarterThemeAffordance } from "./QuarterThemeAffordance";
 
 export function HorizonView() {
   const {
@@ -93,18 +95,7 @@ interface QuarterCell {
 // whatever is actually scheduled. "non-bet" items are excluded from both the
 // bucketing and the range math — a declined call has no business stretching
 // the calendar, which is why it gets its own trailing column below instead.
-function quarterCells(items: Item[]): QuarterCell[] {
-  const scheduled = items.filter(
-    (i) => isScheduled(i) && i.horizon !== "non-bet",
-  );
-  let minStart = fiscalQuarterStart(new Date());
-  let maxStart = minStart;
-  for (let i = 0; i < 3; i++) maxStart = nextFiscalQuarterStart(maxStart);
-  scheduled.forEach((i) => {
-    const s = fiscalQuarterStart(parseDate(i.targetStart!));
-    if (s < minStart) minStart = s;
-    if (s > maxStart) maxStart = s;
-  });
+function quarterCells(minStart: Date, maxStart: Date): QuarterCell[] {
   const cells: QuarterCell[] = [];
   let cursor = minStart;
   while (cursor <= maxStart) {
@@ -123,14 +114,6 @@ function quarterCells(items: Item[]): QuarterCell[] {
 
 function QuarterBoard({ items }: { items: Item[] }) {
   const { weights } = useLoop();
-  const byRank = (a: Item, b: Item) =>
-    computeRank(b, weights) - computeRank(a, weights);
-
-  const cells = quarterCells(items);
-  const unscheduled = items
-    .filter((i) => !isScheduled(i) && i.horizon !== "non-bet")
-    .sort(byRank);
-  const nonBet = items.filter((i) => i.horizon === "non-bet").sort(byRank);
   const nonBetInfo = HORIZONS.find((h) => h.key === "non-bet")!;
   // One shared color for every quarter cell — they're all the same kind of
   // column, just different slices of the calendar, unlike the call layout
@@ -138,16 +121,50 @@ function QuarterBoard({ items }: { items: Item[] }) {
   // the radar).
   const quarterColor = "#3DA5D9";
 
-  // Bucket the scheduled, bet-worthy items by fiscal quarter once, rather
-  // than re-filtering the full item list inside every cell below.
-  const byQuarter = new Map<number, Item[]>();
-  for (const i of items) {
-    if (!isScheduled(i) || i.horizon === "non-bet") continue;
-    const idx = fiscalQuarterIndex(parseDate(i.targetStart!));
-    const bucket = byQuarter.get(idx);
-    if (bucket) bucket.push(i);
-    else byQuarter.set(idx, [i]);
-  }
+  // One pass to bucket every item (scheduled-by-quarter, unscheduled,
+  // non-bet) and track the scheduled date range, rather than re-filtering
+  // the full item list once per bucket plus again for the cell range.
+  // Memoized so an unrelated re-render (a poll tick, a drag-hover toggle)
+  // doesn't redo this work or re-sort every bucket from scratch.
+  const { cells, byQuarter, unscheduled, nonBet } = useMemo(() => {
+    const byRank = (a: Item, b: Item) =>
+      computeRank(b, weights) - computeRank(a, weights);
+    const byQuarter = new Map<number, Item[]>();
+    const unscheduled: Item[] = [];
+    const nonBet: Item[] = [];
+    let minStart = fiscalQuarterStart(new Date());
+    let maxStart = minStart;
+    for (let i = 0; i < 3; i++) maxStart = nextFiscalQuarterStart(maxStart);
+
+    for (const item of items) {
+      if (item.horizon === "non-bet") {
+        nonBet.push(item);
+        continue;
+      }
+      if (!isScheduled(item)) {
+        unscheduled.push(item);
+        continue;
+      }
+      const start = fiscalQuarterStart(parseDate(item.targetStart!));
+      if (start < minStart) minStart = start;
+      if (start > maxStart) maxStart = start;
+      const idx = fiscalQuarterIndex(start);
+      const bucket = byQuarter.get(idx);
+      if (bucket) bucket.push(item);
+      else byQuarter.set(idx, [item]);
+    }
+
+    unscheduled.sort(byRank);
+    nonBet.sort(byRank);
+    for (const bucket of byQuarter.values()) bucket.sort(byRank);
+
+    return {
+      cells: quarterCells(minStart, maxStart),
+      byQuarter,
+      unscheduled,
+      nonBet,
+    };
+  }, [items, weights]);
 
   return (
     <div className="board-wrap">
@@ -167,7 +184,7 @@ function QuarterBoard({ items }: { items: Item[] }) {
             label={c.label}
             desc={`${c.season} · drag a card here to schedule it`}
             color={quarterColor}
-            colItems={(byQuarter.get(c.index) ?? []).sort(byRank)}
+            colItems={byQuarter.get(c.index) ?? []}
             isNoop={(it) =>
               isScheduled(it) &&
               it.horizon !== "non-bet" &&
@@ -235,11 +252,6 @@ function DropColumn({
     quarterIndex !== undefined
       ? quarterThemeForIndex(quarterlyThemes, quarterIndex, activeMission)
       : undefined;
-  // True when a single team is in view but what's showing is the
-  // cross-cutting fallback, not a theme of that team's own — called out in
-  // the tooltip so it doesn't read as "this is Platform AI's theme".
-  const themeIsInherited =
-    activeMission !== null && theme !== undefined && theme.mission !== activeMission;
 
   return (
     <div
@@ -274,42 +286,26 @@ function DropColumn({
         <span className="col-count">{colItems.length}</span>
       </div>
       <div className="hz-col-desc">{desc}</div>
-      {quarterIndex !== undefined &&
-        (theme?.title ? (
-          shareMode ? (
-            <div
-              className="hz-col-theme"
-              title={
-                (theme.narrative || theme.title) +
-                (themeIsInherited ? " (cross-cutting)" : "")
-              }
-            >
-              {theme.title}
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="hz-col-theme"
-              title={
-                (theme.narrative || theme.title) +
-                (themeIsInherited ? " (cross-cutting)" : "")
-              }
-              onClick={() => openQuarterlyTheme(quarterIndex)}
-            >
-              {theme.title}
-            </button>
-          )
-        ) : (
-          !shareMode && (
-            <button
-              type="button"
-              className="hz-col-theme hz-col-theme--empty"
-              onClick={() => openQuarterlyTheme(quarterIndex)}
-            >
-              {activeMission ? `+ Add a theme for ${activeMission}` : "+ Add a theme"}
-            </button>
-          )
-        ))}
+      {quarterIndex !== undefined && (
+        <QuarterThemeAffordance
+          theme={theme}
+          shareMode={shareMode}
+          onOpen={() => openQuarterlyTheme(quarterIndex)}
+          className="hz-col-theme"
+          emptyClassName="hz-col-theme--empty"
+          filledTitle={
+            theme?.title
+              ? (theme.narrative || theme.title) +
+                (themeIsInherited(theme, activeMission)
+                  ? " (cross-cutting)"
+                  : "")
+              : undefined
+          }
+          emptyContent={
+            activeMission ? `+ Add a theme for ${activeMission}` : "+ Add a theme"
+          }
+        />
+      )}
       <div className="column-body">
         {colItems.map((item) => (
           <HorizonCard key={item.id} item={item} />

@@ -24,13 +24,21 @@ export async function POST(req: Request) {
   const sess = await getSession();
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const theme = (await req.json()) as QuarterlyTheme;
-  if (!theme?.id || typeof theme.quarterIndex !== "number") {
+  if (
+    !theme?.id ||
+    typeof theme.quarterIndex !== "number" ||
+    Number.isNaN(theme.quarterIndex)
+  ) {
     return NextResponse.json(
       { error: "id and quarterIndex required" },
       { status: 400 },
     );
   }
-  const mission = theme.mission ?? null;
+  // `|| null`, not `?? null`: an empty string must normalize to null the
+  // same way normalizeQuarterThemes() does on read, or a mission: "" write
+  // would persist a row quarterThemeForIndex's `t.mission === null` check
+  // can't find until the next full read runs it through that normalizer.
+  const mission = theme.mission || null;
   if (theme.id !== quarterThemeId(theme.quarterIndex, mission)) {
     return NextResponse.json(
       {
