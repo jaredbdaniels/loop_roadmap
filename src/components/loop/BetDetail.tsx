@@ -30,6 +30,8 @@ import {
 } from "@/lib/loop/logic";
 import { getJtbd } from "@/lib/loop/taxonomy";
 import type { Bet, Item, KeyResult } from "@/lib/loop/types";
+import { trimBetForThemeSummary } from "@/lib/ai/snapshot";
+import { AiSummaryPopover } from "./AiSummaryPopover";
 
 // The read surface for a bet — see docs/bet-detail.md.
 //
@@ -94,6 +96,10 @@ export function BetDetail({
     (i.betIds || []).includes(bet.id),
   );
 
+  // Every bet sharing this bet's theme (Protect / Grow / New logos), including
+  // itself — the portfolio the theme-summary AI feature narrates.
+  const themeBets = bets.filter((b) => b.theme === bet.theme);
+
   const fundedItems = betFundedItems(bet, live);
   const enabledItems = betEnabledItems(bet, live);
   // Parked work is shown but never counted — see D2 in docs/narrative-decisions.md.
@@ -126,6 +132,17 @@ export function BetDetail({
           )}
           {bet.owner && <span>{bet.owner}</span>}
         </p>
+        <div className="bet-detail-theme-summary">
+          <AiSummaryPopover
+            feature="theme-summary"
+            triggerLabel={`Summarize ${BET_THEME_LABELS[bet.theme]}`}
+            triggerTitle={`Summarize every ${BET_THEME_LABELS[bet.theme]} bet`}
+            body={{
+              theme: BET_THEME_LABELS[bet.theme],
+              bets: themeBets.map(trimBetForThemeSummary),
+            }}
+          />
+        </div>
         {editHref && (
           <Link className="cm-button bet-detail-edit" href={editHref}>
             Edit bet

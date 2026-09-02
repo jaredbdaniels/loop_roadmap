@@ -23,6 +23,8 @@ import { useLoop } from "./store";
 import { visibleItems, withHorizon, withQuarter, withoutDates } from "./mutations";
 import { MissionTag } from "./MissionTag";
 import { ItemLink } from "./ItemLink";
+import { AiSummaryPopover } from "./AiSummaryPopover";
+import { trimItemForSummary } from "@/lib/ai/snapshot";
 
 export function HorizonView() {
   const {
@@ -120,9 +122,11 @@ function quarterCells(items: Item[]): QuarterCell[] {
 }
 
 function QuarterBoard({ items }: { items: Item[] }) {
-  const { weights } = useLoop();
+  const { weights, filterMission } = useLoop();
   const byRank = (a: Item, b: Item) =>
     computeRank(b, weights) - computeRank(a, weights);
+  const teamScopeLabel =
+    filterMission.length > 0 ? filterMission.join(", ") : "All teams";
 
   const cells = quarterCells(items);
   const unscheduled = items
@@ -158,21 +162,39 @@ function QuarterBoard({ items }: { items: Item[] }) {
           isNoop={(it) => !isScheduled(it) && it.horizon !== "non-bet"}
           onDropItem={withoutDates}
         />
-        {cells.map((c) => (
-          <DropColumn
-            key={c.index}
-            label={c.label}
-            desc={`${c.season} · drag a card here to schedule it`}
-            color={quarterColor}
-            colItems={(byQuarter.get(c.index) ?? []).sort(byRank)}
-            isNoop={(it) =>
-              isScheduled(it) &&
-              it.horizon !== "non-bet" &&
-              fiscalQuarterIndex(parseDate(it.targetStart!)) === c.index
-            }
-            onDropItem={(it) => withQuarter(it, c.start, c.end)}
-          />
-        ))}
+        {cells.map((c) => {
+          const cellItems = (byQuarter.get(c.index) ?? []).sort(byRank);
+          return (
+            <DropColumn
+              key={c.index}
+              label={c.label}
+              desc={`${c.season} · drag a card here to schedule it`}
+              color={quarterColor}
+              colItems={cellItems}
+              isNoop={(it) =>
+                isScheduled(it) &&
+                it.horizon !== "non-bet" &&
+                fiscalQuarterIndex(parseDate(it.targetStart!)) === c.index
+              }
+              onDropItem={(it) => withQuarter(it, c.start, c.end)}
+              headerAction={
+                cellItems.length > 0 ? (
+                  <AiSummaryPopover
+                    feature="summary"
+                    triggerLabel=""
+                    triggerTitle={`Summarize ${c.label} (${teamScopeLabel})`}
+                    align="right"
+                    body={{
+                      items: cellItems.map(trimItemForSummary),
+                      scope: "quarter",
+                      scopeLabel: `${c.label} — ${teamScopeLabel}`,
+                    }}
+                  />
+                ) : undefined
+              }
+            />
+          );
+        })}
         <DropColumn
           label={nonBetInfo.label}
           desc={nonBetInfo.desc}
@@ -197,6 +219,7 @@ function DropColumn({
   isNoop,
   onDropItem,
   wide = false,
+  headerAction,
 }: {
   label: string;
   desc: string;
@@ -208,6 +231,12 @@ function DropColumn({
   isNoop: (item: Item) => boolean;
   onDropItem: (item: Item) => Item;
   wide?: boolean;
+  // Extra chrome in the column header, right-aligned — currently just the
+  // quarter layout's "summarize this quarter" button (see QuarterBoard). Not
+  // wired for the Now/Next/Later layout: those columns are a manual editorial
+  // call, not a calendar slice, so "meta narrative for this column" is a
+  // different, not-yet-asked-for feature.
+  headerAction?: React.ReactNode;
 }) {
   const { items, dragId, updateItem } = useLoop();
   const [over, setOver] = useState(false);
@@ -243,6 +272,7 @@ function DropColumn({
       <div className="column-header">
         <span className="col-title">{label}</span>
         <span className="col-count">{colItems.length}</span>
+        {headerAction}
       </div>
       <div className="hz-col-desc">{desc}</div>
       <div className="column-body">

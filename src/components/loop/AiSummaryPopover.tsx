@@ -1,0 +1,122 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Copy } from "lucide-react";
+import { SuggestButton } from "./SuggestButton";
+import { useAiSuggestion } from "./useAi";
+
+type Audience = "exec" | "team";
+
+// Shared trigger + popover for every "AI summary" button in the app (quarter
+// column, Timeline toolbar, Bet theme chip). `body` is the feature-specific,
+// audience-independent part of the request (e.g. { items, scope, scopeLabel }
+// for "summary", or { bets, theme } for "theme-summary") — plain data, not a
+// callback, so a Server Component (like BetDetail) can compute it and pass it
+// straight through without crossing the server/client boundary with a function.
+export function AiSummaryPopover({
+  feature,
+  body,
+  triggerLabel = "Summarize",
+  triggerTitle,
+  align = "left",
+}: {
+  feature: string;
+  body: Record<string, unknown>;
+  triggerLabel?: string;
+  triggerTitle?: string;
+  align?: "left" | "right";
+}) {
+  const [open, setOpen] = useState(false);
+  const [audience, setAudience] = useState<Audience>("exec");
+  const [text, setText] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const ai = useAiSuggestion<{ text: string }>(feature);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  const generate = async (a: Audience) => {
+    setAudience(a);
+    const { data, error } = await ai.run({ ...body, audience: a });
+    setText(data?.text ?? error ?? "Couldn't generate a summary.");
+  };
+
+  // Generate immediately the first time the popover opens, so the common case
+  // (click the sparkle, read the summary) is one click, not two. Re-picking an
+  // audience afterwards just regenerates.
+  useEffect(() => {
+    if (open && text === null && !ai.loading) generate("exec");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const copy = async () => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      /* clipboard access denied — nothing actionable from here */
+    }
+  };
+
+  return (
+    <div className="ai-summary-popover" ref={rootRef}>
+      <SuggestButton
+        loading={false}
+        onClick={() => setOpen((o) => !o)}
+        title={triggerTitle}
+      >
+        {triggerLabel}
+      </SuggestButton>
+      {open && (
+        <div
+          className={"ai-summary-panel" + (align === "right" ? " align-right" : "")}
+          role="dialog"
+          aria-label={`${triggerLabel} panel`}
+        >
+          <div className="segmented ai-summary-audience" role="tablist" aria-label="Audience">
+            {(["exec", "team"] as const).map((a) => (
+              <button
+                key={a}
+                type="button"
+                role="tab"
+                aria-selected={audience === a}
+                className={audience === a ? "active" : ""}
+                disabled={ai.loading}
+                onClick={() => generate(a)}
+              >
+                {a === "exec" ? "Exec" : "Team"}
+              </button>
+            ))}
+          </div>
+          {ai.loading && <p className="helper">Thinking…</p>}
+          {text && !ai.loading && (
+            <>
+              <div className="ai-panel ai-summary-text">{text}</div>
+              <button
+                type="button"
+                className="cm-button--outlined cm-button cm-button--small"
+                onClick={copy}
+              >
+                <Copy size={13} strokeWidth={2.2} />
+                Copy
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

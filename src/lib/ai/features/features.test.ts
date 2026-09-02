@@ -7,6 +7,7 @@ import { buildExplainPrompt, explainBody } from "./explain-rank";
 import { krOut } from "./kr";
 import { captureOut } from "./capture";
 import { buildSummaryPrompt, summaryBody } from "./summary";
+import { buildThemeSummaryPrompt, themeSummaryBody } from "./theme-summary";
 
 describe("rice", () => {
   it("requires a title", () => {
@@ -126,6 +127,7 @@ describe("summary", () => {
     expect(summaryBody.safeParse({ items: [] }).success).toBe(false);
     const p = buildSummaryPrompt({
       audience: "exec",
+      scope: "roadmap",
       items: [
         {
           title: "Ship X",
@@ -139,5 +141,48 @@ describe("summary", () => {
     });
     expect(p).toContain("[Building/now] Ship X (Alpha)");
     expect(p).toContain("KR: time: 9 → 3 days");
+  });
+
+  it("defaults scope to roadmap and names a narrower scope when given one", () => {
+    const parsed = summaryBody.parse({
+      items: [{ title: "Ship X", mission: "Alpha", stage: "Building", horizon: "now" }],
+    });
+    expect(parsed.scope).toBe("roadmap");
+
+    const roadmap = buildSummaryPrompt(parsed);
+    expect(roadmap).toContain("Scope: roadmap");
+    expect(roadmap).not.toContain("do not group by horizon");
+
+    const quarter = buildSummaryPrompt({
+      ...parsed,
+      scope: "quarter",
+      scopeLabel: "Q1 FY26 — All teams",
+    });
+    expect(quarter).toContain("Scope: quarter — Q1 FY26 — All teams");
+    expect(quarter).toContain("do not group by");
+  });
+});
+
+describe("theme-summary", () => {
+  it("needs at least one bet and renders the snapshot", () => {
+    expect(themeSummaryBody.safeParse({ theme: "Grow", bets: [] }).success).toBe(false);
+    const p = buildThemeSummaryPrompt({
+      theme: "Grow",
+      audience: "exec",
+      bets: [
+        {
+          title: "Expand into K-12",
+          thesis: "New markets fund the next phase",
+          tier: "Foundational",
+          goalArea: "GTM",
+          status: "Active",
+          horizon: "Now",
+          value: "$1.2M in new revenue (modeled)",
+        },
+      ],
+    });
+    expect(p).toContain("Theme: Grow");
+    expect(p).toContain("[Active/Foundational] Expand into K-12 (GTM)");
+    expect(p).toContain("worth $1.2M in new revenue (modeled)");
   });
 });

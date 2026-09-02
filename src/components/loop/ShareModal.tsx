@@ -6,24 +6,7 @@ import { useLoop } from "./store";
 import { SuggestButton } from "./SuggestButton";
 import { useAiSuggestion } from "./useAi";
 import { isIntake } from "@/lib/loop/logic";
-import type { Item } from "@/lib/loop/types";
-
-// Render an item's KR as a compact reading for the summary prompt.
-function krReading(it: Item): string {
-  const k = it.kr;
-  if (!k?.metric) return "";
-  const bits: string[] = [];
-  if (k.baseline != null && k.target != null)
-    bits.push(`${k.baseline} → ${k.target}${k.unit ? " " + k.unit : ""}`);
-  else if (k.target != null) bits.push(`target ${k.target}${k.unit ? " " + k.unit : ""}`);
-  if (k.current != null) bits.push(`now ${k.current}`);
-  return `${k.metric}${bits.length ? ": " + bits.join(", ") : ""}`;
-}
-function windowOf(it: Item): string {
-  if (it.targetStart && it.targetEnd) return `${it.targetStart} → ${it.targetEnd}`;
-  if (it.targetStart) return `from ${it.targetStart}`;
-  return "";
-}
+import { trimItemForSummary } from "@/lib/ai/snapshot";
 
 // Manage the single active read-only share link: view, generate, copy,
 // regenerate (rotate the secret), and revoke. Backed by the auth-gated
@@ -43,14 +26,7 @@ export function ShareModal() {
   const runSummary = async () => {
     const snapshot = items
       .filter((it) => !it.killed && !isIntake(it))
-      .map((it) => ({
-        title: it.title,
-        mission: it.mission,
-        stage: it.stage,
-        horizon: it.horizon,
-        kr: krReading(it),
-        window: windowOf(it),
-      }));
+      .map(trimItemForSummary);
     if (!snapshot.length) return toast("Nothing to summarize yet.", true);
     const { data, error } = await summaryAi.run({ items: snapshot, audience: "exec" });
     if (!data) return toast(error ?? "Couldn't generate a summary.", true);

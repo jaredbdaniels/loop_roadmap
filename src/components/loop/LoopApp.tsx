@@ -40,8 +40,11 @@ import type {
 } from "@/lib/loop/types";
 import { authClient } from "@/lib/auth-client";
 import { LoopProvider, useLoop } from "./store";
+import { visibleItems } from "./mutations";
+import { trimItemForSummary } from "@/lib/ai/snapshot";
 import { StatsBar } from "./StatsBar";
 import { TeamFilter } from "./TeamFilter";
+import { AiSummaryPopover } from "./AiSummaryPopover";
 import { BoardView } from "./BoardView";
 import { TeamView } from "./TeamView";
 import { TimelineView } from "./TimelineView";
@@ -179,6 +182,7 @@ function Shell({
     setHorizonLayout,
     showKilled,
     setShowKilled,
+    shareMode,
     readOnly,
     scenarios,
     scenarioId,
@@ -327,6 +331,19 @@ function Shell({
     }
     setScenario(value);
   };
+
+  // What the Timeline's "AI Summary" button narrates — the same filtered set
+  // TimelineView itself renders (see mutations.ts), not the whole roadmap.
+  const timelineVisible = visibleItems(
+    items,
+    filterMission,
+    showKilled,
+    filterBet,
+    filterOwner,
+    shareMode,
+  );
+  const timelineScopeLabel =
+    filterMission.length > 0 ? filterMission.join(", ") : "All teams";
 
   const whatifScenarios = scenarios.filter((s) => s.kind !== "headlights-archive");
   const archiveScenarios = scenarios.filter((s) => s.kind === "headlights-archive");
@@ -591,6 +608,19 @@ function Shell({
             <Flag size={15} strokeWidth={2.2} />
             New milestone
           </button>
+        )}
+
+        {view === "timeline" && timelineVisible.length > 0 && (
+          <AiSummaryPopover
+            feature="summary"
+            triggerLabel="AI summary"
+            triggerTitle={`Summarize what's visible on the timeline (${timelineScopeLabel})`}
+            body={{
+              items: timelineVisible.map(trimItemForSummary),
+              scope: "timeline",
+              scopeLabel: timelineScopeLabel,
+            }}
+          />
         )}
 
         <button
