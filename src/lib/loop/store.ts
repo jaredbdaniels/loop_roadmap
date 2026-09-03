@@ -67,6 +67,27 @@ function isMissingRelation(err: unknown): boolean {
   return false;
 }
 
+// Same idea as isMissingRelation, but for a column added to an *existing*
+// table after that table already shipped (e.g. `kind`/`locked` added to
+// `scenarios` in 297da04) — Postgres reports this as 42703 (undefined_column)
+// rather than 42P01, so isMissingRelation's check never catches it and a
+// deploy that ships schema.ts changes ahead of the out-of-band `npm run
+// db:push` 500s on every write until someone runs it by hand.
+function isMissingColumn(err: unknown): boolean {
+  let cur = err;
+  for (let depth = 0; cur && depth < 5; depth++) {
+    const e = cur as { code?: string; message?: string; cause?: unknown };
+    if (
+      e.code === "42703" ||
+      /column ".*" of relation ".*" does not exist/i.test(e.message ?? "")
+    ) {
+      return true;
+    }
+    cur = e.cause;
+  }
+  return false;
+}
+
 // Seeds the two-year modernization roadmap + default weights the first time the
 // app runs against an empty database. Idempotent.
 export async function ensureSeeded(): Promise<void> {
@@ -520,10 +541,38 @@ function rowToScenario(row: typeof scenariosTable.$inferSelect): Scenario {
   };
 }
 
+// Brings an out-of-date `scenarios` table (or a missing one) up to the
+// current schema.ts shape, so a deploy that ships schema changes ahead of the
+// out-of-band `npm run db:push` self-heals instead of 500ing on every read
+// and write. Mirrors ensureQuarterlyThemesTable's reasoning above, extended
+// to also patch columns added to a table that already exists (see
+// isMissingColumn).
+async function ensureScenariosTable(): Promise<void> {
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS scenarios (
+      id text PRIMARY KEY,
+      name text NOT NULL,
+      created_by text NOT NULL,
+      state jsonb NOT NULL,
+      kind text NOT NULL DEFAULT 'whatif',
+      locked boolean NOT NULL DEFAULT false,
+      forked_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      created_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await db.execute(
+    sql`ALTER TABLE scenarios ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'whatif'`,
+  );
+  await db.execute(
+    sql`ALTER TABLE scenarios ADD COLUMN IF NOT EXISTS locked boolean NOT NULL DEFAULT false`,
+  );
+}
+
 // Metadata (no state blob) for the current user's scenarios, newest edit first.
 export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> {
-  try {
-    const rows = await db
+  const doList = () =>
+    db
       .select({
         id: scenariosTable.id,
         name: scenariosTable.name,
@@ -537,16 +586,9 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
       .from(scenariosTable)
       .where(or(eq(scenariosTable.createdBy, createdBy), readableByAnyone))
       .orderBy(desc(scenariosTable.updatedAt));
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      createdBy: r.createdBy,
-      kind: r.kind ?? "whatif",
-      locked: r.locked ?? false,
-      forkedAt: r.forkedAt.toISOString(),
-      createdAt: r.createdAt.toISOString(),
-      updatedAt: r.updatedAt.toISOString(),
-    }));
+  let rows;
+  try {
+    rows = await doList();
   } catch (err) {
     if (isMissingRelation(err)) {
       console.warn(
@@ -554,8 +596,20 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
       );
       return [];
     }
-    throw err;
+    if (!isMissingColumn(err)) throw err;
+    await ensureScenariosTable();
+    rows = await doList();
   }
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    createdBy: r.createdBy,
+    kind: r.kind ?? "whatif",
+    locked: r.locked ?? false,
+    forkedAt: r.forkedAt.toISOString(),
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  }));
 }
 
 // Fork the live roadmap into a new named scenario owned by `createdBy`.
@@ -581,17 +635,25 @@ export async function createScenario(
     quarterlyThemes: live.quarterlyThemes,
   };
   const locked = kind === "headlights-archive";
-  await db.insert(scenariosTable).values({
-    id,
-    name,
-    createdBy,
-    state,
-    kind,
-    locked,
-    forkedAt: now,
-    createdAt: now,
-    updatedAt: now,
-  });
+  const doInsert = () =>
+    db.insert(scenariosTable).values({
+      id,
+      name,
+      createdBy,
+      state,
+      kind,
+      locked,
+      forkedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    });
+  try {
+    await doInsert();
+  } catch (err) {
+    if (!isMissingRelation(err) && !isMissingColumn(err)) throw err;
+    await ensureScenariosTable();
+    await doInsert();
+  }
   return {
     id,
     name,
@@ -612,8 +674,8 @@ export async function getScenario(
   id: string,
   createdBy: string,
 ): Promise<Scenario | null> {
-  try {
-    const rows = await db
+  const doSelect = () =>
+    db
       .select()
       .from(scenariosTable)
       .where(
@@ -623,11 +685,16 @@ export async function getScenario(
         ),
       )
       .limit(1);
-    return rows[0] ? rowToScenario(rows[0]) : null;
+  let rows;
+  try {
+    rows = await doSelect();
   } catch (err) {
     if (isMissingRelation(err)) return null;
-    throw err;
+    if (!isMissingColumn(err)) throw err;
+    await ensureScenariosTable();
+    rows = await doSelect();
   }
+  return rows[0] ? rowToScenario(rows[0]) : null;
 }
 
 export type ScenarioWriteResult =
