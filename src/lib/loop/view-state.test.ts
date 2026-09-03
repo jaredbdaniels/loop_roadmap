@@ -103,7 +103,7 @@ describe("viewStateToParams", () => {
 
   it("round-trips a fully-specified state", () => {
     const state: ViewState = {
-      view: "mission",
+      view: "horizon",
       zoom: "month",
       groupBy: "domain",
       horizonLayout: "quarter",

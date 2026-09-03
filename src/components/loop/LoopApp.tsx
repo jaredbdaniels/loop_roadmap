@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Columns3,
-  Users,
   GanttChartSquare,
   Layers,
   Flag,
@@ -47,7 +46,6 @@ import { StatsBar } from "./StatsBar";
 import { TeamFilter } from "./TeamFilter";
 import { AiSummaryPopover } from "./AiSummaryPopover";
 import { BoardView } from "./BoardView";
-import { TeamView } from "./TeamView";
 import { TimelineView } from "./TimelineView";
 import { HorizonView } from "./HorizonView";
 import { HeadlightsView } from "./HeadlightsView";
@@ -71,7 +69,6 @@ const VIEWS: { key: ViewKey; label: string; icon: typeof Columns3 }[] = [
   { key: "board", label: "Board", icon: Columns3 },
   { key: "timeline", label: "Timeline", icon: GanttChartSquare },
   { key: "horizon", label: "Horizon", icon: Layers },
-  { key: "mission", label: "Team", icon: Users },
   { key: "headlights", label: "Headlights", icon: Flashlight },
 ];
 
@@ -529,7 +526,7 @@ function Shell({
           })}
         </div>
 
-        {(view === "timeline" || view === "mission") && (
+        {view === "timeline" && (
           <div className="segmented" role="tablist" aria-label="Group by">
             {GROUP_BYS.map((g) => (
               <button
@@ -708,7 +705,6 @@ function Shell({
 
       <main ref={viewRef}>
         {view === "board" && <BoardView />}
-        {view === "mission" && <TeamView />}
         {view === "timeline" && <TimelineView />}
         {view === "horizon" && <HorizonView />}
         {view === "headlights" && <HeadlightsView userEmail={userEmail} />}
