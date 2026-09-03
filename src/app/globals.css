@@ -4897,7 +4897,9 @@ body.share-mode .sub-row--read:hover {
   left: auto;
   right: 0;
 }
-.ai-summary-audience {
+.ai-summary-audience,
+.ai-summary-length,
+.ai-summary-format {
   align-self: flex-start;
 }
 .ai-summary-panel .ai-panel {

@@ -6,6 +6,8 @@ import { SuggestButton } from "./SuggestButton";
 import { useAiSuggestion } from "./useAi";
 
 type Audience = "exec" | "team";
+type Length = "short" | "medium" | "long";
+type Format = "prose" | "bullets";
 
 // Shared trigger + popover for every "AI summary" button in the app (quarter
 // column, Timeline toolbar, Bet theme chip). `body` is the feature-specific,
@@ -28,6 +30,8 @@ export function AiSummaryPopover({
 }) {
   const [open, setOpen] = useState(false);
   const [audience, setAudience] = useState<Audience>("exec");
+  const [length, setLength] = useState<Length>("medium");
+  const [format, setFormat] = useState<Format>("prose");
   const [text, setText] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const ai = useAiSuggestion<{ text: string }>(feature);
@@ -48,17 +52,28 @@ export function AiSummaryPopover({
     };
   }, [open]);
 
-  const generate = async (a: Audience) => {
+  // Accepts only the dimension the caller just changed — React state set in
+  // this same tick isn't readable synchronously, so whichever of
+  // audience/length/format was just clicked has to be passed explicitly,
+  // while the other two fall back to current state.
+  const generate = async (
+    overrides: Partial<{ audience: Audience; length: Length; format: Format }> = {},
+  ) => {
+    const a = overrides.audience ?? audience;
+    const l = overrides.length ?? length;
+    const f = overrides.format ?? format;
     setAudience(a);
-    const { data, error } = await ai.run({ ...body, audience: a });
+    setLength(l);
+    setFormat(f);
+    const { data, error } = await ai.run({ ...body, audience: a, length: l, format: f });
     setText(data?.text ?? error ?? "Couldn't generate a summary.");
   };
 
   // Generate immediately the first time the popover opens, so the common case
-  // (click the sparkle, read the summary) is one click, not two. Re-picking an
-  // audience afterwards just regenerates.
+  // (click the sparkle, read the summary) is one click, not two. Re-picking
+  // any control afterwards just regenerates.
   useEffect(() => {
-    if (open && text === null && !ai.loading) generate("exec");
+    if (open && text === null && !ai.loading) generate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -95,9 +110,39 @@ export function AiSummaryPopover({
                 aria-selected={audience === a}
                 className={audience === a ? "active" : ""}
                 disabled={ai.loading}
-                onClick={() => generate(a)}
+                onClick={() => generate({ audience: a })}
               >
                 {a === "exec" ? "Exec" : "Team"}
+              </button>
+            ))}
+          </div>
+          <div className="segmented ai-summary-length" role="tablist" aria-label="Length">
+            {(["short", "medium", "long"] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                role="tab"
+                aria-selected={length === l}
+                className={length === l ? "active" : ""}
+                disabled={ai.loading}
+                onClick={() => generate({ length: l })}
+              >
+                {l === "short" ? "Short" : l === "medium" ? "Medium" : "Long"}
+              </button>
+            ))}
+          </div>
+          <div className="segmented ai-summary-format" role="tablist" aria-label="Format">
+            {(["prose", "bullets"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                role="tab"
+                aria-selected={format === f}
+                className={format === f ? "active" : ""}
+                disabled={ai.loading}
+                onClick={() => generate({ format: f })}
+              >
+                {f === "prose" ? "Prose" : "Bullets"}
               </button>
             ))}
           </div>

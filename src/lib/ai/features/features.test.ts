@@ -128,6 +128,8 @@ describe("summary", () => {
     const p = buildSummaryPrompt({
       audience: "exec",
       scope: "roadmap",
+      length: "medium",
+      format: "prose",
       items: [
         {
           title: "Ship X",
@@ -143,11 +145,13 @@ describe("summary", () => {
     expect(p).toContain("KR: time: 9 → 3 days");
   });
 
-  it("defaults scope to roadmap and names a narrower scope when given one", () => {
+  it("defaults scope, length, and format", () => {
     const parsed = summaryBody.parse({
       items: [{ title: "Ship X", mission: "Alpha", stage: "Building", horizon: "now" }],
     });
     expect(parsed.scope).toBe("roadmap");
+    expect(parsed.length).toBe("medium");
+    expect(parsed.format).toBe("prose");
 
     const roadmap = buildSummaryPrompt(parsed);
     expect(roadmap).toContain("Scope: roadmap");
@@ -161,6 +165,38 @@ describe("summary", () => {
     expect(quarter).toContain("Scope: quarter — Q1 FY26 — All teams");
     expect(quarter).toContain("do not group by");
   });
+
+  it("threads length through the prompt", () => {
+    const parsed = summaryBody.parse({
+      items: [{ title: "Ship X", mission: "Alpha", stage: "Building", horizon: "now" }],
+    });
+
+    const short = buildSummaryPrompt({ ...parsed, length: "short" });
+    expect(short).toContain("Length: short");
+    expect(short).toContain("Be brief");
+    expect(short).not.toContain("Go deeper than the default");
+
+    const long = buildSummaryPrompt({ ...parsed, length: "long" });
+    expect(long).toContain("Length: long");
+    expect(long).toContain("Go deeper than the default");
+    expect(long).not.toContain("Be brief");
+  });
+
+  it("threads format through the prompt", () => {
+    const parsed = summaryBody.parse({
+      items: [{ title: "Ship X", mission: "Alpha", stage: "Building", horizon: "now" }],
+    });
+
+    const bullets = buildSummaryPrompt({ ...parsed, format: "bullets" });
+    expect(bullets).toContain("Format: bullets");
+    expect(bullets).toContain("Write as a bullet list");
+    expect(bullets).not.toContain("Write in plain prose paragraphs");
+
+    const prose = buildSummaryPrompt({ ...parsed, format: "prose" });
+    expect(prose).toContain("Format: prose");
+    expect(prose).toContain("Write in plain prose paragraphs");
+    expect(prose).not.toContain("Write as a bullet list");
+  });
 });
 
 describe("theme-summary", () => {
@@ -169,6 +205,8 @@ describe("theme-summary", () => {
     const p = buildThemeSummaryPrompt({
       theme: "Grow",
       audience: "exec",
+      length: "medium",
+      format: "prose",
       bets: [
         {
           title: "Expand into K-12",
@@ -184,5 +222,32 @@ describe("theme-summary", () => {
     expect(p).toContain("Theme: Grow");
     expect(p).toContain("[Active/Foundational] Expand into K-12 (GTM)");
     expect(p).toContain("worth $1.2M in new revenue (modeled)");
+  });
+
+  it("defaults length and format, and threads them through the prompt", () => {
+    const parsed = themeSummaryBody.parse({
+      theme: "Grow",
+      bets: [
+        {
+          title: "Expand into K-12",
+          tier: "Foundational",
+          goalArea: "GTM",
+          status: "Active",
+          horizon: "Now",
+        },
+      ],
+    });
+    expect(parsed.length).toBe("medium");
+    expect(parsed.format).toBe("prose");
+
+    const short = buildThemeSummaryPrompt({ ...parsed, length: "short" });
+    expect(short).toContain("Length: short");
+    expect(short).toContain("Be brief");
+    expect(short).not.toContain("Go deeper than the default");
+
+    const bullets = buildThemeSummaryPrompt({ ...parsed, format: "bullets" });
+    expect(bullets).toContain("Format: bullets");
+    expect(bullets).toContain("Write as a bullet list");
+    expect(bullets).not.toContain("Write in plain prose paragraphs");
   });
 });
