@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Copy, Sparkles } from "lucide-react";
+import { Copy, Loader2, Sparkles } from "lucide-react";
 import { SuggestButton } from "./SuggestButton";
 import { useAiSuggestion } from "./useAi";
 import type { Audience, Format, Length } from "./ai-summary-options";
@@ -132,8 +132,25 @@ export function AiSummaryPopover({
             disabled={ai.loading}
             onClick={generate}
           >
-            <Sparkles size={13} strokeWidth={2.4} />
-            {ai.loading ? "Thinking…" : text === null ? "Generate summary" : "Regenerate"}
+            {ai.loading ? (
+              <Loader2 size={13} strokeWidth={2.4} className="sync-spin" />
+            ) : (
+              <Sparkles size={13} strokeWidth={2.4} />
+            )}
+            {ai.loading ? (
+              <span className="ai-thinking-label">
+                Thinking
+                <span className="ai-thinking-dots">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+              </span>
+            ) : text === null ? (
+              "Generate summary"
+            ) : (
+              "Regenerate"
+            )}
           </button>
           {text && !ai.loading && (
             <>
