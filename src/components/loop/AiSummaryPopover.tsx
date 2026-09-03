@@ -4,10 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Copy } from "lucide-react";
 import { SuggestButton } from "./SuggestButton";
 import { useAiSuggestion } from "./useAi";
-
-type Audience = "exec" | "team";
-type Length = "short" | "medium" | "long";
-type Format = "prose" | "bullets";
+import { resolveSummaryOptions, type Audience, type Format, type Length } from "./ai-summary-options";
 
 // Shared trigger + popover for every "AI summary" button in the app (quarter
 // column, Timeline toolbar, Bet theme chip). `body` is the feature-specific,
@@ -59,9 +56,10 @@ export function AiSummaryPopover({
   const generate = async (
     overrides: Partial<{ audience: Audience; length: Length; format: Format }> = {},
   ) => {
-    const a = overrides.audience ?? audience;
-    const l = overrides.length ?? length;
-    const f = overrides.format ?? format;
+    const { audience: a, length: l, format: f } = resolveSummaryOptions(
+      { audience, length, format },
+      overrides,
+    );
     setAudience(a);
     setLength(l);
     setFormat(f);
