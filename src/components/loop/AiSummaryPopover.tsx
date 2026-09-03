@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Sparkles } from "lucide-react";
 import { SuggestButton } from "./SuggestButton";
 import { useAiSuggestion } from "./useAi";
-import { resolveSummaryOptions, type Audience, type Format, type Length } from "./ai-summary-options";
+import type { Audience, Format, Length } from "./ai-summary-options";
 
 // Shared trigger + popover for every "AI summary" button in the app (quarter
 // column, Timeline toolbar, Bet theme chip). `body` is the feature-specific,
@@ -49,31 +49,13 @@ export function AiSummaryPopover({
     };
   }, [open]);
 
-  // Accepts only the dimension the caller just changed — React state set in
-  // this same tick isn't readable synchronously, so whichever of
-  // audience/length/format was just clicked has to be passed explicitly,
-  // while the other two fall back to current state.
-  const generate = async (
-    overrides: Partial<{ audience: Audience; length: Length; format: Format }> = {},
-  ) => {
-    const { audience: a, length: l, format: f } = resolveSummaryOptions(
-      { audience, length, format },
-      overrides,
-    );
-    setAudience(a);
-    setLength(l);
-    setFormat(f);
-    const { data, error } = await ai.run({ ...body, audience: a, length: l, format: f });
+  // Picking a control only updates the selection — it doesn't fire a request.
+  // The user reviews their choices, then generates explicitly, so nothing
+  // regenerates (and no summary is spent) until they ask for it.
+  const generate = async () => {
+    const { data, error } = await ai.run({ ...body, audience, length, format });
     setText(data?.text ?? error ?? "Couldn't generate a summary.");
   };
-
-  // Generate immediately the first time the popover opens, so the common case
-  // (click the sparkle, read the summary) is one click, not two. Re-picking
-  // any control afterwards just regenerates.
-  useEffect(() => {
-    if (open && text === null && !ai.loading) generate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
 
   const copy = async () => {
     if (!text) return;
@@ -108,7 +90,7 @@ export function AiSummaryPopover({
                 aria-selected={audience === a}
                 className={audience === a ? "active" : ""}
                 disabled={ai.loading}
-                onClick={() => generate({ audience: a })}
+                onClick={() => setAudience(a)}
               >
                 {a === "exec" ? "Exec" : "Team"}
               </button>
@@ -123,7 +105,7 @@ export function AiSummaryPopover({
                 aria-selected={length === l}
                 className={length === l ? "active" : ""}
                 disabled={ai.loading}
-                onClick={() => generate({ length: l })}
+                onClick={() => setLength(l)}
               >
                 {l === "short" ? "Short" : l === "medium" ? "Medium" : "Long"}
               </button>
@@ -138,13 +120,21 @@ export function AiSummaryPopover({
                 aria-selected={format === f}
                 className={format === f ? "active" : ""}
                 disabled={ai.loading}
-                onClick={() => generate({ format: f })}
+                onClick={() => setFormat(f)}
               >
                 {f === "prose" ? "Prose" : "Bullets"}
               </button>
             ))}
           </div>
-          {ai.loading && <p className="helper">Thinking…</p>}
+          <button
+            type="button"
+            className="cm-button cm-button--small"
+            disabled={ai.loading}
+            onClick={generate}
+          >
+            <Sparkles size={13} strokeWidth={2.4} />
+            {ai.loading ? "Thinking…" : text === null ? "Generate summary" : "Regenerate"}
+          </button>
           {text && !ai.loading && (
             <>
               <div className="ai-panel ai-summary-text">{text}</div>
