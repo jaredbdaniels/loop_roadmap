@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { useAiEnabled } from "./useAi";
 
 // Shared "✨ Suggest" affordance. Renders nothing when AI is off (flag or key
@@ -27,8 +27,23 @@ export function SuggestButton({
       disabled={loading}
       title={title}
     >
-      <Sparkles size={13} strokeWidth={2.4} />
-      {loading ? "Thinking…" : children}
+      {loading ? (
+        <Loader2 size={13} strokeWidth={2.4} className="sync-spin" />
+      ) : (
+        <Sparkles size={13} strokeWidth={2.4} />
+      )}
+      {loading ? (
+        <span className="ai-thinking-label">
+          Thinking
+          <span className="ai-thinking-dots">
+            <span />
+            <span />
+            <span />
+          </span>
+        </span>
+      ) : (
+        children
+      )}
     </button>
   );
 }
