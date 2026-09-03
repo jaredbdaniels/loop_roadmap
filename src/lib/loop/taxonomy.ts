@@ -248,6 +248,13 @@ export const TEAMS: Team[] = [
     lead: "Mike Hart",
     jtbdIds: ["ultracamp"],
   },
+  {
+    id: "product-marketing",
+    label: "Product Marketing",
+    domainId: UNCLAIMED_DOMAIN_ID,
+    lead: "",
+    jtbdIds: [],
+  },
 ];
 
 // JTBDs no team owns yet: events-rentals.
