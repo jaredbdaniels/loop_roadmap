@@ -188,7 +188,11 @@ interface LoopContextValue {
   // the next reload.
   scenarioLocked: boolean;
   setScenario: (id: string) => Promise<void>;
-  forkScenario: (name: string, kind?: ScenarioKind) => Promise<void>;
+  forkScenario: (
+    name: string,
+    kind?: ScenarioKind,
+    mode?: "clone" | "blank",
+  ) => Promise<void>;
   discardScenario: (id: string) => Promise<void>;
   compareOpen: boolean;
   setCompareOpen: (b: boolean) => void;
@@ -1056,9 +1060,16 @@ export function LoopProvider({
   // Fork the live roadmap into a new named scenario and switch into it.
   // `kind` defaults to "whatif" (an editable draft); "headlights-archive"
   // locks the fork at creation — see ScenarioKind in types.ts and
-  // HeadlightsView's "Submit for Headlights" action.
+  // HeadlightsView's "Submit for Headlights" action. `mode` defaults to
+  // "clone" (copy the live roadmap's items/bets/milestones/outlooks);
+  // "blank" starts the draft with none of them — see NewDraftModal, the
+  // only caller that offers the choice today.
   const forkScenario = useCallback(
-    async (name: string, kind: ScenarioKind = "whatif") => {
+    async (
+      name: string,
+      kind: ScenarioKind = "whatif",
+      mode: "clone" | "blank" = "clone",
+    ) => {
       if (readOnly) return;
       const trimmed = name.trim();
       if (!trimmed) return;
@@ -1067,7 +1078,7 @@ export function LoopProvider({
         const res = await fetch("/api/scenarios", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ name: trimmed, kind }),
+          body: JSON.stringify({ name: trimmed, kind, mode }),
         });
         if (!res.ok) throw new Error();
         const { scenario } = (await res.json()) as { scenario: Scenario };
@@ -1098,7 +1109,9 @@ export function LoopProvider({
         toast(
           kind === "headlights-archive"
             ? `"${trimmed}" archived and locked — changes here won't affect the live roadmap.`
-            : `Draft "${trimmed}" created — changes here won't affect the live roadmap.`,
+            : mode === "blank"
+              ? `Blank draft "${trimmed}" created — changes here won't affect the live roadmap.`
+              : `Draft "${trimmed}" created — changes here won't affect the live roadmap.`,
         );
       } catch {
         toast("Could not create the scenario.", true);

@@ -26,13 +26,16 @@ export async function GET(req: Request) {
 
 // POST /api/scenarios — fork the live roadmap into a new named scenario.
 // `kind` defaults to "whatif"; "headlights-archive" forks a locked snapshot
-// (see ScenarioKind in types.ts).
+// (see ScenarioKind in types.ts). `mode` defaults to "clone" (copy the live
+// roadmap's content); "blank" starts the draft with nothing in it — see
+// createScenario in store.ts.
 export async function POST(req: Request) {
   const sess = await getSession();
   if (!sess) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const { name, kind: kindRaw } = (await req.json()) as {
+  const { name, kind: kindRaw, mode: modeRaw } = (await req.json()) as {
     name?: string;
     kind?: string;
+    mode?: string;
   };
   const trimmed = (name ?? "").trim();
   if (!trimmed) {
@@ -45,7 +48,11 @@ export async function POST(req: Request) {
   ) {
     return NextResponse.json({ error: "invalid kind" }, { status: 400 });
   }
+  if (modeRaw !== undefined && modeRaw !== "clone" && modeRaw !== "blank") {
+    return NextResponse.json({ error: "invalid mode" }, { status: 400 });
+  }
   const kind = kindRaw as ScenarioKind | undefined;
-  const scenario = await createScenario(trimmed, sess.user.email, kind);
+  const mode = modeRaw as "clone" | "blank" | undefined;
+  const scenario = await createScenario(trimmed, sess.user.email, kind, mode);
   return NextResponse.json({ scenario });
 }

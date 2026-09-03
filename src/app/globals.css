@@ -5215,6 +5215,58 @@ select.cm-select--draft {
   max-width: 940px;
 }
 
+/* Narrower than the shared .modal default — NewDraftModal's name field and
+   two-option chooser don't need the full-width layout. */
+.modal--narrow {
+  max-width: 460px;
+}
+
+/* NewDraftModal's clone-vs-blank chooser: two selectable cards rather than
+   the compact .segmented pill (used for short single-word choices elsewhere)
+   because this decision needs room for a one-line consequence under each
+   option — cloning carries every existing card into the draft, blank starts
+   with none. */
+.new-draft-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.new-draft-option {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  border: 1px solid var(--cm-border-strong);
+  border-radius: var(--r-md);
+  padding: 12px 13px;
+  background: var(--cm-white);
+  cursor: pointer;
+}
+.new-draft-option:hover {
+  border-color: var(--cm-faint-fg);
+  background: var(--cm-surface-muted);
+}
+.new-draft-option.active {
+  border-color: var(--cm-purple);
+  box-shadow: var(--ring);
+}
+.new-draft-option-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cm-fg);
+}
+.new-draft-option.active .new-draft-option-title {
+  color: var(--cm-purple);
+}
+.new-draft-option-desc {
+  font-size: 0.73rem;
+  color: var(--cm-muted-fg);
+  line-height: 1.4;
+}
+
 /* The heading is the title field. Looks like the h2 it replaced until focused. */
 .modal-title-input {
   flex: 1;

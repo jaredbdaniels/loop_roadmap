@@ -618,22 +618,41 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
 // scenario" step, because a whatif that gets locked after the fact would still
 // carry whatever half-finished edits were in it when someone remembered to
 // lock it.
+//
+// `mode` controls what the fork starts with: "clone" (the default, and the
+// only option before this existed) copies the live roadmap's items, bets,
+// milestones and outlooks; "blank" starts every one of those empty so a
+// what-if can be built up from nothing instead of pruned down from
+// everything. Weights always carry over from live either way — they're a
+// ranking preference, not roadmap content, so a blank board inherits the
+// same ranking the live roadmap uses rather than reverting to seed defaults.
 export async function createScenario(
   name: string,
   createdBy: string,
   kind: Scenario["kind"] = "whatif",
+  mode: "clone" | "blank" = "clone",
 ): Promise<Scenario> {
   const live = await getState();
   const now = new Date();
   const id = "sc_" + crypto.randomUUID();
-  const state: LoopState = {
-    items: live.items,
-    weights: live.weights,
-    bets: live.bets,
-    milestones: live.milestones,
-    outlooks: live.outlooks,
-    quarterlyThemes: live.quarterlyThemes,
-  };
+  const state: LoopState =
+    mode === "blank"
+      ? {
+          items: [],
+          weights: live.weights,
+          bets: [],
+          milestones: [],
+          outlooks: [],
+          quarterlyThemes: [],
+        }
+      : {
+          items: live.items,
+          weights: live.weights,
+          bets: live.bets,
+          milestones: live.milestones,
+          outlooks: live.outlooks,
+          quarterlyThemes: live.quarterlyThemes,
+        };
   const locked = kind === "headlights-archive";
   const doInsert = () =>
     db.insert(scenariosTable).values({
