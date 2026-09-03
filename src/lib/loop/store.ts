@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
   bets as betsTable,
@@ -375,20 +375,48 @@ export async function upsertOutlook(outlook: DeliveryOutlook): Promise<void> {
     });
 }
 
+// The `quarterly_themes` table only exists once `npm run db:push` has run
+// against this database (see isMissingRelation's comment above) — a step
+// that happens out of band from a deploy and was in fact never done in
+// production, so every save 500'd with "relation does not exist" and the PM
+// saw a silent "Could not save the quarterly theme." toast with no way to
+// recover short of an operator running db:push by hand. A read degrades to
+// [] on the same error (getAllRows above), but a write can't degrade to a
+// no-op — so instead this creates the table itself, from the same shape as
+// the schema.ts definition, the one time that specific error code says it's
+// missing, then retries. Self-heals in place of the manual step.
+async function ensureQuarterlyThemesTable(): Promise<void> {
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS quarterly_themes (
+      id text PRIMARY KEY,
+      data jsonb NOT NULL,
+      updated_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+}
+
 // Always an upsert — `id` is the deterministic `quarter:<quarterIndex>` key,
 // same reasoning as upsertOutlook above.
 export async function upsertQuarterlyTheme(theme: QuarterlyTheme): Promise<void> {
-  await db
-    .insert(quarterlyThemesTable)
-    .values({
-      id: theme.id,
-      data: theme,
-      updatedAt: new Date(theme.updatedAt),
-    })
-    .onConflictDoUpdate({
-      target: quarterlyThemesTable.id,
-      set: { data: theme, updatedAt: new Date(theme.updatedAt) },
-    });
+  const doUpsert = () =>
+    db
+      .insert(quarterlyThemesTable)
+      .values({
+        id: theme.id,
+        data: theme,
+        updatedAt: new Date(theme.updatedAt),
+      })
+      .onConflictDoUpdate({
+        target: quarterlyThemesTable.id,
+        set: { data: theme, updatedAt: new Date(theme.updatedAt) },
+      });
+  try {
+    await doUpsert();
+  } catch (err) {
+    if (!isMissingRelation(err)) throw err;
+    await ensureQuarterlyThemesTable();
+    await doUpsert();
+  }
 }
 
 export async function setWeights(weights: Weights): Promise<void> {
