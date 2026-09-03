@@ -136,6 +136,8 @@ describe("summary", () => {
           mission: "Alpha",
           stage: "Building",
           horizon: "now",
+          problem: "",
+          description: "",
           kr: "time: 9 → 3 days",
           window: "Aug–Oct",
         },
@@ -143,6 +145,31 @@ describe("summary", () => {
     });
     expect(p).toContain("[Building/now] Ship X (Alpha)");
     expect(p).toContain("KR: time: 9 → 3 days");
+  });
+
+  it("threads the problem statement and description into the snapshot", () => {
+    const p = buildSummaryPrompt({
+      audience: "exec",
+      scope: "quarter",
+      scopeLabel: "Q1 FY26",
+      length: "medium",
+      format: "prose",
+      items: [
+        {
+          title: "Ship X",
+          mission: "Alpha",
+          stage: "Building",
+          horizon: "now",
+          problem: "For Staff: staff answer 'where is X?' instantly",
+          description: "Location tracking + history",
+          kr: "time: 9 → 3 days",
+          window: "Aug–Oct",
+        },
+      ],
+    });
+    expect(p).toContain("problem: For Staff: staff answer 'where is X?' instantly");
+    expect(p).toContain("Location tracking + history");
+    expect(p).toContain("overarching theme");
   });
 
   it("defaults scope, length, and format", () => {

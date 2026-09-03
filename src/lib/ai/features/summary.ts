@@ -10,6 +10,8 @@ const summaryItem = z.object({
   mission: z.string(),
   stage: z.string(),
   horizon: z.string().nullable(),
+  problem: z.string().default(""), // problemStatement — the "for whom, why" this item exists
+  description: z.string().default(""),
   kr: z.string().default(""), // pre-rendered KR reading, e.g. "9 → 3 days (now 6)"
   window: z.string().default(""), // pre-rendered date range, e.g. "Aug–Oct 2026"
 });
@@ -40,8 +42,13 @@ const roadmapSystem = [
 
 const quarterSystem = [
   "Every item below is already scoped to one fiscal quarter, so do not group by",
-  "horizon — instead write across teams, calling out cross-team themes, notable",
-  "initiatives, and how they relate.",
+  "horizon, and do not just march through KRs team by team. Read each item's",
+  "problem statement and description first — that's the 'for whom, and why'",
+  "behind the work — and find what actually connects them this quarter.",
+  "Open with one or two sentences naming that overarching theme: the 'so what'",
+  "a reader should walk away with before they see a single item. Then write",
+  "across teams, calling out notable initiatives, how they relate, and any KRs",
+  "or risks worth flagging — in service of that theme, not as a separate list.",
 ].join("\n");
 
 const timelineSystem = [
@@ -51,11 +58,12 @@ const timelineSystem = [
 ].join("\n");
 
 export const summarySystem = [
-  "You write a concise roadmap update for Campminder's tool, Loop.",
-  "Lead with outcomes (the KRs), not activity. Call out notable risks or gaps",
-  "you can see in the data. No headings longer than a line, no invented",
-  "status. Write for the given audience. Follow the scope, length, and format",
-  "instructions in the prompt.",
+  "You write a concise roadmap update for Campminder's tool, Loop. Read each",
+  "item's problem statement and description, not just its KR — the problem",
+  "statement is the 'for whom, and why' that KRs alone don't capture. Call out",
+  "notable risks or gaps you can see in the data. No headings longer than a",
+  "line, no invented status. Write for the given audience. Follow the scope,",
+  "length, and format instructions in the prompt.",
 ].join("\n");
 
 const SCOPE_SYSTEM: Record<SummaryInput["scope"], string> = {
@@ -69,6 +77,8 @@ export function buildSummaryPrompt(i: SummaryInput): string {
     .map((it) => {
       const bits = [
         `- [${it.stage}${it.horizon ? `/${it.horizon}` : ""}] ${it.title} (${it.mission})`,
+        it.problem ? ` — problem: ${it.problem}` : "",
+        it.description ? ` — ${it.description}` : "",
         it.kr ? ` — KR: ${it.kr}` : "",
         it.window ? ` — ${it.window}` : "",
       ];

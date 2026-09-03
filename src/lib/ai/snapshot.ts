@@ -35,6 +35,8 @@ export interface SummaryItemSnapshot {
   mission: string;
   stage: string;
   horizon: string | null;
+  problem: string; // problemStatement — the "for whom, why" this item exists
+  description: string;
   kr: string;
   window: string;
 }
@@ -45,6 +47,8 @@ export function trimItemForSummary(it: Item): SummaryItemSnapshot {
     mission: it.mission,
     stage: it.stage,
     horizon: it.horizon,
+    problem: it.problemStatement,
+    description: it.description,
     kr: krReading(it),
     window: windowOf(it),
   };
