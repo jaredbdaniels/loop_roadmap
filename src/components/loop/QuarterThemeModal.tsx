@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { useState } from "react";
 import {
   activeThemeMission,
   dateForQuarterIndex,
@@ -32,7 +31,6 @@ export function QuarterThemeModal({ userEmail }: { userEmail: string | null }) {
     quarterlyThemes,
     filterMission,
     saveQuarterlyTheme,
-    refresh,
     toast,
     readOnly,
   } = useLoop();
@@ -84,7 +82,6 @@ export function QuarterThemeModal({ userEmail }: { userEmail: string | null }) {
       readOnly={readOnly}
       onClose={closeQuarterlyTheme}
       onSave={saveQuarterlyTheme}
-      onRefresh={refresh}
       toast={toast}
       userEmail={userEmail}
     />
@@ -99,7 +96,6 @@ function QuarterThemeForm({
   readOnly,
   onClose,
   onSave,
-  onRefresh,
   toast,
   userEmail,
 }: {
@@ -113,32 +109,11 @@ function QuarterThemeForm({
   readOnly: boolean;
   onClose: () => void;
   onSave: (t: QuarterlyTheme) => Promise<boolean>;
-  onRefresh: () => Promise<void>;
   toast: (msg: string, warn?: boolean) => void;
   userEmail: string | null;
 }) {
   const [title, setTitle] = useState(existing?.title ?? "");
   const [narrative, setNarrative] = useState(existing?.narrative ?? "");
-  const [refreshing, setRefreshing] = useState(false);
-  // The background poll that normally keeps this data current is paused for
-  // as long as this modal is open (see pollPausedRef in store.tsx) — on
-  // purpose, so a pull mid-edit can't swap the record out from under someone
-  // typing. That means someone else's update to this same title/narrative
-  // (a teammate editing it concurrently, or a bulk description refresh)
-  // won't show up here until the modal is closed and reopened, unless the
-  // user explicitly asks for it with this button. `existing` is a fresh
-  // object on every refresh (normalizeQuarterThemes always re-spreads), so
-  // this effect fires once per completed refresh even when nothing changed.
-  const pendingRefreshRef = useRef(false);
-  useEffect(() => {
-    if (!pendingRefreshRef.current) return;
-    pendingRefreshRef.current = false;
-    setTitle(existing?.title ?? "");
-    setNarrative(existing?.narrative ?? "");
-    toast("Pulled the latest saved theme.");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existing]);
-
   // Blocks closing until the save round-trips. Closing right after firing the
   // request (the previous behaviour) let the background poll resume before
   // the write was confirmed — a poll landing in that window would refetch
@@ -148,24 +123,6 @@ function QuarterThemeForm({
   // optimistic local update.
   const [saving, setSaving] = useState(false);
   const titleAi = useAiSuggestion<{ title: string }>("theme-title");
-
-  const refreshFromServer = async () => {
-    if (saving || refreshing) return;
-    const dirty =
-      title !== (existing?.title ?? "") || narrative !== (existing?.narrative ?? "");
-    if (
-      dirty &&
-      !window.confirm(
-        "Refreshing will discard your unsaved changes to this theme. Continue?",
-      )
-    ) {
-      return;
-    }
-    setRefreshing(true);
-    pendingRefreshRef.current = true;
-    await onRefresh();
-    setRefreshing(false);
-  };
 
   const generateTitle = async () => {
     if (!narrative.trim()) return toast("Add a narrative to generate a title from first.", true);
@@ -217,27 +174,14 @@ function QuarterThemeForm({
             {quarterLabel} theme
             {mission ? <span className="modal-header-sub"> · {mission}</span> : null}
           </h2>
-          <div className="modal-header-actions">
-            {!readOnly && (
-              <button
-                className="modal-icon-button"
-                onClick={refreshFromServer}
-                disabled={saving || refreshing}
-                aria-label="Refresh from latest saved theme"
-                title="Pull the latest saved title and narrative for this quarter"
-              >
-                <RefreshCw size={14} strokeWidth={2.2} className={refreshing ? "sync-spin" : undefined} />
-              </button>
-            )}
-            <button
-              className="modal-close"
-              onClick={onClose}
-              disabled={saving}
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
+          <button
+            className="modal-close"
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Close"
+          >
+            ×
+          </button>
         </div>
         <div className="modal-body">
           {inheritedFrom?.title && (
