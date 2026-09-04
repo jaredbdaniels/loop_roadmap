@@ -77,12 +77,12 @@ export function HorizonView() {
 
 /* ---------------- by-quarter layout ----------------
    The alternative to the Now/Next/Later call: one column per fiscal quarter,
-   bucketed off each item's own targetStart rather than a manual decision.
-   Same cards, same drag-and-drop board, different question — "when does the
-   dial say this happens" instead of "what did we decide about it". A card
-   spanning several quarters still lands in only one column (the one its start
-   date falls in), the same simplification a Kanban lane already makes about
-   stage. */
+   bucketed off each item's own dates rather than a manual decision. Same
+   cards, same drag-and-drop board, different question — "when does the dial
+   say this happens" instead of "what did we decide about it". A card
+   spanning several quarters lands in every column it touches, not just the
+   one its start date falls in — otherwise "what's happening in Q2" would
+   silently omit work that's still running through Q2 but started in Q1. */
 
 interface QuarterCell {
   index: number;
@@ -150,12 +150,21 @@ function QuarterBoard({ items }: { items: Item[] }) {
         continue;
       }
       const start = fiscalQuarterStart(parseDate(item.targetStart!));
+      const end = fiscalQuarterStart(parseDate(item.targetEnd!));
       if (start < minStart) minStart = start;
-      if (start > maxStart) maxStart = start;
-      const idx = fiscalQuarterIndex(start);
-      const bucket = byQuarter.get(idx);
-      if (bucket) bucket.push(item);
-      else byQuarter.set(idx, [item]);
+      if (end > maxStart) maxStart = end;
+      // Walk every quarter the item touches, not just the one it starts in —
+      // this is the whole point of the by-quarter layout: it's the same card
+      // object pushed into each bucket, so dragging any occurrence still
+      // drags the one real item.
+      let cursor = start;
+      while (cursor <= end) {
+        const idx = fiscalQuarterIndex(cursor);
+        const bucket = byQuarter.get(idx);
+        if (bucket) bucket.push(item);
+        else byQuarter.set(idx, [item]);
+        cursor = nextFiscalQuarterStart(cursor);
+      }
     }
 
     unscheduled.sort(byRank);
@@ -194,7 +203,8 @@ function QuarterBoard({ items }: { items: Item[] }) {
               isNoop={(it) =>
                 isScheduled(it) &&
                 it.horizon !== "non-bet" &&
-                fiscalQuarterIndex(parseDate(it.targetStart!)) === c.index
+                fiscalQuarterIndex(parseDate(it.targetStart!)) <= c.index &&
+                fiscalQuarterIndex(parseDate(it.targetEnd!)) >= c.index
               }
               onDropItem={(it) => withQuarter(it, c.start, c.end)}
               headerAction={
@@ -338,7 +348,7 @@ function DropColumn({
       )}
       <div className="column-body">
         {colItems.map((item) => (
-          <HorizonCard key={item.id} item={item} />
+          <HorizonCard key={item.id} item={item} columnQuarterIndex={quarterIndex} />
         ))}
       </div>
     </div>
@@ -371,7 +381,17 @@ function HorizonColumn({
   );
 }
 
-function HorizonCard({ item }: { item: Item }) {
+function HorizonCard({
+  item,
+  columnQuarterIndex,
+}: {
+  item: Item;
+  // Which quarter column this particular occurrence is rendered in — set
+  // only by the by-quarter board, where a multi-quarter item is pushed into
+  // every quarter it spans. Drives the continuation marker below so the same
+  // card showing up more than once reads as "still running", not a bug.
+  columnQuarterIndex?: number;
+}) {
   const { items, dragId, openDetail, shareMode } = useLoop();
   const [ghost, setGhost] = useState(false);
 
@@ -381,6 +401,19 @@ function HorizonCard({ item }: { item: Item }) {
   const prog = subProgress(item);
   const draggable = !item.killed && !shareMode;
   const stageColor = STAGE_COLORS[item.stage];
+
+  // Continuation marker: only meaningful inside a quarter column, and only
+  // when the item's scheduled span actually crosses more than one quarter.
+  let spanLabel: string | null = null;
+  if (columnQuarterIndex !== undefined && isScheduled(item)) {
+    const spanStart = fiscalQuarterIndex(parseDate(item.targetStart!));
+    const spanEnd = fiscalQuarterIndex(parseDate(item.targetEnd!));
+    if (spanEnd > spanStart) {
+      if (columnQuarterIndex === spanStart) spanLabel = "continues ▸";
+      else if (columnQuarterIndex === spanEnd) spanLabel = "◂ continued";
+      else spanLabel = "◂ continues ▸";
+    }
+  }
 
   return (
     <div
@@ -442,7 +475,17 @@ function HorizonCard({ item }: { item: Item }) {
         )}
       </div>
       <h3>{item.title}</h3>
-      <div className="hz-dates">{fmtRange(item)}</div>
+      <div className="hz-dates">
+        {fmtRange(item)}
+        {spanLabel && (
+          <span
+            className="pill pill-span"
+            title="This item's dates run past this quarter, so its card also appears in the quarter(s) it continues through."
+          >
+            {spanLabel}
+          </span>
+        )}
+      </div>
       {/* Ungated for the same reason as the board card: share mode strips
           `edit-only`, and the link has to survive there. The empty state's
           invitation does not — so in share mode an unlinked item skips the

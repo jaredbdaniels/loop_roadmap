@@ -1543,6 +1543,15 @@ body.exporting .tl-pin-slot {
   background: var(--cm-green-surface);
   color: var(--cm-green);
 }
+/* Continuation marker on a by-quarter board card whose dates run past the
+   quarter it's shown in — see HorizonCard's spanLabel. Neutral like
+   pill-mission: this isn't a warning, just "there's more of this elsewhere". */
+.pill-span {
+  background: var(--cm-surface-muted);
+  color: var(--cm-fg-secondary);
+  border: 1px solid var(--cm-border);
+  margin: 0;
+}
 .card-kr {
   margin-bottom: 10px;
 }
