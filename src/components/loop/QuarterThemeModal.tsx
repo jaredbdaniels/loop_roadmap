@@ -10,6 +10,8 @@ import {
 } from "@/lib/loop/logic";
 import type { QuarterlyTheme } from "@/lib/loop/types";
 import { nowISO, useLoop } from "./store";
+import { SuggestButton } from "./SuggestButton";
+import { useAiSuggestion } from "./useAi";
 
 // Set or clear the narrative theme for one fiscal quarter. Opened from a click
 // on a quarter's header in the Horizon quarter board or the Timeline quarter
@@ -120,6 +122,14 @@ function QuarterThemeForm({
   // store.tsx's pollPausedRef) for the entire request, not just until the
   // optimistic local update.
   const [saving, setSaving] = useState(false);
+  const titleAi = useAiSuggestion<{ title: string }>("theme-title");
+
+  const generateTitle = async () => {
+    if (!narrative.trim()) return toast("Add a narrative to generate a title from first.", true);
+    const { data, error } = await titleAi.run({ narrative: narrative.trim() });
+    if (!data) return toast(error ?? "Couldn't generate a title.", true);
+    setTitle(data.title);
+  };
 
   const quarterDate = dateForQuarterIndex(quarterIndex);
   const quarterLabel = `${fiscalQuarterLabel(quarterDate)} · ${fiscalSeasonLabel(quarterDate)}`;
@@ -204,6 +214,15 @@ function QuarterThemeForm({
                 value={narrative}
                 onChange={(e) => setNarrative(e.target.value)}
               />
+              <div className="ai-inline">
+                <SuggestButton
+                  loading={titleAi.loading}
+                  onClick={generateTitle}
+                  title="Generate an outcome-based title from the narrative above"
+                >
+                  Generate title
+                </SuggestButton>
+              </div>
             </div>
           </fieldset>
         </div>

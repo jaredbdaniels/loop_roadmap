@@ -8,6 +8,7 @@ import { krOut } from "./kr";
 import { captureOut } from "./capture";
 import { buildSummaryPrompt, summaryBody } from "./summary";
 import { buildThemeSummaryPrompt, themeSummaryBody } from "./theme-summary";
+import { buildThemeTitlePrompt, themeTitleBody } from "./theme-title";
 
 describe("rice", () => {
   it("requires a title", () => {
@@ -276,5 +277,19 @@ describe("theme-summary", () => {
     expect(bullets).toContain("Format: bullets");
     expect(bullets).toContain("Write as a bullet list");
     expect(bullets).not.toContain("Write in plain prose paragraphs");
+  });
+});
+
+describe("theme-title", () => {
+  it("requires a non-empty narrative", () => {
+    expect(themeTitleBody.safeParse({}).success).toBe(false);
+    expect(themeTitleBody.safeParse({ narrative: "" }).success).toBe(false);
+    expect(themeTitleBody.safeParse({ narrative: "Speed up onboarding" }).success).toBe(
+      true,
+    );
+  });
+  it("prompt includes the narrative", () => {
+    const p = buildThemeTitlePrompt({ narrative: "Speed up onboarding for new camps" });
+    expect(p).toContain("Speed up onboarding for new camps");
   });
 });

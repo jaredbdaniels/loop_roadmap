@@ -11,6 +11,7 @@ import { aiEnabled } from "@/lib/ai/model";
 import { suggest, suggestText } from "@/lib/ai/suggest";
 import { POST as ricePost } from "@/app/api/ai/rice/route";
 import { POST as explainPost } from "@/app/api/ai/explain-rank/route";
+import { POST as themeTitlePost } from "@/app/api/ai/theme-title/route";
 
 const req = (body: unknown) =>
   new Request("http://test/api/ai/rice", {
@@ -94,5 +95,47 @@ describe("aiTextRoute (explain-rank)", () => {
     const res = await explainPost(req(body));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ text: "Reach dominates this ranking." });
+  });
+});
+
+describe("aiObjectRoute (theme-title)", () => {
+  const body = { narrative: "Speed up onboarding for new camps this quarter." };
+
+  it("401 when unauthenticated", async () => {
+    vi.mocked(getSession).mockResolvedValue(null);
+    vi.mocked(aiEnabled).mockReturnValue(true);
+    const res = await themeTitlePost(req(body));
+    expect(res.status).toBe(401);
+  });
+
+  it("503 when AI is disabled", async () => {
+    vi.mocked(getSession).mockResolvedValue({ user: { id: "u" } } as never);
+    vi.mocked(aiEnabled).mockReturnValue(false);
+    const res = await themeTitlePost(req(body));
+    expect(res.status).toBe(503);
+  });
+
+  it("400 on invalid body", async () => {
+    vi.mocked(getSession).mockResolvedValue({ user: { id: "u" } } as never);
+    vi.mocked(aiEnabled).mockReturnValue(true);
+    const res = await themeTitlePost(req({ narrative: "" }));
+    expect(res.status).toBe(400);
+  });
+
+  it("200 with the suggested title on success", async () => {
+    vi.mocked(getSession).mockResolvedValue({ user: { id: "u" } } as never);
+    vi.mocked(aiEnabled).mockReturnValue(true);
+    vi.mocked(suggest).mockResolvedValue({ title: "Camps onboard faster" });
+    const res = await themeTitlePost(req(body));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ title: "Camps onboard faster" });
+  });
+
+  it("502 when the model call throws", async () => {
+    vi.mocked(getSession).mockResolvedValue({ user: { id: "u" } } as never);
+    vi.mocked(aiEnabled).mockReturnValue(true);
+    vi.mocked(suggest).mockRejectedValue(new Error("provider down"));
+    const res = await themeTitlePost(req(body));
+    expect(res.status).toBe(502);
   });
 });
