@@ -1,3 +1,4 @@
+import { hasReachedCustomers } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 import { parseWorkItemId, type AdoWorkItem } from "./client";
 
@@ -47,7 +48,7 @@ export function isClosedState(state: string): boolean {
 }
 
 function stageFlag(item: Item, wi: AdoWorkItem): string | null {
-  if (CLOSED_STATES.has(wi.state) && item.stage !== "Releasing") {
+  if (CLOSED_STATES.has(wi.state) && !hasReachedCustomers(item.stage)) {
     return `ADO work item is ${wi.state} but the Loop item is still in ${item.stage} — consider setting a shipped date and moving toward Releasing.`;
   }
   if (ACTIVE_STATES.has(wi.state) && item.stage !== "Building") {

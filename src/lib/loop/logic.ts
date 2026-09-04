@@ -136,7 +136,17 @@ const CURRENT_TEAMS = new Set(MISSIONS);
 
 // Stage names — current and historical — that mean the work reached customers,
 // and so imply a shipped date on any row that lacks one.
-const SHIPPED_STAGES = new Set(["Releasing", "Learn", "Ship"]);
+const SHIPPED_STAGES = new Set(["Releasing", "Learning", "Learn", "Ship"]);
+
+// The current stages that mean "customers have this", as opposed to
+// SHIPPED_STAGES above (which also carries retired names, only relevant at
+// migration time). Centralized so every place that asks "has this reached
+// customers" — a dependency, a bet's progress bar, the portfolio stats —
+// agrees, including once an item moves on from Releasing into Learning.
+const RELEASED_STAGES = new Set(["Releasing", "Learning"]);
+export function hasReachedCustomers(stage: string): boolean {
+  return RELEASED_STAGES.has(stage);
+}
 
 export function migrateItems(items: Item[]): Item[] {
   return items.map((raw) => {
@@ -415,6 +425,7 @@ const LINK_PREFERENCE: Record<Stage, ItemLinkKind[]> = {
   Solutioning: ["design", "brief", "ado", "idea"],
   Building: ["ado", "design", "brief", "idea"],
   Releasing: ["ado", "design", "brief", "idea"],
+  Learning: ["ado", "design", "brief", "idea"],
 };
 
 function trimmed(s: string | null | undefined): string {
@@ -617,7 +628,7 @@ export function getItem(items: Item[], id: string): Item | undefined {
 }
 
 export function blockerSatisfied(dep: Item): boolean {
-  return dep.killed || !!dep.shippedAt || dep.stage === "Releasing";
+  return dep.killed || !!dep.shippedAt || hasReachedCustomers(dep.stage);
 }
 
 export function unmetDeps(item: Item, items: Item[]): Item[] {
@@ -843,7 +854,9 @@ export function computeStats(items: Item[]): Stats {
   const framedRate = shouldBeFramed.length
     ? Math.round((100 * framedGood) / shouldBeFramed.length)
     : 0;
-  const released = active.filter((i) => i.shippedAt || i.stage === "Releasing");
+  const released = active.filter(
+    (i) => i.shippedAt || hasReachedCustomers(i.stage),
+  );
   const withOutcome = released.filter(
     (i) => i.outcomeReading && i.outcomeReading.trim().length > 0,
   ).length;
@@ -1100,7 +1113,7 @@ export function betEnvelope(
 }
 
 // Progress across the bet's linked items (mirrors subProgress' shape): `done`
-// counts items that have reached customers (the Releasing band).
+// counts items that have reached customers (Releasing or Learning).
 //
 // Parked work is excluded from the denominator, like every other bet roll-up: an
 // idea nobody has started is not progress waiting to happen, and counting it
@@ -1113,7 +1126,7 @@ export function betProgress(
   const linked = betItems(bet, items).filter((i) => !isIntake(i));
   if (!linked.length) return null;
   return {
-    done: linked.filter((i) => i.stage === "Releasing").length,
+    done: linked.filter((i) => hasReachedCustomers(i.stage)).length,
     total: linked.length,
   };
 }

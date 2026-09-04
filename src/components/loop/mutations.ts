@@ -9,6 +9,7 @@ import {
   daysBetween,
   fiscalQuarterLabel,
   fmtRange,
+  hasReachedCustomers,
   isIntake,
   isScheduled,
   parseDate,
@@ -80,7 +81,11 @@ export function movedToStage(item: Item, targetStage: Stage): Item {
   };
   if (targetStage === "Building" && !next.committedAt)
     next.committedAt = updatedAt;
-  if (targetStage === "Releasing" && !next.shippedAt) next.shippedAt = updatedAt;
+  // Dragging straight from Building to Learning (skipping the Releasing lane
+  // on the board) still means it shipped — so this checks "reached
+  // customers", not just the exact Releasing name.
+  if (hasReachedCustomers(targetStage) && !next.shippedAt)
+    next.shippedAt = updatedAt;
   return next;
 }
 

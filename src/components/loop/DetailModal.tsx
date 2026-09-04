@@ -34,6 +34,7 @@ import {
   framingGaps,
   genId,
   hasEvidence,
+  hasReachedCustomers,
   horizonMismatch,
   krProgress,
   krStatus,
@@ -193,10 +194,11 @@ export function DetailModal() {
   const setKrNum = (k: "baseline" | "target" | "current", raw: string) =>
     setKr(k, raw.trim() === "" ? null : Number(raw));
 
-  // Once an item has reached Releasing, default to the simplified learning-
-  // capture layout. Gate on the *persisted* stage (item.stage), not the editable
-  // form.stage, so changing the stage dropdown mid-edit doesn't reflow the view.
-  const learnMode = item.stage === "Releasing" && !showAll;
+  // Once an item has reached Learning — the retrospective lane after
+  // Releasing — default to the simplified learning-capture layout. Gate on the
+  // *persisted* stage (item.stage), not the editable form.stage, so changing
+  // the stage dropdown mid-edit doesn't reflow the view.
+  const learnMode = item.stage === "Learning" && !showAll;
 
   // --- AI drafts. None of these persist; they fill the form for the user to
   // review and save (or discard by closing). Failures toast and change nothing.
@@ -449,7 +451,7 @@ export function DetailModal() {
         next.activity = [...(next.activity || []), `Moved to ${targetStage}.`];
         if (targetStage === "Building" && !next.committedAt)
           next.committedAt = next.updatedAt;
-        if (targetStage === "Releasing" && !next.shippedAt)
+        if (hasReachedCustomers(targetStage) && !next.shippedAt)
           next.shippedAt = next.updatedAt;
         // React to the move: a ship sets the unicorn loose, a forward step
         // cheers, a step back sighs.
@@ -598,7 +600,7 @@ export function DetailModal() {
           <div className="form-section" style={{ borderTop: 0, paddingTop: 0 }}>
             <div
               className="form-section-title"
-              style={{ color: STAGE_COLORS.Releasing }}
+              style={{ color: STAGE_COLORS.Learning }}
             >
               <GraduationCap size={13} strokeWidth={2.4} /> Close the loop
             </div>
@@ -1786,7 +1788,7 @@ export function DetailModal() {
         </>
         )}
         </fieldset>
-        {item.stage === "Releasing" && (
+        {item.stage === "Learning" && (
           <button
             type="button"
             className="cm-button cm-button--ghost cm-button--small"
@@ -1900,12 +1902,12 @@ function DetailSummary({
     jumps = [{ label: "Add a prototype", id: EVIDENCE_ANCHOR }];
   } else if (
     !hasEvidence(form) &&
-    (stage === "Building" || stage === "Releasing")
+    (stage === "Building" || hasReachedCustomers(stage))
   ) {
     tone = "warn";
     text = "No prototype or evidence is linked to this.";
     jumps = [{ label: "Add a prototype", id: EVIDENCE_ANCHOR }];
-  } else if (stage === "Releasing") {
+  } else if (stage === "Learning") {
     text = form.whatWeLearned.trim()
       ? "Loop closed — learnings recorded."
       : "Shipped. Record the reading and what you learned to close the loop.";

@@ -795,7 +795,7 @@ describe("migrateItems stage migration", () => {
     expect(stageOf("Frame")).toBe("Solutioning");
     expect(stageOf("Validate")).toBe("Solutioning");
     expect(stageOf("Deliver")).toBe("Building");
-    expect(stageOf("Learn")).toBe("Releasing");
+    expect(stageOf("Learn")).toBe("Learning");
   });
 
   it("maps the pre-loop stage names too", () => {
@@ -810,11 +810,11 @@ describe("migrateItems stage migration", () => {
   it("leaves a current stage alone and is idempotent", () => {
     for (const s of STAGES) expect(stageOf(s)).toBe(s);
     const once = migrateItems([withStage("Learn")]);
-    expect(migrateItems(once)[0].stage).toBe("Releasing");
+    expect(migrateItems(once)[0].stage).toBe("Learning");
   });
 
   it("backfills shippedAt for every stage that means customers have it", () => {
-    for (const s of ["Ship", "Learn", "Releasing"]) {
+    for (const s of ["Ship", "Learn", "Releasing", "Learning"]) {
       const [m] = migrateItems([withStage(s, { shippedAt: null })]);
       expect(m.shippedAt, s).toBeTruthy();
     }
