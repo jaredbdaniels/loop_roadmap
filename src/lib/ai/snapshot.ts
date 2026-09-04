@@ -47,8 +47,11 @@ export function trimItemForSummary(it: Item): SummaryItemSnapshot {
     mission: it.mission,
     stage: it.stage,
     horizon: it.horizon,
-    problem: it.problemStatement,
-    description: it.description,
+    // Legacy items predate these fields and migrateItems doesn't backfill
+    // them (see isFramed's guard in logic.ts), so they can be undefined at
+    // runtime despite Item's type — default like the other fields here.
+    problem: it.problemStatement ?? "",
+    description: it.description ?? "",
     kr: krReading(it),
     window: windowOf(it),
   };

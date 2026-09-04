@@ -53,6 +53,7 @@ import { DetailModal } from "./DetailModal";
 import { CaptureModal } from "./CaptureModal";
 import { BetModal } from "./BetModal";
 import { MilestoneModal } from "./MilestoneModal";
+import { NewDraftModal, type NewDraftMode } from "./NewDraftModal";
 import { QuarterThemeModal } from "./QuarterThemeModal";
 import { SettingsModal } from "./SettingsModal";
 import { ShareModal } from "./ShareModal";
@@ -208,6 +209,8 @@ function Shell({
   const fileRef = useRef<HTMLInputElement | null>(null);
   const viewRef = useRef<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [newDraftOpen, setNewDraftOpen] = useState(false);
+  const [creatingDraft, setCreatingDraft] = useState(false);
 
   // Arriving from a bet page's Edit button (/?edit=<id>). Runs once: reopening
   // the modal every time `openBet` changed identity would trap a reader who
@@ -325,13 +328,20 @@ function Shell({
 
   const onScenarioChange = (value: string) => {
     if (value === NEW_SCENARIO) {
-      const name = window.prompt(
-        'Name this draft scenario (e.g. "Q3 reshuffle"):',
-      );
-      if (name && name.trim()) forkScenario(name.trim());
+      setNewDraftOpen(true);
       return;
     }
     setScenario(value);
+  };
+
+  const createDraft = async (name: string, mode: NewDraftMode) => {
+    setCreatingDraft(true);
+    try {
+      await forkScenario(name, "whatif", mode);
+      setNewDraftOpen(false);
+    } finally {
+      setCreatingDraft(false);
+    }
   };
 
   // What the Timeline's "AI Summary" button narrates — the same filtered set
@@ -714,6 +724,12 @@ function Shell({
       <CaptureModal />
       <BetModal />
       <MilestoneModal />
+      <NewDraftModal
+        open={newDraftOpen}
+        creating={creatingDraft}
+        onCreate={createDraft}
+        onCancel={() => setNewDraftOpen(false)}
+      />
       <QuarterThemeModal userEmail={userEmail} />
       <SettingsModal />
       {!readOnly && <ShareModal />}

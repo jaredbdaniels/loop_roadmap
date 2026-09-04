@@ -569,37 +569,52 @@ async function ensureScenariosTable(): Promise<void> {
   );
 }
 
+// Runs a `scenarios`-table op, healing schema drift instead of letting it
+// 500: a missing column (added to an existing table, isMissingColumn) always
+// heals via ensureScenariosTable() and retries once; a missing table
+// (isMissingRelation) either heals+retries the same way, or — if the caller
+// passes `onMissingRelation` — degrades straight to that fallback instead
+// (used by reads that have a sane empty-result answer; writes have no such
+// answer, so they heal+retry like the column case).
+async function withSchemaHeal<T>(
+  op: () => Promise<T>,
+  onMissingRelation?: () => T,
+): Promise<T> {
+  try {
+    return await op();
+  } catch (err) {
+    if (onMissingRelation && isMissingRelation(err)) return onMissingRelation();
+    if (!isMissingRelation(err) && !isMissingColumn(err)) throw err;
+    await ensureScenariosTable();
+    return op();
+  }
+}
+
 // Metadata (no state blob) for the current user's scenarios, newest edit first.
 export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> {
-  const doList = () =>
-    db
-      .select({
-        id: scenariosTable.id,
-        name: scenariosTable.name,
-        createdBy: scenariosTable.createdBy,
-        kind: scenariosTable.kind,
-        locked: scenariosTable.locked,
-        forkedAt: scenariosTable.forkedAt,
-        createdAt: scenariosTable.createdAt,
-        updatedAt: scenariosTable.updatedAt,
-      })
-      .from(scenariosTable)
-      .where(or(eq(scenariosTable.createdBy, createdBy), readableByAnyone))
-      .orderBy(desc(scenariosTable.updatedAt));
-  let rows;
-  try {
-    rows = await doList();
-  } catch (err) {
-    if (isMissingRelation(err)) {
+  const rows = await withSchemaHeal(
+    () =>
+      db
+        .select({
+          id: scenariosTable.id,
+          name: scenariosTable.name,
+          createdBy: scenariosTable.createdBy,
+          kind: scenariosTable.kind,
+          locked: scenariosTable.locked,
+          forkedAt: scenariosTable.forkedAt,
+          createdAt: scenariosTable.createdAt,
+          updatedAt: scenariosTable.updatedAt,
+        })
+        .from(scenariosTable)
+        .where(or(eq(scenariosTable.createdBy, createdBy), readableByAnyone))
+        .orderBy(desc(scenariosTable.updatedAt)),
+    () => {
       console.warn(
         "scenarios table not found — run `npm run db:push`. Returning [].",
       );
       return [];
-    }
-    if (!isMissingColumn(err)) throw err;
-    await ensureScenariosTable();
-    rows = await doList();
-  }
+    },
+  );
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -618,22 +633,41 @@ export async function listScenarios(createdBy: string): Promise<ScenarioMeta[]> 
 // scenario" step, because a whatif that gets locked after the fact would still
 // carry whatever half-finished edits were in it when someone remembered to
 // lock it.
+//
+// `mode` controls what the fork starts with: "clone" (the default, and the
+// only option before this existed) copies the live roadmap's items, bets,
+// milestones and outlooks; "blank" starts every one of those empty so a
+// what-if can be built up from nothing instead of pruned down from
+// everything. Weights always carry over from live either way — they're a
+// ranking preference, not roadmap content, so a blank board inherits the
+// same ranking the live roadmap uses rather than reverting to seed defaults.
 export async function createScenario(
   name: string,
   createdBy: string,
   kind: Scenario["kind"] = "whatif",
+  mode: "clone" | "blank" = "clone",
 ): Promise<Scenario> {
   const live = await getState();
   const now = new Date();
   const id = "sc_" + crypto.randomUUID();
-  const state: LoopState = {
-    items: live.items,
-    weights: live.weights,
-    bets: live.bets,
-    milestones: live.milestones,
-    outlooks: live.outlooks,
-    quarterlyThemes: live.quarterlyThemes,
-  };
+  const state: LoopState =
+    mode === "blank"
+      ? {
+          items: [],
+          weights: live.weights,
+          bets: [],
+          milestones: [],
+          outlooks: [],
+          quarterlyThemes: [],
+        }
+      : {
+          items: live.items,
+          weights: live.weights,
+          bets: live.bets,
+          milestones: live.milestones,
+          outlooks: live.outlooks,
+          quarterlyThemes: live.quarterlyThemes,
+        };
   const locked = kind === "headlights-archive";
   const doInsert = () =>
     db.insert(scenariosTable).values({
@@ -647,13 +681,7 @@ export async function createScenario(
       createdAt: now,
       updatedAt: now,
     });
-  try {
-    await doInsert();
-  } catch (err) {
-    if (!isMissingRelation(err) && !isMissingColumn(err)) throw err;
-    await ensureScenariosTable();
-    await doInsert();
-  }
+  await withSchemaHeal(doInsert);
   return {
     id,
     name,
@@ -674,26 +702,20 @@ export async function getScenario(
   id: string,
   createdBy: string,
 ): Promise<Scenario | null> {
-  const doSelect = () =>
-    db
-      .select()
-      .from(scenariosTable)
-      .where(
-        and(
-          eq(scenariosTable.id, id),
-          or(eq(scenariosTable.createdBy, createdBy), readableByAnyone),
-        ),
-      )
-      .limit(1);
-  let rows;
-  try {
-    rows = await doSelect();
-  } catch (err) {
-    if (isMissingRelation(err)) return null;
-    if (!isMissingColumn(err)) throw err;
-    await ensureScenariosTable();
-    rows = await doSelect();
-  }
+  const rows = await withSchemaHeal(
+    () =>
+      db
+        .select()
+        .from(scenariosTable)
+        .where(
+          and(
+            eq(scenariosTable.id, id),
+            or(eq(scenariosTable.createdBy, createdBy), readableByAnyone),
+          ),
+        )
+        .limit(1),
+    () => [],
+  );
   return rows[0] ? rowToScenario(rows[0]) : null;
 }
 
@@ -712,13 +734,15 @@ export async function saveScenario(
   createdBy: string,
   state: LoopState,
 ): Promise<ScenarioWriteResult> {
-  const rows = await db
-    .select({ locked: scenariosTable.locked })
-    .from(scenariosTable)
-    .where(
-      and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
-    )
-    .limit(1);
+  const rows = await withSchemaHeal(() =>
+    db
+      .select({ locked: scenariosTable.locked })
+      .from(scenariosTable)
+      .where(
+        and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
+      )
+      .limit(1),
+  );
   if (!rows[0]) return { ok: false, reason: "not_found" };
   if (rows[0].locked) return { ok: false, reason: "locked" };
   await db
@@ -739,13 +763,15 @@ export async function deleteScenario(
   id: string,
   createdBy: string,
 ): Promise<ScenarioWriteResult> {
-  const rows = await db
-    .select({ locked: scenariosTable.locked })
-    .from(scenariosTable)
-    .where(
-      and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
-    )
-    .limit(1);
+  const rows = await withSchemaHeal(() =>
+    db
+      .select({ locked: scenariosTable.locked })
+      .from(scenariosTable)
+      .where(
+        and(eq(scenariosTable.id, id), eq(scenariosTable.createdBy, createdBy)),
+      )
+      .limit(1),
+  );
   if (!rows[0]) return { ok: true };
   if (rows[0].locked) return { ok: false, reason: "locked" };
   await db
