@@ -2172,6 +2172,33 @@ table.hl-rollup tbody tr:last-child td {
   color: var(--cm-red);
   border-color: var(--cm-red-line);
 }
+/* Header-row actions that sit beside the × close button (e.g. the quarter
+   theme modal's "pull latest" refresh) — same size and resting look as
+   .modal-close, but hover stays neutral since it isn't a destructive action. */
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.modal-icon-button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--cm-surface-muted);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--r-md);
+  color: var(--cm-muted-fg);
+  transition: background 0.14s, color 0.14s;
+}
+.modal-icon-button:hover:not(:disabled) {
+  background: var(--cm-surface);
+  color: var(--cm-fg);
+}
+.modal-icon-button:disabled {
+  opacity: 0.5;
+}
 .modal-body {
   flex: 1;
   min-height: 0;
