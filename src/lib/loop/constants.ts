@@ -297,7 +297,7 @@ export const ZOOMS: Record<"month" | "quarter" | "year", number> = {
 
 export const DAY = 86400000;
 
-export type ViewKey = "board" | "timeline" | "horizon" | "headlights";
+export type ViewKey = "board" | "timeline" | "horizon" | "themes" | "headlights";
 export type ZoomKey = "month" | "quarter" | "year";
 // How the timeline segments its rows: into team bands (the default), into
 // one band per bet, or into one band per domain (the durable JTBD-map

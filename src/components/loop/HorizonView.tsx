@@ -6,9 +6,7 @@ import {
   activeThemeMission,
   computeRank,
   fiscalQuarterIndex,
-  fiscalQuarterLabel,
   fiscalQuarterStart,
-  fiscalSeasonLabel,
   fmtRange,
   horizonMismatch,
   isScheduled,
@@ -16,6 +14,7 @@ import {
   killedDeps,
   nextFiscalQuarterStart,
   parseDate,
+  quarterCells,
   quarterThemeForIndex,
   subProgress,
   themeIsInherited,
@@ -84,35 +83,12 @@ export function HorizonView() {
    one its start date falls in — otherwise "what's happening in Q2" would
    silently omit work that's still running through Q2 but started in Q1. */
 
-interface QuarterCell {
-  index: number;
-  label: string;
-  season: string;
-  start: Date;
-  end: Date;
-}
-
 // Fiscal quarters as a column can never be blank at a glance: always spans
 // at least today's quarter through three more, stretched further out to cover
 // whatever is actually scheduled. "non-bet" items are excluded from both the
 // bucketing and the range math — a declined call has no business stretching
 // the calendar, which is why it gets its own trailing column below instead.
-function quarterCells(minStart: Date, maxStart: Date): QuarterCell[] {
-  const cells: QuarterCell[] = [];
-  let cursor = minStart;
-  while (cursor <= maxStart) {
-    const end = nextFiscalQuarterStart(cursor);
-    cells.push({
-      index: fiscalQuarterIndex(cursor),
-      label: fiscalQuarterLabel(cursor),
-      season: fiscalSeasonLabel(cursor),
-      start: cursor,
-      end,
-    });
-    cursor = end;
-  }
-  return cells;
-}
+// (`quarterCells` itself now lives in logic.ts, shared with the Themes tab.)
 
 function QuarterBoard({ items }: { items: Item[] }) {
   const { weights, filterMission } = useLoop();

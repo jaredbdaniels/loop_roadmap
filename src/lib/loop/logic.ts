@@ -760,6 +760,49 @@ export function dateForQuarterIndex(index: number): Date {
   return new Date(fiscalYear - 1, FISCAL_START_MONTH + quarter0 * 3, 1);
 }
 
+export interface QuarterCell {
+  index: number;
+  label: string;
+  season: string;
+  start: Date;
+  end: Date;
+}
+
+// One cell per fiscal quarter between minStart and maxStart, inclusive —
+// shared by every by-quarter board (Horizon's quarter layout, the Themes
+// tab) so they always agree on how a date range turns into columns.
+export function quarterCells(minStart: Date, maxStart: Date): QuarterCell[] {
+  const cells: QuarterCell[] = [];
+  let cursor = minStart;
+  while (cursor <= maxStart) {
+    const end = nextFiscalQuarterStart(cursor);
+    cells.push({
+      index: fiscalQuarterIndex(cursor),
+      label: fiscalQuarterLabel(cursor),
+      season: fiscalSeasonLabel(cursor),
+      start: cursor,
+      end,
+    });
+    cursor = end;
+  }
+  return cells;
+}
+
+// Every scheduled, non-killed, non-"non-bet" item touching a given fiscal
+// quarter — the same bracket the Horizon board's by-quarter columns use to
+// bucket items, but for one quarter on demand rather than every quarter in a
+// single pass. Used by the Themes tab to tell "no theme written yet" apart
+// from "no work scheduled to write one about".
+export function itemsInFiscalQuarter(items: Item[], quarterIndex: number): Item[] {
+  return items.filter((item) => {
+    if (item.killed || item.horizon === "non-bet") return false;
+    if (!isScheduled(item)) return false;
+    const startIdx = fiscalQuarterIndex(parseDate(item.targetStart!));
+    const endIdx = fiscalQuarterIndex(parseDate(item.targetEnd!));
+    return startIdx <= quarterIndex && endIdx >= quarterIndex;
+  });
+}
+
 /* ---------------- seasons ----------------
    Campminder talks in seasons, not quarter numbers: Fall, Winter, Spring,
    Summer. Because the fiscal year starts in September the two line up exactly —

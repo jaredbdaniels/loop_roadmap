@@ -5,6 +5,7 @@ import {
   Columns3,
   GanttChartSquare,
   Layers,
+  BookOpenText,
   Flag,
   Flashlight,
   Plus,
@@ -48,6 +49,7 @@ import { AiSummaryPopover } from "./AiSummaryPopover";
 import { BoardView } from "./BoardView";
 import { TimelineView } from "./TimelineView";
 import { HorizonView } from "./HorizonView";
+import { ThemesView } from "./ThemesView";
 import { HeadlightsView } from "./HeadlightsView";
 import { DetailModal } from "./DetailModal";
 import { CaptureModal } from "./CaptureModal";
@@ -70,6 +72,7 @@ const VIEWS: { key: ViewKey; label: string; icon: typeof Columns3 }[] = [
   { key: "board", label: "Board", icon: Columns3 },
   { key: "timeline", label: "Timeline", icon: GanttChartSquare },
   { key: "horizon", label: "Horizon", icon: Layers },
+  { key: "themes", label: "Themes", icon: BookOpenText },
   { key: "headlights", label: "Headlights", icon: Flashlight },
 ];
 
@@ -717,6 +720,7 @@ function Shell({
         {view === "board" && <BoardView />}
         {view === "timeline" && <TimelineView />}
         {view === "horizon" && <HorizonView />}
+        {view === "themes" && <ThemesView />}
         {view === "headlights" && <HeadlightsView userEmail={userEmail} />}
       </main>
 

@@ -3720,6 +3720,47 @@ button.hz-col-theme {
 .hz-col-theme--empty:hover {
   color: var(--cm-accent);
 }
+/* Themes tab: one card per team per quarter. Unlike .hz-col-theme above,
+   title and narrative both wrap in full rather than truncating with an
+   ellipsis — the whole point of this view is reading a theme, not a hint of
+   one, so nothing here should ever get cut off mid-sentence. */
+.theme-card {
+  cursor: pointer;
+}
+.theme-card--readonly {
+  cursor: default;
+}
+.theme-card-team {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--cm-muted-fg);
+  margin-bottom: 5px;
+}
+.theme-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.32;
+  letter-spacing: -0.015em;
+  color: var(--cm-fg);
+  white-space: normal;
+  overflow-wrap: break-word;
+  margin-bottom: 6px;
+}
+.theme-card-narrative {
+  font-size: 0.78rem;
+  color: var(--cm-fg-secondary);
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+.theme-card-empty {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--cm-muted-fg);
+  line-height: 1.5;
+}
 .hz-dates {
   font-size: 0.72rem;
   color: var(--cm-muted-fg);
