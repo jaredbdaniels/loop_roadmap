@@ -76,6 +76,36 @@ current."
 
 ---
 
+## Three filters for the spine and why-now
+
+The spine and why-now are human-authored because a model cannot know what the company has decided to
+be. These three filters are that decision, made explicit. They gate every future spine and why-now,
+not only the one drafted 2026-08-10, and a regeneration that drifts from them is a signal to revisit
+the human fields, not a bug in the prose.
+
+1. **One product, not a portfolio.** Camco is becoming a single product across the whole camp-space
+   portfolio — Campminder, UltraCamp, and everything alongside them. The spine and why-now narrate the
+   roadmap as one company building one thing for camps, not as parallel platforms kept in sync. Where
+   a spine already gestures at this (the current example's "UltraCamp convergence" spine, for
+   instance), the filter is what makes it explicit and portfolio-wide rather than one program among
+   several.
+2. **Adjacent market is real, near-term, and sequenced — not a pivot.** Camp-adjacent markets belong in
+   the why-now as a stated ambition: genuinely near-term, camp-like first (similar seasonal operations,
+   similar buyer, similar workflows), with broader expansion conditional on the platform being modern
+   first. Nothing in the acts or milestones should imply the roadmap is already building for a market
+   it hasn't named as a bet.
+3. **The story is pre-summer, told from camp's side, and modernization is the headline.** Two things
+   follow:
+   - **Outcome, not inventory.** The spine and act descriptions say what changes for a camp director or
+     a family, not how many epics or features shipped. A reader should come away knowing what got
+     better, not how much got built.
+   - **Modernization leads, it doesn't trail.** Where the roadmap pairs new value with modernization,
+     lead with modernization and frame it as making the product materially better — faster, more
+     reliable, capable of what it structurally couldn't do before — never as a new coat of paint. That
+     framing is the one this filter forbids.
+
+---
+
 ## The sections
 
 Ordered so that reading top to bottom is the argument. Each is deterministic in structure; the prose
@@ -292,6 +322,9 @@ defensible six months later: you can show what was true when you said it.
 - **Structure in code, prose from AI, numbers injected**, with a fidelity check and a deterministic
   fallback.
 - **The spine and why-now are human-authored and sticky.**
+- **Three content filters gate every spine and why-now**: one product across the camp-space
+  portfolio, adjacent-market expansion framed as near-term and camp-like-first, and a pre-summer,
+  outcome-led story that leads with modernization rather than treats it as a footnote.
 - **Shared narratives are frozen snapshots**, many live at once, reusing `isLive`.
 - **Tension detection is rule-based**, with thresholds in a reviewable constants block.
 - **Outward-facing registers are gated in the data**, not in the prompt.
