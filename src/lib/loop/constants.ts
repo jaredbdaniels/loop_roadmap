@@ -240,10 +240,13 @@ export const BET_COLORS = [
 export type HorizonKey = "now" | "next" | "later" | "unassigned" | "non-bet";
 
 // How the Horizon view lays out its columns: the manual Now/Next/Later call
-// (the default — see HorizonKey), or one column per fiscal quarter derived
-// from each item's dates. Same items, same cards; only the bucketing rule
-// changes, which is why it lives beside HorizonKey rather than duplicating it.
-export type HorizonLayoutKey = "call" | "quarter";
+// (the default — see HorizonKey), one column per fiscal quarter derived from
+// each item's dates, or the per-team, per-quarter theme board (formerly its
+// own top-level tab — themes are a way of looking at the same horizon, not a
+// different roadmap). Same items, same cards for "call"/"quarter"; "themes"
+// swaps the item board out entirely, which is why HorizonView branches on
+// this before rendering anything else.
+export type HorizonLayoutKey = "call" | "quarter" | "themes";
 
 export const HORIZONS: {
   key: HorizonKey;
@@ -298,7 +301,7 @@ export const ZOOMS: Record<"month" | "quarter" | "year", number> = {
 
 export const DAY = 86400000;
 
-export type ViewKey = "board" | "timeline" | "horizon" | "themes" | "headlights";
+export type ViewKey = "board" | "timeline" | "horizon" | "headlights";
 export type ZoomKey = "month" | "quarter" | "year";
 // How the timeline segments its rows: into team bands (the default), into
 // one band per bet, or into one band per domain (the durable JTBD-map

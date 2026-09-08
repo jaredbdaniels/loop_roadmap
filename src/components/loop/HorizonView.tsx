@@ -28,6 +28,7 @@ import { ItemLink } from "./ItemLink";
 import { AiSummaryPopover } from "./AiSummaryPopover";
 import { trimItemForSummary } from "@/lib/ai/snapshot";
 import { QuarterThemeAffordance } from "./QuarterThemeAffordance";
+import { ThemesView } from "./ThemesView";
 
 export function HorizonView() {
   const {
@@ -49,6 +50,7 @@ export function HorizonView() {
     shareMode,
   );
 
+  if (horizonLayout === "themes") return <ThemesView />;
   if (horizonLayout === "quarter") return <QuarterBoard items={vis} />;
 
   return (

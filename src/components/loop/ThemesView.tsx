@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { MISSIONS } from "@/lib/loop/constants";
 import type { QuarterlyTheme } from "@/lib/loop/types";
 import {
@@ -25,6 +25,46 @@ import { useLoop } from "./store";
 // QuarterThemeModal.tsx), so there's no per-card "mission" prop to thread
 // through it, just this one jump.
 const QUARTER_COLOR = "#3DA5D9";
+
+// Clamps a theme's narrative to 3 lines and only offers a "Show more" toggle
+// when the text actually overflows that clamp — a short narrative never
+// grows a toggle it doesn't need. Measured once per narrative rather than on
+// every resize: the clamp itself never changes shape from a card's own
+// re-renders, only from a column genuinely narrowing, which is rare enough
+// not to be worth the added complexity.
+function ThemeNarrative({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el) setOverflowing(el.scrollHeight - el.clientHeight > 2);
+  }, [text]);
+
+  return (
+    <>
+      <div
+        ref={ref}
+        className={"theme-card-narrative" + (expanded ? "" : " theme-card-narrative--clamped")}
+      >
+        {text}
+      </div>
+      {overflowing && (
+        <button
+          type="button"
+          className="theme-card-narrative-toggle"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((v) => !v);
+          }}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      )}
+    </>
+  );
+}
 
 export function ThemesView() {
   const { items, quarterlyThemes, setFilterMission, openQuarterlyTheme, shareMode } =
@@ -101,9 +141,7 @@ export function ThemesView() {
                       {theme ? (
                         <>
                           <div className="theme-card-title">{theme.title}</div>
-                          {theme.narrative && (
-                            <div className="theme-card-narrative">{theme.narrative}</div>
-                          )}
+                          {theme.narrative && <ThemeNarrative text={theme.narrative} />}
                         </>
                       ) : (
                         <div className="theme-card-empty">
