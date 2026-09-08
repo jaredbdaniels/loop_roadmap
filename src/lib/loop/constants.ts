@@ -189,6 +189,7 @@ export const OWNER_UNASSIGNED = "__unassigned__";
 export const TEAM_UNASSIGNED = "";
 
 export const OWNERS: string[] = [
+  "Adrian",
   "Al",
   "Ali",
   "Allison",
