@@ -3720,10 +3720,12 @@ button.hz-col-theme {
 .hz-col-theme--empty:hover {
   color: var(--cm-accent);
 }
-/* Themes tab: one card per team per quarter. Unlike .hz-col-theme above,
-   title and narrative both wrap in full rather than truncating with an
-   ellipsis — the whole point of this view is reading a theme, not a hint of
-   one, so nothing here should ever get cut off mid-sentence. */
+/* Themes tab: one card per team per quarter. The title always wraps in full,
+   but the narrative clamps to 3 lines by default once a quarter fills up —
+   a full column of unclamped narratives turns into a wall of text. A "Show
+   more" toggle (added only when the text actually overflows, see
+   ThemeNarrative in ThemesView.tsx) expands it back to the full wording, so
+   nothing is permanently hidden, just deferred. */
 .theme-card {
   cursor: pointer;
 }
@@ -3754,6 +3756,27 @@ button.hz-col-theme {
   line-height: 1.5;
   white-space: normal;
   overflow-wrap: break-word;
+}
+.theme-card-narrative--clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.theme-card-narrative-toggle {
+  display: inline-block;
+  margin-top: 6px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--cm-purple);
+  cursor: pointer;
+}
+.theme-card-narrative-toggle:hover {
+  text-decoration: underline;
 }
 .theme-card-empty {
   font-size: 0.78rem;
