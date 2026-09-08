@@ -14,14 +14,18 @@ import {
 } from "@/lib/loop/logic";
 import { useLoop } from "./store";
 
-// One column per fiscal quarter, one card per team in every column — so a
-// column's card count is always MISSIONS.length, whether or not a team has
-// written its own theme yet. Deliberately never falls back to the
-// cross-cutting theme the way a Horizon column does: a shared theme isn't
-// this team's theme, so a card either shows what that team actually wrote,
-// or an honest reason it has nothing to show. Clicking a card sets the team
-// filter to that team and opens the same editor Horizon/Timeline use — the
-// editor itself always scopes to whatever team is currently active (see
+// One column per fiscal quarter: an "All Teams" card up top for the
+// cross-cutting theme, then one card per team below — so a column's
+// per-team card count is always MISSIONS.length, whether or not a team has
+// written its own theme yet. The per-team cards deliberately never fall
+// back to the cross-cutting theme the way a Horizon column does: a shared
+// theme isn't this team's theme, so a team's card either shows what that
+// team actually wrote, or an honest reason it has nothing to show — the
+// cross-cutting narrative gets its own card instead, up top, so the
+// quarter's overall story is still visible without borrowing a team's slot.
+// Clicking a card sets the team filter (to that team, or cleared for the
+// meta card) and opens the same editor Horizon/Timeline use — the editor
+// itself always scopes to whatever team is currently active (see
 // QuarterThemeModal.tsx), so there's no per-card "mission" prop to thread
 // through it, just this one jump.
 const QUARTER_COLOR = "#3DA5D9";
@@ -100,6 +104,14 @@ export function ThemesView() {
     openQuarterlyTheme(quarterIndex);
   };
 
+  // The cross-cutting (mission null) row, opened the same way Horizon/
+  // Timeline open it: clear the team filter so the editor scopes to "no
+  // team", i.e. the cross-cutting theme (see activeThemeMission in logic.ts).
+  const openMetaTheme = (quarterIndex: number) => {
+    setFilterMission([]);
+    openQuarterlyTheme(quarterIndex);
+  };
+
   return (
     <div className="board-wrap">
       <div className="board">
@@ -111,6 +123,9 @@ export function ThemesView() {
             quarterlyThemes
               .filter((t) => t.quarterIndex === cell.index && t.mission && t.title.trim())
               .map((t) => [t.mission as string, t]),
+          );
+          const metaTheme = quarterlyThemes.find(
+            (t) => t.quarterIndex === cell.index && t.mission === null && t.title.trim(),
           );
 
           return (
@@ -126,6 +141,27 @@ export function ThemesView() {
                 </span>
               </div>
               <div className="hz-col-desc">{cell.season}</div>
+              {(metaTheme || !shareMode) && (
+                <div
+                  className={
+                    "card theme-card theme-card--meta" + (shareMode ? " theme-card--readonly" : "")
+                  }
+                  style={{ ["--column-color" as string]: QUARTER_COLOR }}
+                  onClick={shareMode ? undefined : () => openMetaTheme(cell.index)}
+                >
+                  <div className="theme-card-team">All Teams</div>
+                  {metaTheme ? (
+                    <>
+                      <div className="theme-card-title">{metaTheme.title}</div>
+                      {metaTheme.narrative && <ThemeNarrative text={metaTheme.narrative} />}
+                    </>
+                  ) : (
+                    <div className="theme-card-empty">
+                      No cross-team theme set for this quarter yet.
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="column-body">
                 {MISSIONS.map((team) => {
                   const theme = teamThemes.get(team);

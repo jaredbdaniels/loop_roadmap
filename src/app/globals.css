@@ -3732,6 +3732,15 @@ button.hz-col-theme {
 .theme-card--readonly {
   cursor: default;
 }
+/* The "All Teams" card up top: same shape as a per-team card, but tinted so
+   it reads as the quarter's overall narrative rather than one more team. */
+.theme-card--meta {
+  background: color-mix(in srgb, var(--column-color, var(--cm-purple)) 6%, var(--cm-white));
+  border-color: color-mix(in srgb, var(--column-color, var(--cm-purple)) 24%, var(--cm-border));
+}
+.theme-card--meta .theme-card-team {
+  color: var(--column-color, var(--cm-purple));
+}
 .theme-card-team {
   font-size: 0.68rem;
   font-weight: 700;
