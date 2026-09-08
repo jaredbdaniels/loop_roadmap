@@ -5,7 +5,6 @@ import {
   Columns3,
   GanttChartSquare,
   Layers,
-  BookOpenText,
   Flag,
   Flashlight,
   Plus,
@@ -49,7 +48,6 @@ import { AiSummaryPopover } from "./AiSummaryPopover";
 import { BoardView } from "./BoardView";
 import { TimelineView } from "./TimelineView";
 import { HorizonView } from "./HorizonView";
-import { ThemesView } from "./ThemesView";
 import { HeadlightsView } from "./HeadlightsView";
 import { DetailModal } from "./DetailModal";
 import { CaptureModal } from "./CaptureModal";
@@ -72,7 +70,6 @@ const VIEWS: { key: ViewKey; label: string; icon: typeof Columns3 }[] = [
   { key: "board", label: "Board", icon: Columns3 },
   { key: "timeline", label: "Timeline", icon: GanttChartSquare },
   { key: "horizon", label: "Horizon", icon: Layers },
-  { key: "themes", label: "Themes", icon: BookOpenText },
   { key: "headlights", label: "Headlights", icon: Flashlight },
 ];
 
@@ -91,9 +88,18 @@ const GROUP_BYS: { key: GroupByKey; label: string }[] = [
   { key: "bet", label: "Bet" },
 ];
 
-const HORIZON_LAYOUTS: { key: HorizonLayoutKey; label: string }[] = [
-  { key: "call", label: "Now / Next / Later" },
-  { key: "quarter", label: "Quarter" },
+const HORIZON_LAYOUTS: { key: HorizonLayoutKey; label: string; title: string }[] = [
+  { key: "call", label: "Now / Next / Later", title: "Lay out columns by the Now/Next/Later call" },
+  {
+    key: "quarter",
+    label: "Quarter",
+    title: "Lay out columns by fiscal quarter instead of the Now/Next/Later call",
+  },
+  {
+    key: "themes",
+    label: "Themes",
+    title: "Show each team's quarterly theme instead of the item board",
+  },
 ];
 
 export function LoopApp({
@@ -565,11 +571,7 @@ function Shell({
                 aria-selected={horizonLayout === h.key}
                 className={horizonLayout === h.key ? "active" : ""}
                 onClick={() => setHorizonLayout(h.key)}
-                title={
-                  h.key === "quarter"
-                    ? "Lay out columns by fiscal quarter instead of the Now/Next/Later call"
-                    : "Lay out columns by the Now/Next/Later call"
-                }
+                title={h.title}
               >
                 {h.label}
               </button>
@@ -720,7 +722,6 @@ function Shell({
         {view === "board" && <BoardView />}
         {view === "timeline" && <TimelineView />}
         {view === "horizon" && <HorizonView />}
-        {view === "themes" && <ThemesView />}
         {view === "headlights" && <HeadlightsView userEmail={userEmail} />}
       </main>
 
