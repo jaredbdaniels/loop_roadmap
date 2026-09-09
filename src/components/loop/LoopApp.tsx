@@ -610,17 +610,6 @@ function Shell({
           </button>
         )}
 
-        {!readOnly && (
-          <button
-            className="cm-button--outlined cm-button"
-            onClick={() => setMcpKeysOpen(true)}
-            title="Get a personal key to read the roadmap from Claude, Cowork, or another MCP client"
-          >
-            <KeyRound size={15} strokeWidth={2.2} />
-            MCP keys
-          </button>
-        )}
-
         {view === "timeline" && (
           <button
             className="cm-button--outlined cm-button edit-only"
@@ -715,6 +704,16 @@ function Shell({
                   <SlidersHorizontal size={16} strokeWidth={2} />
                   Ranking weights
                 </button>
+                {!readOnly && (
+                  <button
+                    className="menu-item"
+                    onClick={() => runMenu(() => setMcpKeysOpen(true))}
+                    title="Get a personal key to read the roadmap from Claude, Cowork, or another MCP client"
+                  >
+                    <KeyRound size={16} strokeWidth={2} />
+                    MCP keys
+                  </button>
+                )}
               </div>
             </>
           )}
