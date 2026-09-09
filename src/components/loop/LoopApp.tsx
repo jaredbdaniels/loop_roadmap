@@ -16,6 +16,7 @@ import {
   SlidersHorizontal,
   Eye,
   Share2,
+  KeyRound,
   GitBranch,
   GitCompare,
   Lock,
@@ -57,6 +58,7 @@ import { NewDraftModal, type NewDraftMode } from "./NewDraftModal";
 import { QuarterThemeModal } from "./QuarterThemeModal";
 import { SettingsModal } from "./SettingsModal";
 import { ShareModal } from "./ShareModal";
+import { McpKeysModal } from "./McpKeysModal";
 import { CompareDrawer } from "./CompareDrawer";
 import { SyncStatus } from "./SyncStatus";
 import { ThemeToggle } from "./ThemeToggle";
@@ -206,6 +208,7 @@ function Shell({
     discardScenario,
     setCompareOpen,
     setShareOpen,
+    setMcpKeysOpen,
     openCapture,
     setSettingsOpen,
     openBet,
@@ -607,6 +610,17 @@ function Shell({
           </button>
         )}
 
+        {!readOnly && (
+          <button
+            className="cm-button--outlined cm-button"
+            onClick={() => setMcpKeysOpen(true)}
+            title="Get a personal key to read the roadmap from Claude, Cowork, or another MCP client"
+          >
+            <KeyRound size={15} strokeWidth={2.2} />
+            MCP keys
+          </button>
+        )}
+
         {view === "timeline" && (
           <button
             className="cm-button--outlined cm-button edit-only"
@@ -738,6 +752,7 @@ function Shell({
       <QuarterThemeModal userEmail={userEmail} />
       <SettingsModal />
       {!readOnly && <ShareModal />}
+      {!readOnly && <McpKeysModal />}
       {!readOnly && <CompareDrawer />}
       <Toasts />
       <Celebration />

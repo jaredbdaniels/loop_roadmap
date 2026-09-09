@@ -210,6 +210,8 @@ interface LoopContextValue {
   setSettingsOpen: (b: boolean) => void;
   shareOpen: boolean;
   setShareOpen: (b: boolean) => void;
+  mcpKeysOpen: boolean;
+  setMcpKeysOpen: (b: boolean) => void;
   // bet editor: null when closed, "new" to create, or an bet id
   betEdit: string | null;
   // Which field the editor should land on, when it was opened from a blank in
@@ -363,6 +365,7 @@ export function LoopProvider({
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [mcpKeysOpen, setMcpKeysOpen] = useState(false);
   const [betEdit, setBetEdit] = useState<string | null>(null);
   const [betFocus, setBetFocus] = useState<string | null>(null);
   const [milestoneEdit, setMilestoneEdit] = useState<string | null>(null);
@@ -1259,6 +1262,8 @@ export function LoopProvider({
     setSettingsOpen,
     shareOpen,
     setShareOpen,
+    mcpKeysOpen,
+    setMcpKeysOpen,
     betEdit,
     betFocus,
     openBet,

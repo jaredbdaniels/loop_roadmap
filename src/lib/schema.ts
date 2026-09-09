@@ -203,3 +203,28 @@ export const verification = pgTable("verification", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+/* ============================ MCP personal keys ============================ */
+// One personal bearer key per row, owned by a real Campminder user — the
+// self-serve alternative to the single shared LOOP_MCP_API_KEY (see
+// src/lib/mcp/auth.ts). Each person mints their own from the app, so a read
+// through the Loop MCP server resolves to *them*, not a sentinel service
+// identity — see resolvePersonalMcpKey in src/lib/mcp/keys.ts.
+//
+// Unlike shareLinks (an anonymous capability token, stored in the clear
+// because anyone with the link is meant to use it), a personal key is a
+// credential tied to one person, so only its SHA-256 hash is stored;
+// `keyPrefix` is kept purely for the owner to recognize which key is which in
+// the UI after the one-time plaintext reveal.
+export const mcpApiKeys = pgTable("mcp_api_keys", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  name: text("name"),
+  keyHash: text("key_hash").notNull().unique(),
+  keyPrefix: text("key_prefix").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+});

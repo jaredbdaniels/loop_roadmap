@@ -1,6 +1,8 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
 import { MCP_SERVICE_EMAIL, verifyMcpApiKey } from "./mcp/auth";
+import { resolvePersonalMcpKey } from "./mcp/keys";
+import { bearerToken } from "./bearer-token";
 
 // Dev-only sign-in bypass so the app runs on localhost before Google OAuth is
 // set up. Strictly gated: NEVER active in production, and only when DEV_AUTH=1.
@@ -42,21 +44,42 @@ export function isMcpSession(
   return "isMcpService" in sess;
 }
 
-// Session for *read* routes: a real Better Auth session, or the Loop MCP
-// server's API key, which resolves to a sentinel service identity (never a
-// real user). Write routes must keep using getSession() — this is
-// deliberately read-only surface, not a general service-auth bypass.
+// Session for *read* routes: a real Better Auth session, the shared Loop MCP
+// key (resolves to a sentinel service identity, never a real user), or a
+// personal MCP key (resolves to the real person who minted it — see
+// resolvePersonalMcpKey in ./mcp/keys). Write routes must keep using
+// getSession() — this is deliberately read-only surface, not a general
+// service-auth bypass, and that stays true even for a personal key: minting
+// one only ever grants read access, the same as the shared key always has.
 //
-// Checks the API key first: it's a cheap header compare, and an MCP client
-// never carries a session cookie, so this lets every MCP call skip
-// getSession()'s DB-backed lookup entirely instead of paying for a session
-// check that can never succeed for that caller.
+// Checks the shared key first: it's a cheap header compare, and an MCP
+// client never carries a session cookie, so this — and the personal-key
+// check right after it — lets every MCP call skip getSession()'s DB-backed
+// lookup entirely instead of paying for a session check that can never
+// succeed for that caller.
 export async function getReadSession(req: Request) {
   if (verifyMcpApiKey(req)) {
     return {
       isMcpService: true,
       user: { email: MCP_SERVICE_EMAIL, name: "Loop MCP", id: "mcp-service" },
     } satisfies McpSession;
+  }
+  const personal = await resolvePersonalMcpKey(bearerToken(req));
+  if (personal) {
+    // Deliberately NOT an McpSession: this is a real user's identity, so
+    // reads should behave exactly as if they signed in themselves (their
+    // own scenario drafts visible, real createdBy, no redaction).
+    return {
+      user: {
+        id: personal.id,
+        email: personal.email,
+        name: personal.name,
+        emailVerified: true,
+        image: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    } as unknown as Awaited<ReturnType<typeof auth.api.getSession>>;
   }
   return getSession();
 }
