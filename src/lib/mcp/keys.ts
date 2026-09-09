@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomBytes } from "crypto";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "../db";
 import { mcpApiKeys, user } from "../schema";
 
@@ -37,8 +37,13 @@ export async function createMcpApiKey(
 }
 
 // A user's own keys (active and revoked) — never the hash or plaintext.
+// Newest first, so a freshly created key is the one the UI shows on top.
 export async function listMcpApiKeys(userId: string): Promise<McpApiKey[]> {
-  return db.select().from(mcpApiKeys).where(eq(mcpApiKeys.userId, userId));
+  return db
+    .select()
+    .from(mcpApiKeys)
+    .where(eq(mcpApiKeys.userId, userId))
+    .orderBy(desc(mcpApiKeys.createdAt));
 }
 
 // Revokes a key, scoped to its owner so one user can never revoke another's.
@@ -61,6 +66,12 @@ export async function revokeMcpApiKey(
   return rows.length > 0;
 }
 
+// Below this staleness, skip the lastUsedAt write on resolve — a session
+// calling several MCP tools back-to-back would otherwise pay for an extra
+// UPDATE on every single one. The attribution trail only needs to say
+// "roughly when", not track every call.
+const LAST_USED_THROTTLE_MS = 5 * 60 * 1000;
+
 // Resolves a bearer token to the real Campminder user who owns it, or null
 // if it's missing, unrecognized, or revoked. Used by getReadSession as the
 // per-person alternative to the shared LOOP_MCP_API_KEY sentinel — the
@@ -75,6 +86,7 @@ export async function resolvePersonalMcpKey(
     .select({
       keyId: mcpApiKeys.id,
       revokedAt: mcpApiKeys.revokedAt,
+      lastUsedAt: mcpApiKeys.lastUsedAt,
       userId: user.id,
       email: user.email,
       name: user.name,
@@ -85,12 +97,18 @@ export async function resolvePersonalMcpKey(
     .limit(1);
   const row = rows[0];
   if (!row || row.revokedAt) return null;
-  // Best-effort attribution trail ("who's signing up where") — never blocks
-  // the read this is gating if it fails.
-  await db
-    .update(mcpApiKeys)
-    .set({ lastUsedAt: new Date() })
-    .where(eq(mcpApiKeys.id, row.keyId))
-    .catch(() => {});
+  const stale =
+    !row.lastUsedAt ||
+    Date.now() - row.lastUsedAt.getTime() > LAST_USED_THROTTLE_MS;
+  if (stale) {
+    // Best-effort attribution trail ("who's signing up where") — never
+    // blocks the read this is gating if it fails, and throttled above so it
+    // isn't a write on every single tool call in a session.
+    await db
+      .update(mcpApiKeys)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(mcpApiKeys.id, row.keyId))
+      .catch(() => {});
+  }
   return { id: row.userId, email: row.email, name: row.name };
 }
