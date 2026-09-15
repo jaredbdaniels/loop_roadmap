@@ -31,6 +31,7 @@ import {
   quarterThemeId,
   resolveDomain,
   runTheBusinessShare,
+  searchItems,
   stackMilestoneFlags,
   stageBlockReason,
   totalEpicQuarters,
@@ -1593,5 +1594,53 @@ describe("non-bet horizon", () => {
     // Guards the test above: proves the null came from the non-bet exemption
     // and not from suggestedHorizon returning nothing for these dates.
     expect(horizonMismatch(mismatched)).not.toBeNull();
+  });
+});
+
+describe("searchItems", () => {
+  const items = [
+    item({ id: "a", title: "Streamline staff onboarding" }),
+    item({ id: "b", title: "Parent-facing refund flow", description: "Self-serve refunds for families" }),
+    item({ id: "c", title: "SMS reminders", problemStatement: "Staff miss shift reminders" }),
+    item({ id: "d", title: "Login redesign", owner: "Jared" }),
+    item({ id: "e", title: "Access control cleanup", moduleId: "authentication" }),
+    item({ id: "f", title: "Aha import test", ahaReference: "PROD-I-42" }),
+    item({ id: "g", title: "Onboarding checklist widget" }),
+  ];
+
+  it("returns nothing for a blank query", () => {
+    expect(searchItems(items, "")).toEqual([]);
+    expect(searchItems(items, "   ")).toEqual([]);
+  });
+
+  it("matches on title, case-insensitively", () => {
+    expect(searchItems(items, "sms").map((i) => i.id)).toEqual(["c"]);
+  });
+
+  it("matches on description, problem statement, owner, module, and Aha! reference", () => {
+    expect(searchItems(items, "self-serve refunds").map((i) => i.id)).toEqual(["b"]);
+    expect(searchItems(items, "shift reminders").map((i) => i.id)).toEqual(["c"]);
+    expect(searchItems(items, "jared").map((i) => i.id)).toEqual(["d"]);
+    expect(searchItems(items, "authentication").map((i) => i.id)).toEqual(["e"]);
+    expect(searchItems(items, "prod-i-42").map((i) => i.id)).toEqual(["f"]);
+  });
+
+  it("ranks a leading title match above a mid-title match", () => {
+    // Item g's title starts with "onboarding"; item a's contains it midway.
+    // Neither appears anywhere in b/c/d/e/f.
+    expect(searchItems(items, "onboarding").map((i) => i.id)).toEqual(["g", "a"]);
+  });
+
+  it("ranks an exact title match first, then a leading match, then a substring", () => {
+    const exact = item({ id: "x1", title: "Refunds" });
+    const leading = item({ id: "x2", title: "Refunds dashboard" });
+    const substring = item({ id: "x3", title: "Parent refunds v2" });
+    const results = searchItems([substring, leading, exact], "Refunds");
+    expect(results.map((i) => i.id)).toEqual(["x1", "x2", "x3"]);
+  });
+
+  it("caps results at the given limit", () => {
+    const many = Array.from({ length: 20 }, (_, i) => item({ id: `m${i}`, title: `Idea ${i}` }));
+    expect(searchItems(many, "idea", 5)).toHaveLength(5);
   });
 });

@@ -44,6 +44,7 @@ import { LoopProvider, useLoop } from "./store";
 import { visibleItems } from "./mutations";
 import { trimItemForSummary } from "@/lib/ai/snapshot";
 import { StatsBar } from "./StatsBar";
+import { IdeaSearch } from "./IdeaSearch";
 import { TeamFilter } from "./TeamFilter";
 import { AiSummaryPopover } from "./AiSummaryPopover";
 import { BoardView } from "./BoardView";
@@ -396,6 +397,7 @@ function Shell({
             </h1>
           </div>
         </div>
+        <IdeaSearch />
         <div className="topbar-right">
           <span className="badge-sharemode">
             <Eye size={13} strokeWidth={2.4} /> Read-only share

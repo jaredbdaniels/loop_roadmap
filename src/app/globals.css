@@ -647,6 +647,143 @@ header.topbar::after {
   position: relative;
   z-index: 1;
 }
+
+/* Universal idea search — sits in the top bar so it's reachable from every
+   view, filter state, and (read-only) share link. Glass treatment matches
+   .user-chip/.link-button since it lives on the purple gradient; the result
+   panel switches to the normal surface tokens since it floats over the page
+   body, not the header. */
+.idea-search {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 260px;
+  max-width: 420px;
+  padding: 7px 10px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+  transition: background 0.15s, border-color 0.15s;
+}
+.idea-search:focus-within {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+.idea-search-icon {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+.idea-search-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: inherit;
+}
+.idea-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+.idea-search-kbd {
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--r-sm);
+  padding: 1px 6px;
+}
+.idea-search-clear {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.12);
+}
+.idea-search-clear:hover {
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+.idea-search-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 380px;
+  overflow-y: auto;
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border-strong);
+  border-radius: var(--r-md);
+  padding: 6px;
+  box-shadow: var(--sh-md);
+  color: var(--cm-fg);
+}
+.idea-search-empty {
+  padding: 12px 10px;
+  font-size: 0.82rem;
+  color: var(--cm-muted-fg);
+}
+.idea-search-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 9px;
+  border-radius: var(--r-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.idea-search-result:hover,
+.idea-search-result.active {
+  background: var(--cm-surface-muted);
+}
+.idea-search-result-stage {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.idea-search-result-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.idea-search-result-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cm-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.idea-search-result-meta {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--cm-muted-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 860px) {
+  .idea-search {
+    order: 1;
+    flex-basis: 100%;
+    max-width: none;
+  }
+}
 .user-chip {
   display: flex;
   align-items: center;

@@ -32,6 +32,7 @@ import {
 import {
   TEAM_DOMAIN,
   UNCLAIMED_DOMAIN_ID,
+  getModule,
   moduleDomainId,
   moduleJtbd,
   moduleTeam,
@@ -1940,4 +1941,52 @@ export function timelineRange(
     start: new Date(min.getFullYear(), min.getMonth() - 1, 1),
     end: new Date(max.getFullYear(), max.getMonth() + 2, 1),
   };
+}
+
+/* ---------------- universal idea search ---------------- */
+
+// Everything a searcher might remember an idea by: its name, the problem it
+// frames, who owns it, which team/module it sits under, and the external
+// references (Aha!, Notion) it was captured from or linked to.
+function itemHaystack(item: Item): string {
+  return [
+    item.title,
+    item.description,
+    item.problemStatement,
+    item.owner,
+    item.mission,
+    getModule(item.moduleId)?.label ?? "",
+    item.ahaReference,
+    item.notionTitle,
+  ]
+    .join(" \n ")
+    .toLowerCase();
+}
+
+// Relevance for one item against a (already-lowercased, trimmed) query: an
+// exact or leading title match ranks above a title substring, which in turn
+// ranks above a hit buried in the rest of the item's fields. 0 = no match.
+function itemSearchScore(item: Item, q: string): number {
+  const title = item.title.toLowerCase();
+  if (title === q) return 4;
+  if (title.startsWith(q)) return 3;
+  if (title.includes(q)) return 2;
+  if (itemHaystack(item).includes(q)) return 1;
+  return 0;
+}
+
+// Universal idea search: finds an item regardless of which view, team filter,
+// or "show killed" toggle happens to be active — see `IdeaSearch.tsx`, whose
+// whole point is that "I know this idea exists somewhere" shouldn't depend on
+// first clearing whatever filters are in the way. Ranked best-match first,
+// capped at `limit`.
+export function searchItems(items: Item[], query: string, limit = 8): Item[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return items
+    .map((item) => ({ item, score: itemSearchScore(item, q) }))
+    .filter((r) => r.score > 0)
+    .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
+    .slice(0, limit)
+    .map((r) => r.item);
 }
