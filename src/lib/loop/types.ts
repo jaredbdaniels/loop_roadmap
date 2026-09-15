@@ -137,7 +137,7 @@ export interface Item {
   prototypeUrl: string; // legacy single-link field; migrated into `prototypes`
   prototypes: Prototype[];
   outcomeReading: string;
-  // Structured learning capture, filled in once an item reaches the Learn
+  // Structured learning capture, filled in once an item reaches the Learning
   // stage. `outcomeReading` records what happened against the KR; these three
   // capture the reflective/forward-looking learning the raw number doesn't.
   whatWeLearned: string; // the generalizable insight beyond the KR reading

@@ -45,12 +45,35 @@ export const LIFECYCLE_STAGES = [
   "Releasing",
 ] as const;
 
-// Every lane on the board, in order: the intake inbox, then the four lifecycle
-// bands.
-export const STAGES = [INTAKE_STAGE, ...LIFECYCLE_STAGES] as const;
+// The retrospective lane, symmetric with Intake at the other end of the board:
+// Intake sits before Discovery so an idea can exist without claiming a
+// Headlights band, and Learning sits after Releasing so a shipped item can
+// carry a retrospective (outcome reading, what we learned, the next bet)
+// without Headlights having to learn a fifth word — it forecasts the next
+// three months of delivery, and reflection on something already shipped isn't
+// that. Unlike Intake, this one *does* mean the work is done: entering it
+// still implies a shipped date (see SHIPPED_STAGES in logic.ts), it still
+// counts everywhere "reached customers" is asked (blockerSatisfied,
+// betProgress, computeStats), and it does show up in share mode — it just
+// carries the loop's own closing step that Headlights doesn't need to track.
+export const LEARNING_STAGE = "Learning" as const;
+
+// Every lane on the board, in order: the intake inbox, the four lifecycle
+// bands, then the retrospective lane.
+export const STAGES = [
+  INTAKE_STAGE,
+  ...LIFECYCLE_STAGES,
+  LEARNING_STAGE,
+] as const;
 
 export type Stage = (typeof STAGES)[number];
 export type LifecycleStage = (typeof LIFECYCLE_STAGES)[number];
+
+// Every board lane a share link may draw: every lane except Intake. Distinct
+// from LIFECYCLE_STAGES, which is specifically the four Headlights bands —
+// Learning is a real board lane (shipped work belongs in front of a
+// stakeholder) but not a Headlights band, so it belongs here and not there.
+export const SHARE_STAGES = [...LIFECYCLE_STAGES, LEARNING_STAGE] as const;
 
 // The modernization "type" of a piece of work — the lens the two-year
 // owner-grouped roadmap colors every item by. Orthogonal to `stage` (where the
@@ -101,13 +124,17 @@ export const ITEM_TYPE_INFO: Record<
 };
 
 // Grey for the inbox — it reads as "not yet real", which is exactly what Intake
-// means — then the four bands progress blue → amber → green → purple.
+// means — then the four bands progress blue → amber → green → purple, and
+// Learning closes on a deep rose: dark enough to carry fixed-white text like
+// Releasing's purple (see .tl-bar in globals.css), but a distinct hue so the
+// two never blur together on a card or a timeline bar.
 export const STAGE_COLORS: Record<string, string> = {
   Intake: "#A0A0A0",
   Discovery: "#3DA5D9",
   Solutioning: "#FFA61E",
   Building: "#00AA47",
   Releasing: "#27065C",
+  Learning: "#7A1F4B",
 };
 
 // A team's stated delivery confidence for one month of a Headlights cycle.
@@ -136,10 +163,11 @@ export const OUTLOOK_LEVEL_INFO: Record<
 // Frame → Validate → Deliver → Learn). Frame and Validate were both
 // solution-space work — stating the problem and its KR, then prototyping
 // against it — so they collapse into the single Solutioning band; the other
-// three map one-to-one. Capture became Intake — same lane, same meaning, a name
-// for the state rather than for the act that produced it. It maps across rather
-// than into Discovery: promoting a parked idea behind someone's back would
-// silently claim time nobody agreed to spend.
+// four map one-to-one, Learn included now that Learning is back as its own
+// lane. Capture became Intake — same lane, same meaning, a name for the state
+// rather than for the act that produced it. It maps across rather than into
+// Discovery: promoting a parked idea behind someone's back would silently
+// claim time nobody agreed to spend.
 //
 // Earlier still, prioritization was its own stage. It is now a continuous
 // ranking that applies inside every lane (drag to order, or sort a lane by
@@ -150,7 +178,7 @@ export const STAGE_MIGRATION: Record<string, Stage> = {
   Frame: "Solutioning",
   Validate: "Solutioning",
   Deliver: "Building",
-  Learn: "Releasing",
+  Learn: "Learning",
   // Older models.
   "Rank & Vote": "Solutioning",
   Prioritize: "Solutioning",

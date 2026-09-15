@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ArrowDownWideNarrow, Plus } from "lucide-react";
 import {
   ITEM_TYPE_INFO,
-  LIFECYCLE_STAGES,
+  SHARE_STAGES,
   STAGES,
   STAGE_COLORS,
   type Stage,
@@ -48,8 +48,8 @@ export function BoardView() {
   // Share mode drops the Intake lane rather than drawing it empty: a column
   // headed "Intake 0" tells a stakeholder there is a pile they aren't being
   // shown, which is worse than not raising the question. This is the whole
-  // reason LIFECYCLE_STAGES exists as its own constant.
-  const lanes = shareMode ? LIFECYCLE_STAGES : STAGES;
+  // reason SHARE_STAGES exists as its own constant.
+  const lanes = shareMode ? SHARE_STAGES : STAGES;
   return (
     <div className="board-wrap">
       <div className="board">
@@ -78,11 +78,13 @@ function Column({ stage, allVisible }: { stage: Stage; allVisible: Item[] }) {
   const colItems = allVisible.filter((i) => i.stage === stage).sort(byOrder);
 
   // Framing and evidence are both Solutioning work, so both gates sit on the
-  // way into Building — see stageBlockReason.
+  // way into Building — see stageBlockReason. The outcome-reading nudge sits
+  // on Learning, not Releasing: Releasing just means customers have it
+  // (beta counts), Learning is where the loop actually closes.
   const gateNote =
     stage === "Building"
       ? "Needs problem + KR and prototype evidence to enter"
-      : stage === "Releasing"
+      : stage === "Learning"
         ? "Needs outcome reading to close"
         : "";
 
@@ -315,7 +317,7 @@ function BoardCard({
           <span className="pill pill-blocked">Needs problem + KR</span>
         )}
         {!item.killed &&
-          item.stage === "Releasing" &&
+          item.stage === "Learning" &&
           !(item.outcomeReading && item.outcomeReading.trim()) && (
             <span className="pill pill-needsoutcome">Needs outcome reading</span>
           )}
