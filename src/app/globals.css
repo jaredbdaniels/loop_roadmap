@@ -652,7 +652,15 @@ header.topbar::after {
    view, filter state, and (read-only) share link. Glass treatment matches
    .user-chip/.link-button since it lives on the purple gradient; the result
    panel switches to the normal surface tokens since it floats over the page
-   body, not the header. */
+   body, not the header.
+
+   header.topbar's `justify-content: space-between` originally separated just
+   two children (.brand, .topbar-right); this is a third one in between. That
+   stays safe with any number of children: space-between always flushes the
+   first/last child to the container's edges and only distributes leftover
+   space as the gaps between them, so .brand and .topbar-right stay pinned to
+   the ends regardless — the only visible effect of a third child is gap
+   space appearing around it once its own max-width below is reached. */
 .idea-search {
   position: relative;
   z-index: 1;

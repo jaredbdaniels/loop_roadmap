@@ -1948,8 +1948,19 @@ export function timelineRange(
 // Everything a searcher might remember an idea by: its name, the problem it
 // frames, who owns it, which team/module it sits under, and the external
 // references (Aha!, Notion) it was captured from or linked to.
+//
+// Cached per item object rather than recomputed on every keystroke: `items`
+// only ever grows a new object reference for an item when that item is
+// actually edited (see the `setItems((prev) => prev.map(...))` mutations in
+// store.tsx), so the same untouched item reused across renders hits the
+// cache, and an edited item's stale entry simply falls out of reach for the
+// GC — no explicit invalidation to get wrong.
+const haystackCache = new WeakMap<Item, string>();
+
 function itemHaystack(item: Item): string {
-  return [
+  const cached = haystackCache.get(item);
+  if (cached !== undefined) return cached;
+  const built = [
     item.title,
     item.description,
     item.problemStatement,
@@ -1961,6 +1972,8 @@ function itemHaystack(item: Item): string {
   ]
     .join(" \n ")
     .toLowerCase();
+  haystackCache.set(item, built);
+  return built;
 }
 
 // Relevance for one item against a (already-lowercased, trimmed) query: an
@@ -1984,6 +1997,13 @@ export const SEARCH_RESULT_LIMIT = 8;
 // whole point is that "I know this idea exists somewhere" shouldn't depend on
 // first clearing whatever filters are in the way. Ranked best-match first,
 // capped at `limit`.
+//
+// "show killed" is deliberately *not* threaded through here the way it is in
+// `visibleItems`: it's a plain display toggle anyone (including a share-mode
+// viewer — the checkbox isn't hidden in read-only) can flip to see the same
+// killed item on the board, so search surfacing it too reveals nothing a
+// click couldn't. Each killed result is labelled "· Killed" so it's never
+// mistaken for a live one.
 //
 // `shareMode` is the one exception: Intake is never shown to anyone without
 // edit access (see `visibleItems` in mutations.ts and the README), and that

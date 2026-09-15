@@ -6,6 +6,7 @@ import { STAGE_COLORS } from "@/lib/loop/constants";
 import { SEARCH_RESULT_LIMIT, searchItems } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 import { useLoop } from "./store";
+import { useOutsideDismiss } from "./useOutsideDismiss";
 
 function isTypingElsewhere(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -33,16 +34,12 @@ export function IdeaSearch() {
     [items, query, shareMode],
   );
 
-  useEffect(() => setHighlighted(0), [query]);
+  // Closes on an outside click or Escape, same as TeamFilter's team picker —
+  // see useOutsideDismiss. Escape here works no matter which element inside
+  // the box has focus (the input or a result row), not just the input.
+  useOutsideDismiss(rootRef, open, () => setOpen(false));
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
-  }, [open]);
+  useEffect(() => setHighlighted(0), [query]);
 
   // "/" jumps to the search box from anywhere in the app, the way it does in
   // most search-first tools — skipped while the reader is already typing into
@@ -74,7 +71,7 @@ export function IdeaSearch() {
 
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
-      setOpen(false);
+      // useOutsideDismiss closes the panel; just move focus off the input.
       inputRef.current?.blur();
       return;
     }
