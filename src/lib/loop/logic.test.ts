@@ -32,6 +32,7 @@ import {
   resolveDomain,
   runTheBusinessShare,
   searchItems,
+  SEARCH_RESULT_LIMIT,
   stackMilestoneFlags,
   stageBlockReason,
   totalEpicQuarters,
@@ -1599,13 +1600,13 @@ describe("non-bet horizon", () => {
 
 describe("searchItems", () => {
   const items = [
-    item({ id: "a", title: "Streamline staff onboarding" }),
-    item({ id: "b", title: "Parent-facing refund flow", description: "Self-serve refunds for families" }),
-    item({ id: "c", title: "SMS reminders", problemStatement: "Staff miss shift reminders" }),
-    item({ id: "d", title: "Login redesign", owner: "Jared" }),
-    item({ id: "e", title: "Access control cleanup", moduleId: "authentication" }),
-    item({ id: "f", title: "Aha import test", ahaReference: "PROD-I-42" }),
-    item({ id: "g", title: "Onboarding checklist widget" }),
+    item({ id: "a", title: "Streamline staff onboarding", stage: "Discovery" }),
+    item({ id: "b", title: "Parent-facing refund flow", description: "Self-serve refunds for families", stage: "Building" }),
+    item({ id: "c", title: "SMS reminders", problemStatement: "Staff miss shift reminders", stage: "Solutioning" }),
+    item({ id: "d", title: "Login redesign", owner: "Jared", stage: "Discovery" }),
+    item({ id: "e", title: "Access control cleanup", moduleId: "authentication", stage: "Building" }),
+    item({ id: "f", title: "Aha import test", ahaReference: "PROD-I-42", stage: "Releasing" }),
+    item({ id: "g", title: "Onboarding checklist widget", stage: "Discovery" }),
   ];
 
   it("returns nothing for a blank query", () => {
@@ -1642,5 +1643,33 @@ describe("searchItems", () => {
   it("caps results at the given limit", () => {
     const many = Array.from({ length: 20 }, (_, i) => item({ id: `m${i}`, title: `Idea ${i}` }));
     expect(searchItems(many, "idea", 5)).toHaveLength(5);
+  });
+
+  it("defaults to SEARCH_RESULT_LIMIT when no limit is given", () => {
+    const many = Array.from({ length: 20 }, (_, i) => item({ id: `m${i}`, title: `Idea ${i}` }));
+    expect(searchItems(many, "idea")).toHaveLength(SEARCH_RESULT_LIMIT);
+  });
+
+  it("excludes Intake ideas in share mode, matching visibleItems' invariant", () => {
+    const withIntake = [
+      ...items,
+      item({ id: "intake-1", title: "Onboarding parking lot idea", stage: "Intake" }),
+    ];
+    // Off by default: an editor can still find a parked idea. "g" and
+    // "intake-1" both lead with "onboarding" (title tiebreak puts
+    // "checklist" before "parking"); "a" only contains it midway.
+    expect(searchItems(withIntake, "onboarding").map((i) => i.id)).toEqual([
+      "g",
+      "intake-1",
+      "a",
+    ]);
+    // In share mode — the in-app toggle, /preview, and belt-and-braces on a
+    // real /share/<token> link — Intake never surfaces, the same rule
+    // visibleItems enforces for every other view.
+    expect(
+      searchItems(withIntake, "onboarding", SEARCH_RESULT_LIMIT, true).map(
+        (i) => i.id,
+      ),
+    ).toEqual(["g", "a"]);
   });
 });

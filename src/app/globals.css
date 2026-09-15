@@ -754,6 +754,7 @@ header.topbar::after {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  background: var(--stage-color, var(--cm-purple));
 }
 .idea-search-result-body {
   min-width: 0;

@@ -3,11 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { STAGE_COLORS } from "@/lib/loop/constants";
-import { searchItems } from "@/lib/loop/logic";
+import { SEARCH_RESULT_LIMIT, searchItems } from "@/lib/loop/logic";
 import type { Item } from "@/lib/loop/types";
 import { useLoop } from "./store";
-
-const MAX_RESULTS = 8;
 
 function isTypingElsewhere(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -16,12 +14,14 @@ function isTypingElsewhere(target: EventTarget | null): boolean {
   return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
 }
 
+const optionId = (id: string) => `idea-search-option-${id}`;
+
 // The one search box that can find any idea regardless of which view, team
 // filter, or "show killed" toggle is currently active — see `searchItems` in
 // logic.ts. Lives in the top bar so it's available in every view, read-only
 // share links included.
 export function IdeaSearch() {
-  const { items, openDetail } = useLoop();
+  const { items, openDetail, shareMode } = useLoop();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
@@ -29,8 +29,8 @@ export function IdeaSearch() {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const results = useMemo(
-    () => searchItems(items, query, MAX_RESULTS),
-    [items, query],
+    () => searchItems(items, query, SEARCH_RESULT_LIMIT, shareMode),
+    [items, query, shareMode],
   );
 
   useEffect(() => setHighlighted(0), [query]);
@@ -46,10 +46,17 @@ export function IdeaSearch() {
 
   // "/" jumps to the search box from anywhere in the app, the way it does in
   // most search-first tools — skipped while the reader is already typing into
-  // some other field so it doesn't steal a literal "/" from a URL or note.
+  // some other field so it doesn't steal a literal "/" from a URL or note, and
+  // skipped while any modal is open (every modal in this app shares the
+  // .modal-overlay class) so it can't yank focus out of a dialog that isn't
+  // itself a text field.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "/" && !isTypingElsewhere(document.activeElement)) {
+      if (
+        e.key === "/" &&
+        !isTypingElsewhere(document.activeElement) &&
+        !document.querySelector(".modal-overlay")
+      ) {
         e.preventDefault();
         inputRef.current?.focus();
       }
@@ -80,14 +87,26 @@ export function IdeaSearch() {
       setHighlighted((h) => (h - 1 + results.length) % results.length);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      selectResult(results[highlighted]);
+      // Clamp defensively: `items` can change out from under a still-open
+      // query (the background refresh, another editor killing the
+      // highlighted idea) between renders, which can leave `highlighted`
+      // pointing past the end of a now-shorter `results`.
+      selectResult(results[Math.min(highlighted, results.length - 1)]);
     }
   };
 
+  // Closing on blur (not just outside-click) so tabbing away from the input
+  // — no mouse involved — doesn't leave the panel rendered and aria-expanded
+  // stuck true.
+  const onBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+  };
+
   const showPanel = open && query.trim().length > 0;
+  const activeResult = results[highlighted];
 
   return (
-    <div className="idea-search" ref={rootRef}>
+    <div className="idea-search" ref={rootRef} onBlur={onBlur}>
       <Search size={15} strokeWidth={2.2} className="idea-search-icon" aria-hidden />
       <input
         ref={inputRef}
@@ -99,6 +118,9 @@ export function IdeaSearch() {
         aria-expanded={showPanel}
         aria-autocomplete="list"
         aria-controls="idea-search-panel"
+        aria-activedescendant={
+          showPanel && activeResult ? optionId(activeResult.id) : undefined
+        }
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -131,6 +153,7 @@ export function IdeaSearch() {
             results.map((item, idx) => (
               <button
                 key={item.id}
+                id={optionId(item.id)}
                 type="button"
                 role="option"
                 aria-selected={idx === highlighted}
@@ -142,7 +165,7 @@ export function IdeaSearch() {
               >
                 <span
                   className="idea-search-result-stage"
-                  style={{ background: STAGE_COLORS[item.stage] }}
+                  style={{ ["--stage-color" as string]: STAGE_COLORS[item.stage] }}
                   aria-hidden
                 />
                 <span className="idea-search-result-body">

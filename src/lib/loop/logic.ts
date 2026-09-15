@@ -1975,15 +1975,32 @@ function itemSearchScore(item: Item, q: string): number {
   return 0;
 }
 
+// Single source of truth for IdeaSearch's result cap, so the UI never drifts
+// from the default this function ranks and slices to.
+export const SEARCH_RESULT_LIMIT = 8;
+
 // Universal idea search: finds an item regardless of which view, team filter,
 // or "show killed" toggle happens to be active — see `IdeaSearch.tsx`, whose
 // whole point is that "I know this idea exists somewhere" shouldn't depend on
 // first clearing whatever filters are in the way. Ranked best-match first,
 // capped at `limit`.
-export function searchItems(items: Item[], query: string, limit = 8): Item[] {
+//
+// `shareMode` is the one exception: Intake is never shown to anyone without
+// edit access (see `visibleItems` in mutations.ts and the README), and that
+// invariant has to hold here too — the in-app "Toggle share mode" button and
+// /preview render full, untrimmed data and rely on every read path filtering
+// it out client-side. An anonymous /share/<token> link is already filtered
+// server-side (getPublicState), so this is belt-and-braces there.
+export function searchItems(
+  items: Item[],
+  query: string,
+  limit: number = SEARCH_RESULT_LIMIT,
+  shareMode = false,
+): Item[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return items
+  const pool = shareMode ? items.filter((i) => !isIntake(i)) : items;
+  return pool
     .map((item) => ({ item, score: itemSearchScore(item, q) }))
     .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
