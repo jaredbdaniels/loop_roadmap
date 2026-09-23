@@ -49,6 +49,8 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
   // Only depends on "today", not on any prop/state — recomputed once per
   // mount rather than on every render; a day boundary is caught by remounting.
   const months = useMemo(() => rollingMonths(3), []);
+  // The month the outlook-edit modal is open for, or null when it's closed.
+  const [editingMonth, setEditingMonth] = useState<string | null>(null);
 
   const goToTeamBoard = (mission: string) => {
     setSelectedTeam(mission);
@@ -105,6 +107,8 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
     () => new Map(outlooks.map((o) => [o.id, o])),
     [outlooks],
   );
+  const outlookFor = (month: string) =>
+    outlooksById.get(outlookId(selectedTeam, month));
 
   return (
     <div className="headlights-view">
@@ -187,11 +191,22 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
           <div className="hl-board-scroll">
             <div className="hl-board">
               <div className="hl-corner">Lifecycle</div>
-              {months.map((m) => (
-                <div className="hl-month-head" key={m}>
-                  {monthLabel(m)}
-                </div>
-              ))}
+              {months.map((m) => {
+                const outlook = outlookFor(m);
+                return (
+                  <div
+                    className="hl-month-head"
+                    key={m}
+                    style={{
+                      ["--outlook-color" as string]: outlook?.level
+                        ? OUTLOOK_LEVEL_INFO[outlook.level].color
+                        : "transparent",
+                    }}
+                  >
+                    {monthLabel(m)}
+                  </div>
+                );
+              })}
 
               {LIFECYCLE_STAGES.map((stage) => (
                 <div className="hl-band-row" key={stage}>
@@ -226,34 +241,61 @@ export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
                   })}
                 </div>
               ))}
+
+              {undated.length > 0 && (
+                <div className="hl-band-row">
+                  <div className="hl-band-label hl-unscheduled-label">
+                    <span className="hl-band-name">Unscheduled</span>
+                    <span className="hl-band-blurb">
+                      no target dates — not placed above
+                    </span>
+                  </div>
+                  <div className="hl-cell hl-unscheduled-cell">
+                    {undated.map((item) => (
+                      <button
+                        type="button"
+                        key={item.id}
+                        className="hl-item-chip hl-item-chip--unscheduled"
+                        title="No target dates set"
+                        onClick={() => openDetail(item.id)}
+                      >
+                        {item.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="hl-band-row hl-outlook-row">
+                <div className="hl-band-label hl-outlook-label">
+                  <span className="hl-band-name">Delivery outlook</span>
+                  <span className="hl-band-blurb">
+                    High / Medium / Low, this team, this month
+                  </span>
+                </div>
+                {months.map((m) => (
+                  <OutlookSummaryCell
+                    key={m}
+                    existing={outlookFor(m)}
+                    readOnly={readOnly}
+                    onOpen={() => setEditingMonth(m)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-
-          {undated.length > 0 && (
-            <p className="hl-note">
-              {undated.length} item{undated.length === 1 ? "" : "s"} on{" "}
-              {selectedTeam} {undated.length === 1 ? "has" : "have"} no target
-              dates set, so {undated.length === 1 ? "it isn't" : "they aren't"}{" "}
-              placed on the board above: {undated.map((i) => i.title).join(", ")}.
-            </p>
-          )}
-
-          <div className="hl-outlook-heading">
-            <h3>Delivery outlook</h3>
-          </div>
-          <div className="hl-outlook-strip">
-            {months.map((m) => (
-              <OutlookCard
-                key={`${selectedTeam}-${m}`}
-                mission={selectedTeam}
-                month={m}
-                existing={outlooksById.get(outlookId(selectedTeam, m))}
-                readOnly={readOnly}
-                userEmail={userEmail}
-              />
-            ))}
-          </div>
         </>
+      )}
+
+      {editingMonth && (
+        <OutlookEditModal
+          mission={selectedTeam}
+          month={editingMonth}
+          existing={outlookFor(editingMonth)}
+          readOnly={readOnly}
+          userEmail={userEmail}
+          onClose={() => setEditingMonth(null)}
+        />
       )}
     </div>
   );
@@ -346,18 +388,61 @@ function linesToList(text: string): string[] {
     .filter(Boolean);
 }
 
-function OutlookCard({
+// The board-embedded, row-aligned read of a month's outlook — a big level
+// chip plus the single top risk, sized to be read from across a room. This is
+// what replaced the old below-the-board strip of full editing forms: the
+// board itself is now the presentation surface, and editing moves into
+// OutlookEditModal so a live "Why is this Medium?" conversation isn't reading
+// off placeholder text in a textarea.
+function OutlookSummaryCell({
+  existing,
+  readOnly,
+  onOpen,
+}: {
+  existing: DeliveryOutlook | undefined;
+  readOnly: boolean;
+  onOpen: () => void;
+}) {
+  const level = existing?.level ?? null;
+  const topRisk = existing?.risks?.[0];
+  return (
+    <button
+      type="button"
+      className="hl-cell hl-outlook-summary"
+      style={{
+        ["--level-color" as string]: level
+          ? OUTLOOK_LEVEL_INFO[level].color
+          : "var(--cm-border-strong)",
+      }}
+      onClick={onOpen}
+    >
+      {level ? (
+        <span className="hl-outlook-chip">{OUTLOOK_LEVEL_INFO[level].label}</span>
+      ) : (
+        <span className="hl-outlook-chip hl-outlook-chip--unset">Not set</span>
+      )}
+      <span className="hl-outlook-risk">{topRisk || "No risk noted"}</span>
+      <span className="hl-outlook-edit-hint">
+        {readOnly ? "View detail" : "Edit ›"}
+      </span>
+    </button>
+  );
+}
+
+function OutlookEditModal({
   mission,
   month,
   existing,
   readOnly,
   userEmail,
+  onClose,
 }: {
   mission: string;
   month: string;
   existing: DeliveryOutlook | undefined;
   readOnly: boolean;
   userEmail: string | null;
+  onClose: () => void;
 }) {
   const { saveOutlook, toast } = useLoop();
   const [level, setLevel] = useState<OutlookLevel | "">(
@@ -387,82 +472,91 @@ function OutlookCard({
     };
     saveOutlook(outlook);
     toast(`${monthLabel(month)} outlook saved.`);
+    onClose();
   };
 
   return (
     <div
-      className="hl-outlook-card"
-      style={{
-        ["--level-color" as string]: level
-          ? OUTLOOK_LEVEL_INFO[level].color
-          : "var(--cm-border-strong)",
-      }}
+      className="modal-overlay"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="hl-outlook-top">
-        <span className="hl-outlook-month">{monthLabel(month)}</span>
-        <select
-          className="cm-select hl-level-select"
-          aria-label={`${monthLabel(month)} delivery outlook`}
-          value={level}
-          disabled={readOnly}
-          onChange={(e) => setLevel(e.target.value as OutlookLevel | "")}
-        >
-          <option value="">Not set</option>
-          {OUTLOOK_LEVELS.map((l) => (
-            <option key={l} value={l}>
-              {OUTLOOK_LEVEL_INFO[l].label}
-            </option>
-          ))}
-        </select>
+      <div className="modal">
+        <div className="modal-header">
+          <h2>
+            {mission} — {monthLabel(month)} outlook
+          </h2>
+          <button className="modal-close" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <fieldset
+            disabled={readOnly}
+            style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}
+          >
+            <div className="field">
+              <label>Outlook</label>
+              <select
+                value={level}
+                onChange={(e) => setLevel(e.target.value as OutlookLevel | "")}
+              >
+                <option value="">Not set</option>
+                {OUTLOOK_LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {OUTLOOK_LEVEL_INFO[l].label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label>Why</label>
+              <textarea
+                placeholder="Why is confidence at this level?"
+                value={reasoning}
+                onChange={(e) => setReasoning(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>What would raise it</label>
+              <textarea
+                placeholder="What's needed to raise confidence?"
+                value={whatWouldRaiseIt}
+                onChange={(e) => setWhatWouldRaiseIt(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Risks (one per line)</label>
+              <textarea
+                placeholder="Top risks or dependencies this month."
+                value={risksText}
+                onChange={(e) => setRisksText(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Asks of leadership (one per line)</label>
+              <textarea
+                placeholder="A decision, a connection, a resource."
+                value={asksText}
+                onChange={(e) => setAsksText(e.target.value)}
+              />
+            </div>
+          </fieldset>
+          {existing?.updatedBy && (
+            <p className="hl-updated-by">Last updated by {existing.updatedBy}</p>
+          )}
+        </div>
+        <div className="modal-actions">
+          <span className="helper">
+            Shown on the board as a color and a top-line risk — the rest is
+            here for whoever is prepping the cycle, not for the room.
+          </span>
+          {!readOnly && (
+            <button type="button" className="cm-button" onClick={save}>
+              Save
+            </button>
+          )}
+        </div>
       </div>
-
-      <label className="hl-field-label">Why</label>
-      <textarea
-        className="hl-textarea"
-        placeholder="Why is confidence at this level?"
-        value={reasoning}
-        disabled={readOnly}
-        onChange={(e) => setReasoning(e.target.value)}
-      />
-
-      <label className="hl-field-label">What would raise it</label>
-      <textarea
-        className="hl-textarea"
-        placeholder="What's needed to raise confidence?"
-        value={whatWouldRaiseIt}
-        disabled={readOnly}
-        onChange={(e) => setWhatWouldRaiseIt(e.target.value)}
-      />
-
-      <label className="hl-field-label">Risks (one per line)</label>
-      <textarea
-        className="hl-textarea"
-        placeholder="Top risks or dependencies this month."
-        value={risksText}
-        disabled={readOnly}
-        onChange={(e) => setRisksText(e.target.value)}
-      />
-
-      <label className="hl-field-label">Asks of leadership (one per line)</label>
-      <textarea
-        className="hl-textarea"
-        placeholder="A decision, a connection, a resource."
-        value={asksText}
-        disabled={readOnly}
-        onChange={(e) => setAsksText(e.target.value)}
-      />
-
-      {!readOnly && (
-        <button type="button" className="cm-button" onClick={save}>
-          Save
-        </button>
-      )}
-
-      {existing?.updatedBy && (
-        <p className="hl-updated-by">
-          Last updated by {existing.updatedBy}
-        </p>
-      )}
     </div>
   );
 }
