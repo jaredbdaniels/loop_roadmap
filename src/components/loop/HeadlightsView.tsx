@@ -32,6 +32,18 @@ const STAGE_BLURB: Record<LifecycleStage, string> = {
 
 type HeadlightsMode = "board" | "rollup";
 
+// Resolves an outlook level to its label + CSS color, or the shared "not yet
+// stated" fallback — the one lookup both the rollup chip and the board's
+// outlook-row summary read from, so a change to what a level looks like can
+// never update one and miss the other.
+function outlookLevelDisplay(
+  level: OutlookLevel | null | undefined,
+): { label: string; color: string } {
+  return level
+    ? OUTLOOK_LEVEL_INFO[level]
+    : { label: "Not set", color: "var(--cm-border-strong)" };
+}
+
 export function HeadlightsView({ userEmail }: { userEmail: string | null }) {
   const {
     items,
@@ -342,6 +354,7 @@ function LeadershipRollup({
           {MISSIONS.map((mission) => {
             const outlook = outlooksById.get(outlookId(mission, month));
             const activeCount = activeCounts.get(mission) ?? 0;
+            const { label, color } = outlookLevelDisplay(outlook?.level);
             return (
               <tr
                 key={mission}
@@ -358,15 +371,12 @@ function LeadershipRollup({
                   {outlook?.level ? (
                     <span
                       className="hl-rollup-chip"
-                      style={{
-                        ["--level-color" as string]:
-                          OUTLOOK_LEVEL_INFO[outlook.level].color,
-                      }}
+                      style={{ ["--level-color" as string]: color }}
                     >
-                      {OUTLOOK_LEVEL_INFO[outlook.level].label}
+                      {label}
                     </span>
                   ) : (
-                    <span className="hl-rollup-unset">Not set</span>
+                    <span className="hl-rollup-unset">{label}</span>
                   )}
                 </td>
                 <td className="hl-rollup-risk">
@@ -405,21 +415,18 @@ function OutlookSummaryCell({
 }) {
   const level = existing?.level ?? null;
   const topRisk = existing?.risks?.[0];
+  const { label, color } = outlookLevelDisplay(level);
   return (
     <button
       type="button"
       className="hl-cell hl-outlook-summary"
-      style={{
-        ["--level-color" as string]: level
-          ? OUTLOOK_LEVEL_INFO[level].color
-          : "var(--cm-border-strong)",
-      }}
+      style={{ ["--level-color" as string]: color }}
       onClick={onOpen}
     >
       {level ? (
-        <span className="hl-outlook-chip">{OUTLOOK_LEVEL_INFO[level].label}</span>
+        <span className="hl-outlook-chip">{label}</span>
       ) : (
-        <span className="hl-outlook-chip hl-outlook-chip--unset">Not set</span>
+        <span className="hl-outlook-chip hl-outlook-chip--unset">{label}</span>
       )}
       <span className="hl-outlook-risk">{topRisk || "No risk noted"}</span>
       <span className="hl-outlook-edit-hint">

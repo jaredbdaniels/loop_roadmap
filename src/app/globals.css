@@ -2012,7 +2012,7 @@ body.exporting .tl-pin-slot {
 .hl-corner,
 .hl-month-head {
   padding: 12px 16px 10px;
-  border-bottom: 3px solid var(--outlook-color, transparent);
+  border-bottom: 3px solid var(--outlook-color, var(--cm-border));
   background: var(--cm-surface-muted);
   font-size: 0.72rem;
   font-weight: 700;
@@ -2093,6 +2093,9 @@ body.exporting .tl-pin-slot {
 }
 .hl-item-chip:hover {
   border-color: var(--chip-color, var(--cm-purple));
+}
+.hl-item-chip--unscheduled:hover {
+  border-color: var(--cm-border-strong);
 }
 
 .hl-rollup-wrap {
